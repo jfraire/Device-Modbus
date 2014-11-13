@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Device-Modbus.t
+lib/Device/Modbus.pm
