@@ -22,21 +22,12 @@ sub _build_pdu {
 sub _build_pdu_to_write_multiple_coils {
     my $self = shift;
 
-    # Values must be either 1 or 0
-    my @values = map { $_ ? 1 : 0 } @{$self->values};
-    my $quantity = scalar @values;
-    $self->quantity($quantity);
-
-    # Turn the values array into an array of binary numbers
-    my @values_binary;
-    while (@values) {
-        push @values_binary, pack 'b*', join '', splice @values, 0, 8;
-    }
+    my ($quantity, $values) = Device::Modbus::flatten_bit_values($self->values);
 
     # Build the pdu
     my @pdu = ($self->function_code, $self->address-1, $quantity,
-        scalar(@values_binary));
-    return pack('CnnC', @pdu) . join '', @values_binary;
+        scalar(@$values));
+    return pack('CnnC', @pdu) . join '', @$values;
 }
 
 sub _build_pdu_to_write_multiple_registers {
@@ -71,10 +62,8 @@ sub parse_message {
             );
         }
 
-        # values need to be turned into an array of 1s and 0s
-        @values = map { sprintf "%08B", $_ } @values;
-        @values = map { reverse split //   } @values;
-        @values = splice @values, 0, $quantity;
+        @values = Device::Modbus::explode_bit_values($quantity, @values);
+
     } else {
         ($code, $address, $quantity, $bytes, @values)
             = unpack 'CnnCn*', $args{message};
