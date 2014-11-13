@@ -10,6 +10,7 @@ has pdu      => (is => 'rw', lazy => 1, builder  => 1);
 require Device::Modbus::Exception;
 require Device::Modbus::Response::ReadDiscrete;
 require Device::Modbus::Response::ReadRegisters;
+require Device::Modbus::Response::WriteSingle;
 
 ### Request builders
 
@@ -49,6 +50,24 @@ sub input_registers_read {
     return $req;
 }
 
+sub single_coil_write {
+    my $class = shift;
+    my $req = Device::Modbus::Response::WriteSingle->new(
+        function => 'Write Single Coil',
+        @_
+    );
+    return $req;
+}
+
+sub single_register_write {
+    my $class = shift;
+    my $req = Device::Modbus::Response::WriteSingle->new(
+        function => 'Write Single Register',
+        @_
+    );
+    return $req;
+}
+
 ### Response parsing
 
 sub parse_response {
@@ -66,6 +85,12 @@ sub parse_response {
     }
     elsif ($function_code == 0x03 || $function_code == 0x04) {
         $request = Device::Modbus::Response::ReadRegisters->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+    elsif ($function_code == 0x05 || $function_code == 0x06) {
+        $request = Device::Modbus::Response::WriteSingle->parse_message(
             function => $function,
             message  => $binary_req,
         );
