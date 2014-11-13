@@ -1,17 +1,47 @@
 package Device::Modbus;
 
-use 5.014002;
 use strict;
 use warnings;
 
-our @ISA = qw();
-
 our $VERSION = '0.01';
 
+my %code_for = (
+    # Bit access functions             fcn
+    'Read Discrete Inputs'          => 0x02, 
+    'Read Coils'                    => 0x01, 
+    'Write Single Coil'             => 0x05, 
+    'Write Multiple Coils'          => 0x0F, 
 
-# Preloaded methods go here.
+    # 16-bits access functions         fcn 
+    'Read Input Registers'          => 0x04, 
+    'Read Holding Registers'        => 0x03, 
+    'Write Single Register'         => 0x06, 
+    'Write Multiple Registers'      => 0x10, 
+    'Read/Write Multiple Registers' => 0x17, 
+);
+
+my %function_for = reverse %code_for;
+
+sub code_for {
+    my $fcn = shift;
+    return $code_for{$fcn} if exists $code_for{$fcn};
+    return undef;
+}
+
+sub function_for {
+    my $code = shift;
+    return $function_for{$code} if exists $function_for{$code};
+    return undef;
+}
+
+sub function_code {
+    my $self = shift;
+    return $code_for{ $self->function };
+}
+
 
 1;
+
 __END__
 # Below is stub documentation for your module. You'd better edit it!
 

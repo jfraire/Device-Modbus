@@ -2,6 +2,8 @@ package Device::Modbus::Request;
 
 use Moo;
 
+extends 'Device::Modbus';
+
 has function => (is => 'ro', required => 1);
 has pdu      => (is => 'rw', lazy => 1, builder  => 1);
 
@@ -10,29 +12,6 @@ require Device::Modbus::Request::Read;
 require Device::Modbus::Request::WriteSingle;
 require Device::Modbus::Request::WriteMultiple;
 require Device::Modbus::Request::ReadWrite;
-
-
-my %code_for = (
-    # Bit access functions             fcn
-    'Read Discrete Inputs'          => 0x02, 
-    'Read Coils'                    => 0x01, 
-    'Write Single Coil'             => 0x05, 
-    'Write Multiple Coils'          => 0x0F, 
-
-    # 16-bits access functions         fcn 
-    'Read Input Registers'          => 0x04, 
-    'Read Holding Registers'        => 0x03, 
-    'Write Single Register'         => 0x06, 
-    'Write Multiple Registers'      => 0x10, 
-    'Read/Write Multiple Registers' => 0x17, 
-);
-
-my %function_for = reverse %code_for;
-
-sub function_code {
-    my $self = shift;
-    return $code_for{ $self->function };
-}
 
 ### Request builders
 
@@ -124,7 +103,7 @@ sub parse_request {
 
     my $request;
     my $function_code = unpack 'C', $binary_req;
-    my $function      = $function_for{$function_code};
+    my $function      = Device::Modbus::function_for($function_code);
 
     if ($function_code > 0 && $function_code <= 4) {
         $request = Device::Modbus::Request::Read->parse_message(
@@ -153,7 +132,8 @@ sub parse_request {
     else {
         return Device::Modbus::Exception->new(
             function_code  => $function_code,
-            exception_code => 1
+            exception_code => 1,
+            request        => $binary_req
         );
         die "Unimplemented function";
     }

@@ -54,7 +54,8 @@ sub parse_message {
     {
         return Device::Modbus::Exception->new(
             function_code  => $code,
-            exception_code => 3
+            exception_code => 3,
+            request        => $args{message}
         );
     }
 

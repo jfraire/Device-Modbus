@@ -20,11 +20,17 @@ sub parse_message {
     my ($code, $address, $quantity) = unpack 'Cnn', $args{message};
 
     $address++;
-    if (   $code <= 2 && ($quantity < 1 || $quantity > 2000)
-        || $code  > 2 && ($quantity < 1 || $quantity > 125 )) {
+    unless (
+           $quantity >= 1
+        && (
+               $code <= 2 && $quantity <= 0x07d0
+            || $code >= 3 && $quantity <= 125
+        )
+    ) {
         return Device::Modbus::Exception->new(
             function_code  => $code,
-            exception_code => 3
+            exception_code => 3,
+            request        => $args{message}
         );
     }
 

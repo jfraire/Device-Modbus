@@ -23,8 +23,17 @@ sub parse_message {
 
     my ($code, $address, $value) = unpack 'Cnn', $args{message};
 
-    $address++;
     $value = 1 if $code == 5 && $value;
+
+    unless ($address >= 0 && $address <= 0xffff) {
+        return Device::Modbus::Exception->new(
+            function_code  => $code,
+            exception_code => 3,
+            request        => $args{message}
+        );
+    }
+
+    $address++;
 
     return $class->new(
         function => $args{function},

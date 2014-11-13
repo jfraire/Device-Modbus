@@ -64,6 +64,13 @@ sub parse_message {
         ($code, $address, $quantity, $bytes, @values)
             = unpack 'CnnCC*', $args{message};
 
+        unless ($quantity >= 1 && $quantity <= 0x07b0) {
+            return Device::Modbus::Exception->new(
+                function_code  => $code,
+                exception_code => 3
+            );
+        }
+
         # values need to be turned into an array of 1s and 0s
         @values = map { sprintf "%08B", $_ } @values;
         @values = map { reverse split //   } @values;
@@ -71,8 +78,16 @@ sub parse_message {
     } else {
         ($code, $address, $quantity, $bytes, @values)
             = unpack 'CnnCn*', $args{message};
+
+        unless ($quantity >= 1 && $quantity <= 0x7b) {
+            return Device::Modbus::Exception->new(
+                function_code  => $code,
+                exception_code => 3,
+                request        => $args{message}
+            );
+        }
     }
-    
+
     $address++;
     return $class->new(
         function => $args{function},
