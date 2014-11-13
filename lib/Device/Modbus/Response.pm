@@ -8,31 +8,27 @@ has function => (is => 'ro', required => 1);
 has pdu      => (is => 'rw', lazy => 1, builder  => 1);
 
 require Device::Modbus::Exception;
-require Device::Modbus::Response::ReadCoils;
+require Device::Modbus::Response::ReadDiscrete;
 
 ### Request builders
 
 sub coils_read {
     my $class = shift;
-    my $req = Device::Modbus::Response::ReadCoils->new(
+    my $req = Device::Modbus::Response::ReadDiscrete->new(
         function => 'Read Coils',
         @_
     );
     return $req;
 }
 
-=for later
-
 sub discrete_inputs_read {
     my $class = shift;
-    my $req = Device::Modbus::Request::Read->new(
+    my $req = Device::Modbus::Response::ReadDiscrete->new(
         function => 'Read Discrete Inputs',
         @_
     );
     return $req;
 }
-
-=cut
 
 ### Response parsing
 
@@ -43,8 +39,8 @@ sub parse_response {
     my $function_code = unpack 'C', $binary_req;
     my $function      = Device::Modbus::function_for($function_code);
 
-    if ($function_code == 0x01) {
-        $request = Device::Modbus::Response::ReadCoils->parse_message(
+    if ($function_code == 0x01 || $function_code == 0x02) {
+        $request = Device::Modbus::Response::ReadDiscrete->parse_message(
             function => $function,
             message  => $binary_req,
         );

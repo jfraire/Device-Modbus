@@ -1,4 +1,4 @@
-package Device::Modbus::Response::ReadDiscreteInputs;
+package Device::Modbus::Response::ReadDiscrete;
 
 use Moo;
 use Carp;
