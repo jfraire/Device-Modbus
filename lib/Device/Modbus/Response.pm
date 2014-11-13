@@ -9,6 +9,7 @@ has pdu      => (is => 'rw', lazy => 1, builder  => 1);
 
 require Device::Modbus::Exception;
 require Device::Modbus::Response::ReadDiscrete;
+require Device::Modbus::Response::ReadRegisters;
 
 ### Request builders
 
@@ -30,6 +31,24 @@ sub discrete_inputs_read {
     return $req;
 }
 
+sub holding_registers_read {
+    my $class = shift;
+    my $req = Device::Modbus::Response::ReadRegisters->new(
+        function => 'Read Holding Registers',
+        @_
+    );
+    return $req;
+}
+
+sub input_registers_read {
+    my $class = shift;
+    my $req = Device::Modbus::Response::ReadRegisters->new(
+        function => 'Read Input Registers',
+        @_
+    );
+    return $req;
+}
+
 ### Response parsing
 
 sub parse_response {
@@ -45,15 +64,15 @@ sub parse_response {
             message  => $binary_req,
         );
     }
-
-=for later
-
-    elsif ($function_code == 5 || $function_code == 6) {
-        $request = Device::Modbus::Request::WriteSingle->parse_message(
+    elsif ($function_code == 0x03 || $function_code == 0x04) {
+        $request = Device::Modbus::Response::ReadRegisters->parse_message(
             function => $function,
             message  => $binary_req,
         );
     }
+
+=for later
+
     elsif ($function_code == 0x0f || $function_code == 0x10) {
         $request = Device::Modbus::Request::WriteMultiple->parse_message(
             function => $function,
