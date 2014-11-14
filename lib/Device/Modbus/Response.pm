@@ -13,7 +13,7 @@ require Device::Modbus::Response::ReadRegisters;
 require Device::Modbus::Response::WriteSingle;
 require Device::Modbus::Response::WriteMultiple;
 
-### Request builders
+### Response builders
 
 sub coils_read {
     my $class = shift;
@@ -82,6 +82,15 @@ sub multiple_registers_write {
     my $class = shift;
     my $req = Device::Modbus::Response::WriteMultiple->new(
         function => 'Write Multiple Registers',
+        @_
+    );
+    return $req;
+}
+
+sub read_write_registers {
+    my $class = shift;
+    my $req = Device::Modbus::Response::ReadWrite->new(
+        function => 'Read/Write Multiple Registers',
         @_
     );
     return $req;
