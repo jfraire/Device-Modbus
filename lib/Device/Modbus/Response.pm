@@ -11,6 +11,7 @@ require Device::Modbus::Exception;
 require Device::Modbus::Response::ReadDiscrete;
 require Device::Modbus::Response::ReadRegisters;
 require Device::Modbus::Response::WriteSingle;
+require Device::Modbus::Response::WriteMultiple;
 
 ### Request builders
 
@@ -68,6 +69,24 @@ sub single_register_write {
     return $req;
 }
 
+sub multiple_coils_write {
+    my $class = shift;
+    my $req = Device::Modbus::Response::WriteMultiple->new(
+        function => 'Write Multiple Coils',
+        @_
+    );
+    return $req;
+}
+
+sub multiple_registers_write {
+    my $class = shift;
+    my $req = Device::Modbus::Response::WriteMultiple->new(
+        function => 'Write Multiple Registers',
+        @_
+    );
+    return $req;
+}
+
 ### Response parsing
 
 sub parse_response {
@@ -95,15 +114,15 @@ sub parse_response {
             message  => $binary_req,
         );
     }
-
-=for later
-
     elsif ($function_code == 0x0f || $function_code == 0x10) {
-        $request = Device::Modbus::Request::WriteMultiple->parse_message(
+        $request = Device::Modbus::Response::WriteMultiple->parse_message(
             function => $function,
             message  => $binary_req,
         );
     }
+
+=for later
+
     elsif ($function_code == 0x17) {
         $request = Device::Modbus::Request::ReadWrite->parse_message(
             function => $function,

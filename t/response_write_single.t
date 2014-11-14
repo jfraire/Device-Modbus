@@ -6,16 +6,16 @@ BEGIN { use_ok('Device::Modbus::Response') };
 
 # Write Single Coil
 {
-    my $request = Device::Modbus::Response->single_coil_write(
+    my $response = Device::Modbus::Response->single_coil_write(
         address  => 173,
         value    => 1
     );
 
-    isa_ok $request, 'Device::Modbus::Response::WriteSingle';
-    is $request->function_code, 0x05,
+    isa_ok $response, 'Device::Modbus::Response::WriteSingle';
+    is $response->function_code, 0x05,
         'Function code returned correctly';
 
-    my $pdu = $request->pdu;
+    my $pdu = $response->pdu;
     my $pdu_string = unpack('H*', $pdu);
     is $pdu_string, '0500acff00',
         'PDU for Write Single Coil function is correct';
@@ -23,16 +23,16 @@ BEGIN { use_ok('Device::Modbus::Response') };
 
 # Write Single Register
 {
-    my $request = Device::Modbus::Response->single_register_write(
+    my $response = Device::Modbus::Response->single_register_write(
         address  => 2,
         value    => 0x03
     );
 
-    isa_ok $request, 'Device::Modbus::Response::WriteSingle';
-    is $request->function_code, 0x06,
+    isa_ok $response, 'Device::Modbus::Response::WriteSingle';
+    is $response->function_code, 0x06,
         'Function code returned correctly';
 
-    my $pdu = $request->pdu;
+    my $pdu = $response->pdu;
     my $pdu_string = unpack('H*', $pdu);
     is $pdu_string, '0600010003',
         'PDU for Write Single Register function is correct';
@@ -41,36 +41,36 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Write Single Coil
 {
     my $message = pack 'H*', '0500acff00';
-    my $request = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus::Response->parse_response($message);
 
-    isa_ok $request, 'Device::Modbus::Response::WriteSingle';
-    is $request->function, 'Write Single Coil',
+    isa_ok $response, 'Device::Modbus::Response::WriteSingle';
+    is $response->function, 'Write Single Coil',
         'Write Single Coil name is retrieved correctly';
-    is $request->function_code, 0x05,
+    is $response->function_code, 0x05,
         'Function code returned correctly';
-    is $request->address, 173,
+    is $response->address, 173,
         'Initial address returned correctly';
-    is $request->value, 1,
+    is $response->value, 1,
         'Quantity of coils returned correctly';
-    is $request->pdu, $message,
+    is $response->pdu, $message,
         'Original message is saved in pdu';
 }
 
 # Write Single Register
 {
     my $message = pack 'H*', '0600010003';
-    my $request = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus::Response->parse_response($message);
 
-    isa_ok $request, 'Device::Modbus::Response::WriteSingle';
-    is $request->function, 'Write Single Register',
+    isa_ok $response, 'Device::Modbus::Response::WriteSingle';
+    is $response->function, 'Write Single Register',
         'Write Single Register name is retrieved correctly';
-    is $request->function_code, 0x06,
+    is $response->function_code, 0x06,
         'Function code returned correctly';
-    is $request->address, 2,
+    is $response->address, 2,
         'Initial address returned correctly';
-    is $request->value, 3,
+    is $response->value, 3,
         'Quantity of coils returned correctly';
-    is $request->pdu, $message,
+    is $response->pdu, $message,
         'Original message is saved in pdu';
 }
 
