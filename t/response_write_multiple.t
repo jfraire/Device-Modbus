@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 19;
 BEGIN { use_ok('Device::Modbus::Response') };
 
 # Write Multiple Coils response
@@ -36,6 +36,42 @@ BEGIN { use_ok('Device::Modbus::Response') };
     my $pdu_string = unpack('H*', $pdu);
     is $pdu_string, '1000010002',
         'PDU for Write Multiple Registers function is correct';
+}
+
+# Parse Write Multiple Coils response
+{
+    my $message = pack 'H*', '0f0013000a';
+    my $response = Device::Modbus::Response->parse_response($message);
+
+    isa_ok $response, 'Device::Modbus::Response::WriteMultiple';
+    is $response->function, 'Write Multiple Coils',
+        'Write Multiple Coils name is retrieved correctly';
+    is $response->function_code, 0x0f,
+        'Function code returned correctly';
+    is $response->address, 20,
+        'Initial address returned correctly';
+    is $response->quantity, 10,
+        'Quantity of coils returned correctly';
+    is $response->pdu, $message,
+        'Original message is saved in pdu';
+}
+
+# Parse Write Multiple Registers response
+{
+    my $message = pack 'H*', '1000010002';
+    my $response = Device::Modbus::Response->parse_response($message);
+
+    isa_ok $response, 'Device::Modbus::Response::WriteMultiple';
+    is $response->function, 'Write Multiple Registers',
+        'Write Multiple Registers name is retrieved correctly';
+    is $response->function_code, 0x10,
+        'Function code returned correctly';
+    is $response->address, 2,
+        'Initial address returned correctly';
+    is $response->quantity, 2,
+        'Quantity of registers returned correctly';
+    is $response->pdu, $message,
+        'Original message is saved in pdu';
 }
 
 done_testing();

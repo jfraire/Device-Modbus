@@ -23,8 +23,8 @@ sub parse_message {
 
     return $class->new(
         function => $args{function},
-        address  => $args{address},
-        quantity => $args{quantity},
+        address  => $address,
+        quantity => $quantity,
         pdu      => $args{message}
     );
 }
