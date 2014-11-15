@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 10;
 BEGIN { use_ok('Device::Modbus::Response') };
 
 # Read/Write Multiple Registers response
@@ -32,7 +32,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
         'Function code returned correctly';
     is $response->bytes, 12,
         'Quantity of read bytes returned correctly';
-    is $response->values, [0x00fe, 0x0acd, 0x0001, 0x0003, 0x000d, 0x00ff],
+    is_deeply $response->values, [0x00fe, 0x0acd, 0x0001, 0x0003, 0x000d, 0x00ff],
         'Read values returned correctly';
     is $response->pdu, $message,
         'Original message is saved in pdu';

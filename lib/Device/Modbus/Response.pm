@@ -12,6 +12,7 @@ require Device::Modbus::Response::ReadDiscrete;
 require Device::Modbus::Response::ReadRegisters;
 require Device::Modbus::Response::WriteSingle;
 require Device::Modbus::Response::WriteMultiple;
+require Device::Modbus::Response::ReadWrite;
 
 ### Response builders
 
@@ -129,11 +130,8 @@ sub parse_response {
             message  => $binary_req,
         );
     }
-
-=for later
-
     elsif ($function_code == 0x17) {
-        $request = Device::Modbus::Request::ReadWrite->parse_message(
+        $request = Device::Modbus::Response::ReadWrite->parse_message(
             function => $function,
             message  => $binary_req,
         );
@@ -146,10 +144,6 @@ sub parse_response {
         );
         die "Unimplemented function";
     }
-
-=cut
-
-    return $request;    
 }
 
 1; 
