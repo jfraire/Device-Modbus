@@ -142,7 +142,6 @@ sub parse_response {
             exception_code => 1,
             request        => $binary_req
         );
-        die "Unimplemented function";
     }
 }
 
