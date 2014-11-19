@@ -102,36 +102,36 @@ sub read_write_registers {
 sub parse_response {
     my ($class, $binary_req) = @_;
 
-    my $request;
+    my $response;
     my $function_code = unpack 'C', $binary_req;
     my $function      = Device::Modbus::function_for($function_code);
 
     if ($function_code == 0x01 || $function_code == 0x02) {
-        $request = Device::Modbus::Response::ReadDiscrete->parse_message(
+        $response = Device::Modbus::Response::ReadDiscrete->parse_message(
             function => $function,
             message  => $binary_req,
         );
     }
     elsif ($function_code == 0x03 || $function_code == 0x04) {
-        $request = Device::Modbus::Response::ReadRegisters->parse_message(
+        $response = Device::Modbus::Response::ReadRegisters->parse_message(
             function => $function,
             message  => $binary_req,
         );
     }
     elsif ($function_code == 0x05 || $function_code == 0x06) {
-        $request = Device::Modbus::Response::WriteSingle->parse_message(
+        $response = Device::Modbus::Response::WriteSingle->parse_message(
             function => $function,
             message  => $binary_req,
         );
     }
     elsif ($function_code == 0x0f || $function_code == 0x10) {
-        $request = Device::Modbus::Response::WriteMultiple->parse_message(
+        $response = Device::Modbus::Response::WriteMultiple->parse_message(
             function => $function,
             message  => $binary_req,
         );
     }
     elsif ($function_code == 0x17) {
-        $request = Device::Modbus::Response::ReadWrite->parse_message(
+        $response = Device::Modbus::Response::ReadWrite->parse_message(
             function => $function,
             message  => $binary_req,
         );
@@ -143,6 +143,8 @@ sub parse_response {
             request        => $binary_req
         );
     }
+
+    return $response;
 }
 
 1; 

@@ -67,6 +67,7 @@ BEGIN {
     my $trn = Device::Modbus::Transaction::TCP->new(
         id      => 38999,
         unit    => 24,
+        timeout => 0.2
     );
     isa_ok $trn, 'Device::Modbus::Transaction::TCP';
     ok ! $trn->has_response,
