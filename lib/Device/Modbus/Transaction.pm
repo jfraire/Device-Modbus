@@ -3,9 +3,9 @@ package Device::Modbus::Transaction;
 use Moo;
 
 has id          => (is => 'ro', required => 1);
+has timeout     => (is => 'rw', required => 1);
 has request     => (is => 'rw', handles => {request_pdu  => 'pdu'}, predicate => 1);
 has response    => (is => 'rw', handles => {response_pdu => 'pdu'}, predicate => 1);
-has timeout     => (is => 'rw', default => sub {1});
 has expires     => (is => 'rw');
 has max_retries => (is => 'rw', default => sub {3});
 has retries     => (is => 'rw', default => sub {0});
