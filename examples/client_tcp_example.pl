@@ -12,8 +12,8 @@ my $req    = Device::Modbus::Request->read_holding_registers(
 );
 
 my $trn = $client->request_transaction($req);
-$client->send_request($trn) || die "Maldición: no pude escribir $!";
-$client->receive_response;
+$client->send_request($trn) || die "Send error";
+$client->receive_response   || die "Receive error";
 
 if (ref $trn->response eq 'Device::Modbus::Exception') {
     say Dumper $trn->response;

@@ -13,7 +13,7 @@ has max_transactions     => (is => 'rw', default  => sub {16});
 has waiting_room         => (is => 'rw', default  => sub {+{}});
 
 has blocking             => (is => 'ro', default  => sub {1});
-has socket               => (is => 'lazy', handles => ['connected']);
+has socket               => (is => 'rw', builder  => 1, handles => ['connected']);
 
 extends 'Device::Modbus::Client';
 
@@ -80,8 +80,14 @@ sub send_request {
 sub receive_response {
     my $self = shift;
     my $message;
-    $self->socket->recv($message, 256);
+    
+    my $ret = $self->socket->recv($message, 256);
+    return undef if !defined $ret;
+    return 0 unless length $message;
+    
     my ($trn_id, $unit, $pdu) = $self->break_response($message);
+    return undef unless defined $trn_id;
+    
     my $trn = $self->get_from_waiting_room($trn_id);
     my $resp = Device::Modbus::Response->parse_response($pdu);
     $trn->response($resp);
@@ -90,7 +96,9 @@ sub receive_response {
 
 sub close {
     my $self = shift;
-    return $self->socket->close;
+    my $ret = $self->socket->close;
+    $self->socket(undef);
+    return $ret;
 }
 
 #### Message parsing
@@ -99,7 +107,7 @@ sub break_response {
     my ($self, $message) = @_;
     my ($id, $proto, $length, $unit) = unpack 'nnnC', $message;
     my $pdu = substr $message, 7;
-    warn "Length is not legal" if length($pdu) != $length-1; 
+    return if length($pdu) != $length-1; 
     return $id, $unit, $pdu;
 }
 

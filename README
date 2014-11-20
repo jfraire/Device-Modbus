@@ -11,9 +11,8 @@ Currently, only blocking Modbus TCP clients are functional.
 
 MILESTONES
 
-- Non-blocking Modbus TCP clients
-- Modbus RTU client
 - Modbus TCP server module to be used along with Net::Daemon
+- Non-blocking Modbus TCP clients
 - Modbus RTU client
 
 INSTALLATION
