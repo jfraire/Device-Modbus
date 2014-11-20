@@ -81,7 +81,7 @@ sub receive_response {
     my $self = shift;
     my $message;
     
-    my $ret = $self->socket->recv($message, 256);
+    my $ret = $self->socket->recv($message, 260);
     return undef if !defined $ret;
     return 0 unless length $message;
     
