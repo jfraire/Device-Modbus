@@ -1,4 +1,4 @@
-#! -*- perl -*-
+#! /usr/bin/env perl
 
 # This program is based on the example shown in Net::Daemon
 # documentation, by Malcolm H. Nooning
@@ -27,23 +27,23 @@ sub Run {
     my $rc = $sock->recv($msg, 260);
     unless (defined $rc) {
         $self->Error('Communication error');
-        next;
+        return;
     }
     $self->Log('notice', "Received message from " . $sock->peerhost);
 
-    # Issue a new transaction
+    # Parse request and issue a new transaction
     my ($trn_id, $unit, $pdu) = $self->break_request($msg);
     if (!defined $trn_id) {
         $self->Error('Request error');
-        next;
+        return;
     }
 
     my $req = Device::Modbus::Request->parse_request($pdu);
+
     my $trn = Device::Modbus::Transaction::TCP->new(
         id      => $trn_id,
         unit    => $unit,
-        request => $req,
-        timeout => 3,
+        request => $req
     );
     
     if (ref $req eq 'Device::Modbus::Exception') {
