@@ -1,10 +1,11 @@
 use strict;
 use warnings;
 
-use Test::More tests => 27;
+use Test::More tests => 28;
 
 BEGIN {
     use_ok('Device::Modbus');
+    use_ok('Device::Modbus::TCP');
     use_ok('Device::Modbus::Transaction');
     use_ok('Device::Modbus::Client::TCP');
 };
@@ -70,10 +71,10 @@ BEGIN {
         'Request is indeed in the transaction';
 
     my $mbap = pack 'nnnC', 3, 0, length($req->pdu)+1, 0xff;
-    is unpack('h*', $client->header($req->pdu)), unpack('h*', $mbap),
+    is unpack('h*', Device::Modbus::TCP->header($trn, $req->pdu)), unpack('h*', $mbap),
         'MBAP header is calculated as expected';
 
-    is  unpack('h*',$client->build_request_apu),
+    is  unpack('h*',Device::Modbus::TCP->build_apu($trn, $req->pdu)),
         unpack('h*',$mbap . $req->pdu),
         'And the request APU is also as expected';
 }

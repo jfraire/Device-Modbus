@@ -35,14 +35,14 @@ sub Run {
     $self->Log('notice', 'Received message from ' . $sock->peerhost);
 
     # Parse request and issue a new transaction
-    my ($trn_id, $unit, $pdu) = Device::Modbus::TCP->break_message($msg);
+    my ($trn_id, $unit, $pdu) = $self->break_message($msg);
     if (!defined $trn_id) {
         $self->Error('Request error');
         return;
     }
 
-    my $req = Device::Modbus::Request->parse_request($pdu);
-    my $trn = Device::Modbus::Transaction::TCP->new(
+    my $req = Device::Modbus->parse_request($pdu);
+    my $trn = Device::Modbus::Transaction->new(
         id      => $trn_id,
         unit    => $unit,
         request => $req
@@ -95,6 +95,16 @@ sub Run {
 
     $trn->response($exception);
     $sock->send($trn->build_response_apu);
+}
+
+#### Message parsing
+
+sub break_message {
+    my ($self, $message) = @_;
+    my ($id, $proto, $length, $unit) = unpack 'nnnC', $message;
+    my $pdu = substr $message, 7;
+    return if length($pdu) != $length-1; 
+    return $id, $unit, $pdu;
 }
  
 1;

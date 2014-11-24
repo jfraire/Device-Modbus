@@ -1,5 +1,6 @@
 package Device::Modbus::Client;
 
+use Device::Modbus::Transaction;
 use Moo;
 use Carp;
 
@@ -65,49 +66,6 @@ sub receive_response {
 sub close {
     croak 'close method must be implemented by a subclass of '
         . 'Device::Modbus::Client';
-}
-
-#### Build messages
-
-sub header {
-    croak 'header method must be implemented by a subclass of '
-        . 'Device::Modbus::Client';
-}
-
-sub footer {
-    croak 'footer method must be implemented by a subclass of '
-        . 'Device::Modbus::Client';
-}
-
-sub break_message {
-    croak 'break_message method must be implemented by a subclass of '
-        . 'Device::Modbus::Client';
-}
-
-sub build_request_apu {
-    my $self = shift;
-    my $req = $self->transaction->request;
-    return $self->build_apu($req);
-}
-
-sub build_response_apu {
-    my $self = shift;
-    my $res = $self->transaction->response;
-    return $self->build_apu($res);
-}
-
-sub build_exception_apu {
-    my ($self, $exc)   = @_;
-    return $self->build_apu($exc);
-}
-
-sub build_apu {
-    my ($self, $obj) = @_;
-    my $pdu    = $obj->pdu;
-    my $header = $self->header($pdu);
-    my $footer = $self->footer($pdu);
-    my $apu    = $header . $pdu . $footer;
-    return $apu;
 }
 
 1;
