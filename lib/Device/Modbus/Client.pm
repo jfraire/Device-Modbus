@@ -3,10 +3,15 @@ package Device::Modbus::Client;
 use Moo;
 use Carp;
 
-has timeout => (is => 'rw', default  => 0.2);
+has unit        => (is => 'ro', default  => sub {0xff});
+has timeout     => (is => 'rw', default  => 0.2);
+has transaction => (is => 'rw');
 
 #### Transaction handling
 
+my $transaction_id = 0;
+
+# Probably useless...
 sub request_transaction {
     my ($self, $req) = @_;
     my $trn = $self->init_transaction || return undef;
@@ -14,9 +19,35 @@ sub request_transaction {
     return $trn;
 }
 
+sub next_trn_id {
+    my $self = shift;
+
+    return if scalar keys %{ $self->waiting_room }
+        >= $self->max_transactions;
+
+    $transaction_id++;
+    $transaction_id = 1 if $transaction_id > 65_535;
+    $self->waiting_room->{$transaction_id}++;
+    return $transaction_id;
+}
+
 sub init_transaction {
-    croak 'init_transaction must be implemented by a subclass of '
-        . 'Device::Modbus::Client';
+    my $self = shift;
+    my $id = $self->next_trn_id || return;
+    my $trn = Device::Modbus::Transaction->new(
+        id      => $id,
+        timeout => $self->timeout,
+        unit    => $self->unit
+    );
+    $self->transaction($trn);
+    return $trn;
+}
+
+sub clear_transaction {
+    my $self = shift;
+    my $trn = $self->transaction;
+    $self->transaction(undef);
+    return $trn;
 }
 
 #### Communication interface
@@ -26,9 +57,57 @@ sub send_request {
         . 'Device::Modbus::Client';
 }
 
-sub read_response {
+sub receive_response {
     croak 'read_response method must be implemented by a subclass of '
         . 'Device::Modbus::Client';
+}
+
+sub close {
+    croak 'close method must be implemented by a subclass of '
+        . 'Device::Modbus::Client';
+}
+
+#### Build messages
+
+sub header {
+    croak 'header method must be implemented by a subclass of '
+        . 'Device::Modbus::Client';
+}
+
+sub footer {
+    croak 'footer method must be implemented by a subclass of '
+        . 'Device::Modbus::Client';
+}
+
+sub break_message {
+    croak 'break_message method must be implemented by a subclass of '
+        . 'Device::Modbus::Client';
+}
+
+sub build_request_apu {
+    my $self = shift;
+    my $req = $self->transaction->request;
+    return $self->build_apu($req);
+}
+
+sub build_response_apu {
+    my $self = shift;
+    my $res = $self->transaction->response;
+    return $self->build_apu($res);
+}
+
+sub build_exception_apu {
+    my ($self, $exc)   = @_;
+    return $self->build_apu($exc);
+}
+
+sub build_apu {
+    my ($self, $obj) = @_;
+    my $pdu    = $obj->pdu;
+    my $header = $self->header($pdu);
+    my $footer = $self->footer($pdu);
+    my $apu    = $header . $pdu . $footer;
+    return $apu;
 }
 
 1;

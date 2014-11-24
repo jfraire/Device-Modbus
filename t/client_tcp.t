@@ -1,11 +1,11 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 27;
 
 BEGIN {
-    use_ok('Device::Modbus::Request');
-    use_ok('Device::Modbus::Transaction::TCP');
+    use_ok('Device::Modbus');
+    use_ok('Device::Modbus::Transaction');
     use_ok('Device::Modbus::Client::TCP');
 };
 
@@ -39,7 +39,7 @@ BEGIN {
 
 
     my $trn = $client->init_transaction;
-    isa_ok $trn, 'Device::Modbus::Transaction::TCP';
+    isa_ok $trn, 'Device::Modbus::Transaction';
     is $trn->id, 2,
         'Transaction id was increased by one';
     is $trn->timeout, $client->timeout,
@@ -55,19 +55,27 @@ BEGIN {
         'The transaction is now in the waiting room';
 
 
-    my $req = Device::Modbus::Request->read_coils(
+    my $req = Device::Modbus->read_coils(
         address  => 20,
         quantity => 19
     );
     isa_ok $req, 'Device::Modbus::Request::Read';
 
     $trn = $client->request_transaction($req);
-    isa_ok $trn, 'Device::Modbus::Transaction::TCP';
+    isa_ok $trn, 'Device::Modbus::Transaction';
     is scalar keys $client->waiting_room, 2,
         'Requested transaction is expected in waiting room';
 
     is_deeply $trn->request, $req,
         'Request is indeed in the transaction';
+
+    my $mbap = pack 'nnnC', 3, 0, length($req->pdu)+1, 0xff;
+    is unpack('h*', $client->header($req->pdu)), unpack('h*', $mbap),
+        'MBAP header is calculated as expected';
+
+    is  unpack('h*',$client->build_request_apu),
+        unpack('h*',$mbap . $req->pdu),
+        'And the request APU is also as expected';
 }
 
 done_testing();

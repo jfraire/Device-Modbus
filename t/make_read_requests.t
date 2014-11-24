@@ -2,11 +2,11 @@ use strict;
 use warnings;
 
 use Test::More tests => 14;
-BEGIN { use_ok('Device::Modbus::Request') };
+BEGIN { use_ok('Device::Modbus') };
 
 # Read Coils request
 {
-    my $request = Device::Modbus::Request->read_coils(
+    my $request = Device::Modbus->read_coils(
         address  => 20,
         quantity => 19
     );
@@ -25,12 +25,12 @@ BEGIN { use_ok('Device::Modbus::Request') };
 
 # Read Discrete Inputs
 {
-    my $request = Device::Modbus::Request->read_discrete_inputs(
+    my $request = Device::Modbus->read_discrete_inputs(
         address  => 197,
         quantity => 218-196
     );
 
-    isa_ok $request, 'Device::Modbus::Request';
+    isa_ok $request, 'Device::Modbus::Message';
     is $request->function_code, 0x02,
         'Function code returned correctly';
 
@@ -42,12 +42,12 @@ BEGIN { use_ok('Device::Modbus::Request') };
 
 # Read Holding Registers
 {
-    my $request = Device::Modbus::Request->read_holding_registers(
+    my $request = Device::Modbus->read_holding_registers(
         address  => 108,
         quantity => 110-107
     );
 
-    isa_ok $request, 'Device::Modbus::Request';
+    isa_ok $request, 'Device::Modbus::Message';
     is $request->function_code, 0x03,
         'Function code returned correctly';
 
@@ -59,12 +59,12 @@ BEGIN { use_ok('Device::Modbus::Request') };
 
 # Read Input Registers
 {
-    my $request = Device::Modbus::Request->read_input_registers(
+    my $request = Device::Modbus->read_input_registers(
         address  => 9,
         quantity => 1
     );
 
-    isa_ok $request, 'Device::Modbus::Request';
+    isa_ok $request, 'Device::Modbus::Message';
     is $request->function_code, 0x04,
         'Function code returned correctly';
 

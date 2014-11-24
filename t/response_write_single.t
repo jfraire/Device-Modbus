@@ -2,11 +2,11 @@ use strict;
 use warnings;
 
 use Test::More tests => 19;
-BEGIN { use_ok('Device::Modbus::Response') };
+BEGIN { use_ok('Device::Modbus') };
 
 # Write Single Coil
 {
-    my $response = Device::Modbus::Response->single_coil_write(
+    my $response = Device::Modbus->single_coil_write(
         address  => 173,
         value    => 1
     );
@@ -23,7 +23,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 
 # Write Single Register
 {
-    my $response = Device::Modbus::Response->single_register_write(
+    my $response = Device::Modbus->single_register_write(
         address  => 2,
         value    => 0x03
     );
@@ -41,7 +41,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Write Single Coil
 {
     my $message = pack 'H*', '0500acff00';
-    my $response = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus->parse_response($message);
 
     isa_ok $response, 'Device::Modbus::Response::WriteSingle';
     is $response->function, 'Write Single Coil',
@@ -59,7 +59,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Write Single Register
 {
     my $message = pack 'H*', '0600010003';
-    my $response = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus->parse_response($message);
 
     isa_ok $response, 'Device::Modbus::Response::WriteSingle';
     is $response->function, 'Write Single Register',

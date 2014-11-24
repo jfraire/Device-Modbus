@@ -1,9 +1,7 @@
 package Device::Modbus::Request::Read;
 
 use Moo;
-use Carp;
-
-extends 'Device::Modbus::Request';
+extends 'Device::Modbus::Message';
 
 has address  => (is => 'ro', required => 1);
 has quantity => (is => 'ro', required => 1);

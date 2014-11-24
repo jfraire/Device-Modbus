@@ -1,9 +1,8 @@
 package Device::Modbus::Response::WriteSingle;
 
 use Moo;
-use Carp;
 
-extends 'Device::Modbus::Response';
+extends 'Device::Modbus::Message';
 
 has address  => (is => 'ro', required => 1);
 has value    => (is => 'ro', required => 1);

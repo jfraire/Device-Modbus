@@ -2,11 +2,11 @@ use strict;
 use warnings;
 
 use Test::More tests => 23;
-BEGIN { use_ok('Device::Modbus::Response') };
+BEGIN { use_ok('Device::Modbus') };
 
 # Build a response object for a read holding registers request
 {
-    my $response = Device::Modbus::Response->holding_registers_read(
+    my $response = Device::Modbus->holding_registers_read(
         values  => [0x022b, 0x0000, 0x0064]        
     );
 
@@ -26,7 +26,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 
 # Build a response object for a read holding registers request
 {
-    my $response = Device::Modbus::Response->input_registers_read(
+    my $response = Device::Modbus->input_registers_read(
         values  => [0x000a]        
     );
 
@@ -47,7 +47,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Parse an incoming response object -- Read holding registers
 {
     my $message  = pack 'H*', '0306022b00000064';
-    my $response = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus->parse_response($message);
 
     isa_ok $response, 'Device::Modbus::Response::ReadRegisters';
     is $response->function, 'Read Holding Registers',
@@ -65,7 +65,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Parse an incoming response object -- Read input registers
 {
     my $message  = pack 'H*', '0402000a';
-    my $response = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus->parse_response($message);
 
     isa_ok $response, 'Device::Modbus::Response::ReadRegisters';
     is $response->function, 'Read Input Registers',

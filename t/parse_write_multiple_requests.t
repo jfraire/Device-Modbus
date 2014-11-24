@@ -1,13 +1,13 @@
 use strict;
 use warnings;
 
-use Test::More;
-BEGIN { use_ok('Device::Modbus::Request') };
+use Test::More tests => 15;
+BEGIN { use_ok('Device::Modbus') };
 
 # Write Multiple Coils
 {
     my $message = pack 'H*', '0f0013000a02cd01';
-    my $request = Device::Modbus::Request->parse_request($message);
+    my $request = Device::Modbus->parse_request($message);
 
     isa_ok $request, 'Device::Modbus::Request::WriteMultiple';
     is $request->function, 'Write Multiple Coils',
@@ -27,7 +27,7 @@ BEGIN { use_ok('Device::Modbus::Request') };
 # Write Multiple Registers
 {
     my $message = pack 'H*', '100001000204000a0102';
-    my $request = Device::Modbus::Request->parse_request($message);
+    my $request = Device::Modbus->parse_request($message);
 
     isa_ok $request, 'Device::Modbus::Request::WriteMultiple';
     is $request->function, 'Write Multiple Registers',

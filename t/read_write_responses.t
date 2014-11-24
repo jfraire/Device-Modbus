@@ -2,11 +2,11 @@ use strict;
 use warnings;
 
 use Test::More tests => 10;
-BEGIN { use_ok('Device::Modbus::Response') };
+BEGIN { use_ok('Device::Modbus') };
 
 # Read/Write Multiple Registers response
 {
-    my $response = Device::Modbus::Response->read_write_registers(
+    my $response = Device::Modbus->registers_read_write(
         values   => [0x00fe, 0x0acd, 0x0001, 0x0003, 0x000d, 0x00ff]
     );
 
@@ -23,7 +23,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Parse Read/Write Multiple Registers response
 {
     my $message = pack 'H*', '170c00fe0acd00010003000d00ff';
-    my $response = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus->parse_response($message);
 
     isa_ok $response, 'Device::Modbus::Response::ReadWrite';
     is $response->function, 'Read/Write Multiple Registers',

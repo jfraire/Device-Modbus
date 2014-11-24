@@ -2,11 +2,11 @@ use strict;
 use warnings;
 
 use Test::More tests => 19;
-BEGIN { use_ok('Device::Modbus::Response') };
+BEGIN { use_ok('Device::Modbus') };
 
 # Write Multiple Coils response
 {
-    my $response = Device::Modbus::Response->multiple_coils_write(
+    my $response = Device::Modbus->multiple_coils_write(
         address  => 20,
         quantity => 10
     );
@@ -23,7 +23,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 
 # Write Multiple Registers response
 {
-    my $response = Device::Modbus::Response->multiple_registers_write(
+    my $response = Device::Modbus->multiple_registers_write(
         address  => 2,
         quantity => 2
     );
@@ -41,7 +41,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Parse Write Multiple Coils response
 {
     my $message = pack 'H*', '0f0013000a';
-    my $response = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus->parse_response($message);
 
     isa_ok $response, 'Device::Modbus::Response::WriteMultiple';
     is $response->function, 'Write Multiple Coils',
@@ -59,7 +59,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Parse Write Multiple Registers response
 {
     my $message = pack 'H*', '1000010002';
-    my $response = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus->parse_response($message);
 
     isa_ok $response, 'Device::Modbus::Response::WriteMultiple';
     is $response->function, 'Write Multiple Registers',

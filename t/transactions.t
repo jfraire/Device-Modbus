@@ -1,24 +1,22 @@
 use strict;
 use warnings;
 
-use Test::More tests => 27;
+use Test::More tests => 21;
 
 BEGIN {
-    use_ok('Device::Modbus::Request');
-    use_ok('Device::Modbus::Response');
+    use_ok('Device::Modbus');
     use_ok('Device::Modbus::Transaction');
-    use_ok('Device::Modbus::Transaction::TCP');
 };
 
 # Build transaction for a Read Coils request
 {
-    my $trn = Device::Modbus::Transaction::TCP->new(
+    my $trn = Device::Modbus::Transaction->new(
         id      => 1,
         timeout => 0.2
     );
-    isa_ok $trn, 'Device::Modbus::Transaction::TCP';
+    isa_ok $trn, 'Device::Modbus::Transaction';
 
-    my $request = Device::Modbus::Request->read_coils(
+    my $request = Device::Modbus->read_coils(
         address  => 20,
         quantity => 19
     );
@@ -42,13 +40,6 @@ BEGIN {
     is $trn->unit, 0xff,
         'Unit number (slave) is set to default value';
 
-    my $mbap = pack 'nnnC', 1, 0, length($pdu)+1, 0xff;
-    is $trn->header($trn->request_pdu), $mbap,
-        'MBAP header is calculated as expected';
-
-    is $trn->build_request_apu, $mbap . $pdu,
-        'And the request APU is also as expected';
-
     $trn->set_expiration_time(5);
     is $trn->expires, 5.2,
         'Expiration time is set by adding time to timeout';
@@ -64,16 +55,16 @@ BEGIN {
 }
 
 {
-    my $trn = Device::Modbus::Transaction::TCP->new(
+    my $trn = Device::Modbus::Transaction->new(
         id      => 38999,
         unit    => 24,
         timeout => 0.2
     );
-    isa_ok $trn, 'Device::Modbus::Transaction::TCP';
+    isa_ok $trn, 'Device::Modbus::Transaction';
     ok ! $trn->has_response,
         'Like most things in the world, transaction does not have a response';
 
-    my $response = Device::Modbus::Response->coils_read(
+    my $response = Device::Modbus->coils_read(
         values  => [1,0,1,1,0,0,1,1,   1,1,0,1,0,1,1,0,  1,0,1, 0]        
     );
     isa_ok $response, 'Device::Modbus::Response::ReadDiscrete';
@@ -91,13 +82,6 @@ BEGIN {
         'Request PDU retrieved correctly from transaction';
     is $trn->unit, 24,
         'Unit number (slave) works correctly';
-
-    my $mbap = pack 'nnnC', 38999, 0, length($pdu)+1, 24;
-    is $trn->header($trn->response_pdu), $mbap,
-        'MBAP header is calculated as expected';
-
-    is $trn->build_response_apu, $mbap . $pdu,
-        'And the response APU is also as expected';
 }
 
 

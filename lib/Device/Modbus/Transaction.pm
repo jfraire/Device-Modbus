@@ -3,6 +3,7 @@ package Device::Modbus::Transaction;
 use Moo;
 
 has id          => (is => 'ro', required => 1);
+has unit        => (is => 'ro', default => sub {0xff});
 has request     => (is => 'rw', handles => {request_pdu  => 'pdu'}, predicate => 1);
 has response    => (is => 'rw', handles => {response_pdu => 'pdu'}, predicate => 1);
 has timeout     => (is => 'rw');
@@ -16,24 +17,6 @@ sub increment_retries {
     $retries++;
     $self->retries($retries);
     return $retries;
-}
-
-sub build_request_apu {
-    my $self   = shift;
-    my $pdu    = $self->request_pdu;
-    my $header = $self->header($pdu);
-    my $footer = $self->footer($pdu);
-    my $apu    = $header . $pdu . $footer;
-    return $apu;
-}
-
-sub build_response_apu {
-    my $self   = shift;
-    my $pdu    = $self->response_pdu;
-    my $header = $self->header($pdu);
-    my $footer = $self->footer($pdu);
-    my $apu    = $header . $pdu . $footer;
-    return $apu;
 }
 
 sub set_expiration_time {

@@ -1,9 +1,8 @@
 package Device::Modbus::Response::ReadWrite;
 
 use Moo;
-use Carp;
 
-extends 'Device::Modbus::Response';
+extends 'Device::Modbus::Message';
 
 has bytes  => (is => 'rw');
 has values => (is => 'ro', required => 1);

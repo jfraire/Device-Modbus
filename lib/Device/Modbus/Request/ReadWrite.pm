@@ -1,9 +1,8 @@
 package Device::Modbus::Request::ReadWrite;
 
 use Moo;
-use Carp;
 
-extends 'Device::Modbus::Request';
+extends 'Device::Modbus::Message';
 
 has read_address   => (is => 'ro', required => 1);
 has read_quantity  => (is => 'ro', required => 1);

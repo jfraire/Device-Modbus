@@ -2,11 +2,11 @@ use strict;
 use warnings;
 
 use Test::More tests => 7;
-BEGIN { use_ok('Device::Modbus::Request') };
+BEGIN { use_ok('Device::Modbus') };
 
 # Write Single Coil
 {
-    my $request = Device::Modbus::Request->write_single_coil(
+    my $request = Device::Modbus->write_single_coil(
         address  => 173,
         value    => 1
     );
@@ -23,7 +23,7 @@ BEGIN { use_ok('Device::Modbus::Request') };
 
 # Write Single Register
 {
-    my $request = Device::Modbus::Request->write_single_register(
+    my $request = Device::Modbus->write_single_register(
         address  => 2,
         value    => 0x03
     );

@@ -2,11 +2,11 @@ use strict;
 use warnings;
 
 use Test::More tests => 7;
-BEGIN { use_ok('Device::Modbus::Request') };
+BEGIN { use_ok('Device::Modbus') };
 
 # Write Multiple Coils
 {
-    my $request = Device::Modbus::Request->write_multiple_coils(
+    my $request = Device::Modbus->write_multiple_coils(
         address  => 20,
         values   => [1,0,1,1,0,0,1,1,1,0]
     );
@@ -23,7 +23,7 @@ BEGIN { use_ok('Device::Modbus::Request') };
 
 # Write Multiple Registers
 {
-    my $request = Device::Modbus::Request->write_multiple_registers(
+    my $request = Device::Modbus->write_multiple_registers(
         address  => 2,
         values   => [0x000A, 0x0102]
     );

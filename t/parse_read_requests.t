@@ -2,12 +2,12 @@ use strict;
 use warnings;
 
 use Test::More tests => 25;
-BEGIN { use_ok('Device::Modbus::Request') };
+BEGIN { use_ok('Device::Modbus') };
 
 # Read Coils request
 {
     my $message = pack 'H*', '0100130013';
-    my $request = Device::Modbus::Request->parse_request($message);
+    my $request = Device::Modbus->parse_request($message);
 
     isa_ok $request, 'Device::Modbus::Request::Read';
     is $request->function, 'Read Coils',
@@ -25,7 +25,7 @@ BEGIN { use_ok('Device::Modbus::Request') };
 # Read Discrete Inputs
 {
     my $message = pack 'H*', '0200c40016';
-    my $request = Device::Modbus::Request->parse_request($message);
+    my $request = Device::Modbus->parse_request($message);
 
     isa_ok $request, 'Device::Modbus::Request::Read';
     is $request->function, 'Read Discrete Inputs',
@@ -43,7 +43,7 @@ BEGIN { use_ok('Device::Modbus::Request') };
 # Read Holding Registers
 {
     my $message = pack 'H*', '03006b0003';
-    my $request = Device::Modbus::Request->parse_request($message);
+    my $request = Device::Modbus->parse_request($message);
 
     isa_ok $request, 'Device::Modbus::Request::Read';
     is $request->function, 'Read Holding Registers',
@@ -61,7 +61,7 @@ BEGIN { use_ok('Device::Modbus::Request') };
 # Read Input Registers
 {
     my $message = pack 'H*', '0400080001';
-    my $request = Device::Modbus::Request->parse_request($message);
+    my $request = Device::Modbus->parse_request($message);
 
     isa_ok $request, 'Device::Modbus::Request::Read';
     is $request->function, 'Read Input Registers',

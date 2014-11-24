@@ -1,9 +1,8 @@
 package Device::Modbus::Request::WriteMultiple;
 
 use Moo;
-use Carp;
 
-extends 'Device::Modbus::Request';
+extends 'Device::Modbus::Message';
 
 has address  => (is => 'ro', required => 1);
 has values   => (is => 'ro', required => 1);
@@ -22,7 +21,7 @@ sub _build_pdu {
 sub _build_pdu_to_write_multiple_coils {
     my $self = shift;
 
-    my ($quantity, $values) = Device::Modbus::flatten_bit_values($self->values);
+    my ($quantity, $values) = $self->flatten_bit_values($self->values);
 
     # Build the pdu
     my @pdu = ($self->function_code, $self->address-1, $quantity,
@@ -62,7 +61,7 @@ sub parse_message {
             );
         }
 
-        @values = Device::Modbus::explode_bit_values($quantity, @values);
+        @values = Device::Modbus::Message->explode_bit_values($quantity, @values);
 
     } else {
         ($code, $address, $quantity, $bytes, @values)

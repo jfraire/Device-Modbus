@@ -21,16 +21,6 @@ sub new {
     return $server;
 }
 
-# Sign of deficient architecture:
-# same method appears in Device::Modbus::Client
-sub break_request {
-    my ($self, $message) = @_;
-    my ($id, $proto, $length, $unit) = unpack 'nnnC', $message;
-    my $pdu = substr $message, 7;
-    return if length($pdu) != $length-1; 
-    return $id, $unit, $pdu;
-}
-
 sub Run {
     my $self = shift;
     my $sock = $self->{'socket'};
@@ -45,7 +35,7 @@ sub Run {
     $self->Log('notice', 'Received message from ' . $sock->peerhost);
 
     # Parse request and issue a new transaction
-    my ($trn_id, $unit, $pdu) = $self->break_request($msg);
+    my ($trn_id, $unit, $pdu) = Device::Modbus::TCP->break_message($msg);
     if (!defined $trn_id) {
         $self->Error('Request error');
         return;

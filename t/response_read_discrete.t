@@ -2,11 +2,11 @@ use strict;
 use warnings;
 
 use Test::More tests => 21;
-BEGIN { use_ok('Device::Modbus::Response') };
+BEGIN { use_ok('Device::Modbus') };
 
 # Build a response object for a read coils request
 {
-    my $response = Device::Modbus::Response->coils_read(
+    my $response = Device::Modbus->coils_read(
         values  => [1,0,1,1,0,0,1,1,   1,1,0,1,0,1,1,0,  1,0,1, 0]        
     );
 
@@ -25,7 +25,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Parse an incoming response object -- Read Coils
 {
     my $message  = pack 'H*', '0103cd6b05';
-    my $response = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus->parse_response($message);
 
     isa_ok $response, 'Device::Modbus::Response::ReadDiscrete';
     is $response->function, 'Read Coils',
@@ -42,7 +42,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 
 # Build a response object for a read coils request
 {
-    my $response = Device::Modbus::Response->discrete_inputs_read(
+    my $response = Device::Modbus->discrete_inputs_read(
         values  => [0,0,1,1,0,1,0,1,  1,1,0,1,1,0,1,1,  1,0,1,0,1,1]        
     );
 
@@ -61,7 +61,7 @@ BEGIN { use_ok('Device::Modbus::Response') };
 # Parse an incoming response object
 {
     my $message  = pack 'H*', '0203acdb35';
-    my $response = Device::Modbus::Response->parse_response($message);
+    my $response = Device::Modbus->parse_response($message);
 
     isa_ok $response, 'Device::Modbus::Response::ReadDiscrete';
     is $response->function, 'Read Discrete Inputs',

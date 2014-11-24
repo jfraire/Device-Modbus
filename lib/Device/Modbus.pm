@@ -5,71 +5,269 @@ use warnings;
 
 our $VERSION = '0.01';
 
-my %code_for = (
-    # Bit access functions             fcn
-    'Read Discrete Inputs'          => 0x02, 
-    'Read Coils'                    => 0x01, 
-    'Write Single Coil'             => 0x05, 
-    'Write Multiple Coils'          => 0x0F, 
+use Device::Modbus::Message;
+use Device::Modbus::Request::Read;
+use Device::Modbus::Request::WriteSingle;
+use Device::Modbus::Request::WriteMultiple;
+use Device::Modbus::Request::ReadWrite;
+use Device::Modbus::Response::ReadDiscrete;
+use Device::Modbus::Response::ReadRegisters;
+use Device::Modbus::Response::WriteSingle;
+use Device::Modbus::Response::WriteMultiple;
+use Device::Modbus::Response::ReadWrite;
 
-    # 16-bits access functions         fcn 
-    'Read Input Registers'          => 0x04, 
-    'Read Holding Registers'        => 0x03, 
-    'Write Single Register'         => 0x06, 
-    'Write Multiple Registers'      => 0x10, 
-    'Read/Write Multiple Registers' => 0x17, 
-);
+#############################################################
+# Message building
+#############################################################
 
-my %function_for = reverse %code_for;
+### Request builders
 
-sub code_for {
-    my $fcn = shift;
-    return $code_for{$fcn} if exists $code_for{$fcn};
-    return undef;
+sub read_coils {
+    my $class = shift;
+    my $req = Device::Modbus::Request::Read->new(
+        function => 'Read Coils',
+        @_
+    );
+    return $req;
 }
 
-sub function_for {
-    my $code = shift;
-    return $function_for{$code} if exists $function_for{$code};
-    return undef;
+sub read_discrete_inputs {
+    my $class = shift;
+    my $req = Device::Modbus::Request::Read->new(
+        function => 'Read Discrete Inputs',
+        @_
+    );
+    return $req;
 }
 
-sub function_code {
-    my $self = shift;
-    return $code_for{ $self->function };
+sub read_input_registers {
+    my $class = shift;
+    my $req = Device::Modbus::Request::Read->new(
+        function => 'Read Input Registers',
+        @_
+    );
+    return $req;
 }
 
-# Receives an array reference of bit values and builds an array
-# of 8-bit numbers. Each number starts with the lower address
-# in the LSB.
-# Returns the quantity of bits packed and a reference to the array
-# of 8-bit numbers
-sub flatten_bit_values {
-    my $values = shift;
+sub read_holding_registers {
+    my $class = shift;
+    my $req = Device::Modbus::Request::Read->new(
+        function => 'Read Holding Registers',
+        @_
+    );
+    return $req;
+}
+
+sub write_single_coil {
+    my $class = shift;
+    my $req = Device::Modbus::Request::WriteSingle->new(
+        function => 'Write Single Coil',
+        @_
+    );
+    return $req;
+}
+
+sub write_single_register {
+    my $class = shift;
+    my $req = Device::Modbus::Request::WriteSingle->new(
+        function => 'Write Single Register',
+        @_
+    );
+    return $req;
+}
+
+sub write_multiple_coils {
+    my $class = shift;
+    my $req = Device::Modbus::Request::WriteMultiple->new(
+        function => 'Write Multiple Coils',
+        @_
+    );
+    return $req;
+}
     
-    # Values must be either 1 or 0
-    my @values = map { $_ ? 1 : 0 } @{$values};
-    my $quantity = scalar @values;
-
-    # Turn the values array into an array of binary numbers
-    my @values_binary;
-    while (@values) {
-        push @values_binary, pack 'b*', join '', splice @values, 0, 8;
-    }
-    return $quantity, \@values_binary;
+sub write_multiple_registers {
+    my $class = shift;
+    my $req = Device::Modbus::Request::WriteMultiple->new(
+        function => 'Write Multiple Registers',
+        @_
+    );
+    return $req;
 }
 
-# Receives a quantity of bits and an array of 8-bit numbers.
-# The numbers are exploded into an array of bit values.
-# The numbers start with the lower address in the LSB,
-# and the first number contains the lower address.
-# Returns an array of ones and zeros.
-sub explode_bit_values {
-    my ($quantity, @values) = @_;
-    @values = map { sprintf "%08B", $_ } @values;
-    @values = map { reverse split //   } @values;
-    @values = splice @values, 0, $quantity;
-    return @values;
+sub read_write_registers {
+    my $class = shift;
+    my $req = Device::Modbus::Request::ReadWrite->new(
+        function => 'Read/Write Multiple Registers',
+        @_
+    );
+    return $req;
+}
+
+### Response builders
+
+sub coils_read {
+    my $class = shift;
+    my $res = Device::Modbus::Response::ReadDiscrete->new(
+        function => 'Read Coils',
+        @_
+    );
+    return $res;
+}
+
+sub discrete_inputs_read {
+    my $class = shift;
+    my $res = Device::Modbus::Response::ReadDiscrete->new(
+        function => 'Read Discrete Inputs',
+        @_
+    );
+    return $res;
+}
+
+sub holding_registers_read {
+    my $class = shift;
+    my $res = Device::Modbus::Response::ReadRegisters->new(
+        function => 'Read Holding Registers',
+        @_
+    );
+    return $res;
+}
+
+sub input_registers_read {
+    my $class = shift;
+    my $res = Device::Modbus::Response::ReadRegisters->new(
+        function => 'Read Input Registers',
+        @_
+    );
+    return $res;
+}
+
+sub single_coil_write {
+    my $class = shift;
+    my $res = Device::Modbus::Response::WriteSingle->new(
+        function => 'Write Single Coil',
+        @_
+    );
+    return $res;
+}
+
+sub single_register_write {
+    my $class = shift;
+    my $res = Device::Modbus::Response::WriteSingle->new(
+        function => 'Write Single Register',
+        @_
+    );
+    return $res;
+}
+
+sub multiple_coils_write {
+    my $class = shift;
+    my $res = Device::Modbus::Response::WriteMultiple->new(
+        function => 'Write Multiple Coils',
+        @_
+    );
+    return $res;
+}
+
+sub multiple_registers_write {
+    my $class = shift;
+    my $res = Device::Modbus::Response::WriteMultiple->new(
+        function => 'Write Multiple Registers',
+        @_
+    );
+    return $res;
+}
+
+sub registers_read_write {
+    my $class = shift;
+    my $res = Device::Modbus::Response::ReadWrite->new(
+        function => 'Read/Write Multiple Registers',
+        @_
+    );
+    return $res;
+}
+
+#############################################################
+# Message parsing
+#############################################################
+
+### Request parsing
+
+sub parse_request {
+    my ($class, $binary_req) = @_;
+
+    my $request;
+    my $function_code = unpack 'C', $binary_req;
+    my $function      = Device::Modbus::Message->function_for($function_code);
+
+    if ($function_code > 0 && $function_code <= 4) {
+        $request = Device::Modbus::Request::Read->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+    elsif ($function_code == 5 || $function_code == 6) {
+        $request = Device::Modbus::Request::WriteSingle->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+    elsif ($function_code == 0x0f || $function_code == 0x10) {
+        $request = Device::Modbus::Request::WriteMultiple->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+    elsif ($function_code == 0x17) {
+        $request = Device::Modbus::Request::ReadWrite->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+
+    return $request;    
+}
+
+### Response parsing
+
+sub parse_response {
+    my ($class, $binary_req) = @_;
+
+    my $response;
+    my $function_code = unpack 'C', $binary_req;
+    my $function      = Device::Modbus::Message->function_for($function_code);
+
+    if ($function_code == 0x01 || $function_code == 0x02) {
+        $response = Device::Modbus::Response::ReadDiscrete->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+    elsif ($function_code == 0x03 || $function_code == 0x04) {
+        $response = Device::Modbus::Response::ReadRegisters->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+    elsif ($function_code == 0x05 || $function_code == 0x06) {
+        $response = Device::Modbus::Response::WriteSingle->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+    elsif ($function_code == 0x0f || $function_code == 0x10) {
+        $response = Device::Modbus::Response::WriteMultiple->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+    elsif ($function_code == 0x17) {
+        $response = Device::Modbus::Response::ReadWrite->parse_message(
+            function => $function,
+            message  => $binary_req,
+        );
+    }
+
+    return $response;
 }
 
 1;
