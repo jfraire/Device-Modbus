@@ -1,5 +1,8 @@
 package Device::Modbus::Server::TCP;
 
+use Device::Modbus;
+use Device::Modbus::TCP;
+use Device::Modbus::Transaction;
 use parent 'Net::Daemon';
 use strict;
 use warnings;
@@ -35,37 +38,44 @@ sub Run {
     $self->Log('notice', 'Received message from ' . $sock->peerhost);
 
     # Parse request and issue a new transaction
-    my ($trn_id, $unit, $pdu) = $self->break_message($msg);
+    my ($trn_id, $unit, $pdu) = Device::Modbus::TCP->break_message($msg);
     if (!defined $trn_id) {
         $self->Error('Request error');
         return;
     }
 
-    my $req = Device::Modbus->parse_request($pdu);
     my $trn = Device::Modbus::Transaction->new(
         id      => $trn_id,
-        unit    => $unit,
-        request => $req
+        unit    => $unit
     );
+
+    my $req = Device::Modbus->parse_request($pdu);
     
     # Treat unimplemented functions -- return exception 1
-    # (exception is saved in response object)
-    if (ref $req eq 'Device::Modbus::Exception') {
-        $sock->send($trn->build_request_apu);
-        $self->Log('notice', "Function unimplemented: "
-            . $req->function
-            . ' in transaction '
-            . $trn->$trn_id
+    # (exception is saved in request object)
+    if (!ref $req) {
+        my $exception = Device::Modbus::Exception->new(
+            function       => $req,    # Function requested
+            exception_code => 1        # Unimplemented function
+        );
+            
+        $sock->send(Device::Modbus::TCP->build_apu($trn, $exception->pdu));
+        $self->Log('notice',
+            "Function unimplemented: $req in transaction $trn_id"
             . ' from '
             . $sock->peerhost);
         return;
     }
+
     
     # Real work goes here.
-    $self->Log('notice', "Received a " . $req->function . " request");
+    $self->Log('notice', "Received a " . $req->function
+        . " request (transaction $trn_id)");
 
+    $trn->request($req);
     my $response;
     my $exception;
+
     eval { $response = $self->run_app($trn) };
 
     if (defined $response && !$@) {
@@ -93,18 +103,7 @@ sub Run {
         );
     }
 
-    $trn->response($exception);
-    $sock->send($trn->build_response_apu);
-}
-
-#### Message parsing
-
-sub break_message {
-    my ($self, $message) = @_;
-    my ($id, $proto, $length, $unit) = unpack 'nnnC', $message;
-    my $pdu = substr $message, 7;
-    return if length($pdu) != $length-1; 
-    return $id, $unit, $pdu;
+    $sock->send(Device::Modbus::TCP->build_apu($trn, $exception->pdu));
 }
  
 1;

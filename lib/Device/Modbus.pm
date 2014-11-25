@@ -223,6 +223,9 @@ sub parse_request {
             message  => $binary_req,
         );
     }
+    else {
+        return $function_code;
+    }
 
     return $request;    
 }
@@ -265,6 +268,9 @@ sub parse_response {
             function => $function,
             message  => $binary_req,
         );
+    }
+    else {
+        return $function_code;
     }
 
     return $response;
