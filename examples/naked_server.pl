@@ -3,14 +3,17 @@
 # This program is based on the example shown in Net::Daemon
 # documentation, by Malcolm H. Nooning
 
+
 use Net::Daemon;
 use Modern::Perl;
 
 package NakedModbus;
 
-use Device::Modbus::Response;
-use Device::Modbus::Request;
-use Device::Modbus::Transaction::TCP;
+use Data::Dumper;
+use Device::Modbus;
+use Device::Modbus::Exception;
+use Device::Modbus::TCP;
+use Device::Modbus::Transaction;
 
 use vars qw($VERSION @ISA);
 $VERSION = '0.01';
@@ -29,48 +32,83 @@ sub Run {
         $self->Error('Communication error');
         return;
     }
-    $self->Log('notice', "Received message from " . $sock->peerhost);
+    $self->Log('notice', 'Received message from ' . $sock->peerhost);
 
     # Parse request and issue a new transaction
-    my ($trn_id, $unit, $pdu) = $self->break_request($msg);
+    my ($trn_id, $unit, $pdu) = Device::Modbus::TCP->break_message($msg);
     if (!defined $trn_id) {
         $self->Error('Request error');
         return;
     }
 
-    my $req = Device::Modbus::Request->parse_request($pdu);
-
-    my $trn = Device::Modbus::Transaction::TCP->new(
+    my $trn = Device::Modbus::Transaction->new(
         id      => $trn_id,
-        unit    => $unit,
-        request => $req
+        unit    => $unit
     );
+
+    my $req = Device::Modbus->parse_request($pdu);
     
-    if (ref $req eq 'Device::Modbus::Exception') {
-        # Send response... which is actually saved as request
-        $sock->send($trn->build_request_apu);
-        $self->Log('notice', "Request was not parsed successfully");
+    # Treat unimplemented functions -- return exception 1
+    # (exception is saved in request object)
+    if (!ref $req) {
+        my $exception = Device::Modbus::Exception->new(
+            function       => $req,    # Function requested
+            exception_code => 1        # Unimplemented function
+        );
+            
+        $sock->send(Device::Modbus::TCP->build_apu($trn, $exception->pdu));
+        $self->Log('notice',
+            "Function unimplemented: $req in transaction $trn_id"
+            . ' from '
+            . $sock->peerhost);
+        return;
     }
+
     
     # Real work goes here.
-    $self->Log('notice', "Received a " . $req->function . " request");
-    
-    # It will simply respond to read holding registers requests
-    if ($req->function eq 'Read Holding Registers') {
-        my $res = Device::Modbus::Response->holding_registers_read(
-            values => [72,111,108,97,32,99]
-        );
-        $trn->response($res);
-        $sock->send($trn->build_response_apu);
+    $self->Log('notice', "Received a " . $req->function
+        . " request (transaction $trn_id)");
+
+    $trn->request($req);
+    my $response;
+    my $exception;
+
+    eval { $response = $self->run_app($trn) };
+
+    if (defined $response && !$@) {
+        return $sock->send(Device::Modbus::TCP->build_apu($trn, $response->pdu));
     }
+    else {
+        my $err_msg =
+              "Client:      " . $sock->peerhost
+            . "Unit:        " . $trn->unit
+            . "Transaction: " . $trn->id
+            . "Function:    " . $trn->request->function
+            ;
+        if ($@) {
+            $self->Error("Application crashed: $@\n" . $err_msg);
+        }
+        elsif (!defined $response) {
+            $self->Error("Application did not return a response: $@\n"
+                . $err_msg);
+        }
+    
+        $exception = Device::Modbus::Exception->new(
+            function_code  => $trn->request->function_code,
+            exception_code => 0x04
+        );
+    }
+
+    $sock->send(Device::Modbus::TCP->build_apu($trn, $exception->pdu));
 }
 
-sub break_request {
-    my ($self, $message) = @_;
-    my ($id, $proto, $length, $unit) = unpack 'nnnC', $message;
-    my $pdu = substr $message, 7;
-    return if length($pdu) != $length-1; 
-    return $id, $unit, $pdu;
+sub run_app {
+    my ($server, $trn) = @_;
+    say Dumper $trn;
+    my $res = Device::Modbus->holding_registers_read(
+        values  => [1,2,3,4,5,6]        
+    );
+    return $res;
 }
  
 package main;

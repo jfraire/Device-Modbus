@@ -59,7 +59,7 @@ sub receive_response {
     return undef if !defined $ret;
     return 0 unless length $message;
     
-    my ($trn_id, $unit, $pdu) = Device::Modbus::TCP->break_response($message);
+    my ($trn_id, $unit, $pdu) = Device::Modbus::TCP->break_message($message);
     return undef unless defined $trn_id;
     
     my $trn = $self->get_from_waiting_room($trn_id);

@@ -6,7 +6,6 @@ use Carp;
 
 has unit        => (is => 'ro', default  => sub {0xff});
 has timeout     => (is => 'rw', default  => 0.2);
-has transaction => (is => 'rw');
 
 #### Transaction handling
 
@@ -40,14 +39,12 @@ sub init_transaction {
         timeout => $self->timeout,
         unit    => $self->unit
     );
-    $self->transaction($trn);
     return $trn;
 }
 
 sub clear_transaction {
     my $self = shift;
     my $trn = $self->transaction;
-    $self->transaction(undef);
     return $trn;
 }
 
