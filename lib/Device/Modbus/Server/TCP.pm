@@ -3,7 +3,9 @@ package Device::Modbus::Server::TCP;
 use Device::Modbus;
 use Device::Modbus::TCP;
 use Device::Modbus::Transaction;
+use Device::Modbus::Exception;
 use parent 'Net::Daemon';
+
 use strict;
 use warnings;
 
@@ -79,8 +81,7 @@ sub Run {
     eval { $response = $self->run_app($trn) };
 
     if (defined $response && !$@) {
-        $trn->response($response);
-        $sock->send($trn->build_response_apu);
+        return $sock->send(Device::Modbus::TCP->build_apu($trn, $response->pdu));
     }
     else {
         my $err_msg =
@@ -102,7 +103,6 @@ sub Run {
             exception_code => 0x04
         );
     }
-
     $sock->send(Device::Modbus::TCP->build_apu($trn, $exception->pdu));
 }
  
