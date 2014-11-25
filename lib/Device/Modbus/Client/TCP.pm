@@ -9,7 +9,6 @@ use Moo;
 has host                 => (is => 'ro', default  => sub {'127.0.0.1'});
 has port                 => (is => 'ro', default  => sub {502});
 has max_transactions     => (is => 'rw', default  => sub {16});
-has waiting_room         => (is => 'rw', default  => sub {+{}});
 
 has blocking             => (is => 'ro', default  => sub {1});
 has socket               => (is => 'rw', builder  => 1, handles => ['connected']);
@@ -27,25 +26,15 @@ sub _build_socket {
     );
 }
 
-#### Transaction management
-
-sub move_to_waiting_room {
-    my ($self, $trn) = @_;
-    $self->waiting_room->{$trn->id} = $trn;
-}
-
-sub get_from_waiting_room {
-    my ($self, $trn_id) = @_;
-    return delete $self->waiting_room->{$trn_id};
-}
-
 #### Connection management
 
 sub send_request {
     my ($self, $trn) = @_;
     my $pdu   = $trn->request_pdu;
-    my $bytes = $self->socket->send(Device::Modbus::TCP->build_apu($trn, $pdu))
+    my $apu   = Device::Modbus::TCP->build_apu($trn, $pdu);
+    my $bytes = $self->socket->send($apu)
         || return undef;
+    return undef unless $bytes eq length($apu);
     $trn->set_expiration_time(time());
     $self->move_to_waiting_room($trn);
     return $bytes;

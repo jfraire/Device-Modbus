@@ -1,11 +1,14 @@
 package Device::Modbus::Client;
 
 use Device::Modbus::Transaction;
+use Time::HiRes qw(time);
 use Moo;
 use Carp;
 
-has unit        => (is => 'ro', default  => sub {0xff});
-has timeout     => (is => 'rw', default  => 0.2);
+has unit             => (is => 'ro', default  => sub {0xff});
+has timeout          => (is => 'rw', default  => 0.2);
+has waiting_room     => (is => 'rw', default  => sub {+{}});
+has max_transactions => (is => 'rw', default  => sub {16});
 
 #### Transaction handling
 
@@ -42,10 +45,16 @@ sub init_transaction {
     return $trn;
 }
 
-sub clear_transaction {
-    my $self = shift;
-    my $trn = $self->transaction;
-    return $trn;
+#### Transaction management
+
+sub move_to_waiting_room {
+    my ($self, $trn) = @_;
+    $self->waiting_room->{$trn->id} = $trn;
+}
+
+sub get_from_waiting_room {
+    my ($self, $trn_id) = @_;
+    return delete $self->waiting_room->{$trn_id};
 }
 
 #### Communication interface
