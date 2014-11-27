@@ -5,6 +5,8 @@ use warnings;
 
 #### APU building
 
+# The two array refs were taken from Protocol::Modbus
+
 # Table of CRC values for high order byte
 my $crc_high = [
     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1,
@@ -57,6 +59,7 @@ sub header {
     return $header;
 }
 
+# Taken from Protocol::Modbus
 sub crc_for {
     my ($class, $header, $pdu) = @_;
     

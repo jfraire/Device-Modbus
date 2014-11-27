@@ -15,7 +15,7 @@ has blocking  => (is => 'ro', default => sub { 1 });
 
 extends 'Device::Modbus::Client';
 
-sub connect {
+sub open_port {
     my $self = shift;
 
     my $parity_bit = $self->parity eq 'none' ? 0 : 1;
@@ -34,7 +34,7 @@ sub connect {
 
     $serial->write_settings || croak "Unable to open port: $!";
 
-    $serial->purghe_all;
+    $serial->purge_all;
 
     $self->serial($serial);
 }
