@@ -53,27 +53,11 @@ sub parse_message {
     if ($code == 0x0f) {
         ($code, $address, $quantity, $bytes, @values)
             = unpack 'CnnCC*', $args{message};
-
-        unless ($quantity >= 1 && $quantity <= 0x07b0) {
-            return Device::Modbus::Exception->new(
-                function_code  => $code,
-                exception_code => 3
-            );
-        }
-
         @values = Device::Modbus::Message->explode_bit_values($quantity, @values);
 
     } else {
         ($code, $address, $quantity, $bytes, @values)
             = unpack 'CnnCn*', $args{message};
-
-        unless ($quantity >= 1 && $quantity <= 0x7b) {
-            return Device::Modbus::Exception->new(
-                function_code  => $code,
-                exception_code => 3,
-                request        => $args{message}
-            );
-        }
     }
 
     $address++;

@@ -24,14 +24,6 @@ sub parse_message {
 
     $value = 1 if $code == 5 && $value;
 
-    unless ($address >= 0 && $address <= 0xffff) {
-        return Device::Modbus::Exception->new(
-            function_code  => $code,
-            exception_code => 3,
-            request        => $args{message}
-        );
-    }
-
     $address++;
 
     return $class->new(

@@ -46,63 +46,23 @@ sub Run {
         return;
     }
 
+    my $resp = $self->modbus_server($unit, $pdu);
+
+    # Transaction is needed to build response message
     my $trn = Device::Modbus::Transaction->new(
         id      => $trn_id,
         unit    => $unit
     );
 
-    my $req = Device::Modbus->parse_request($pdu);
-    
-    # Treat unimplemented functions -- return exception 1
-    # (exception is saved in request object)
-    if (!ref $req) {
-        my $exception = Device::Modbus::Exception->new(
-            function       => $req,    # Function requested
-            exception_code => 1        # Unimplemented function
-        );
-            
-        $sock->send(Device::Modbus::TCP->build_apu($trn, $exception->pdu));
-        $self->Log('notice',
-            "Function unimplemented: $req in transaction $trn_id"
-            . ' from '
-            . $sock->peerhost);
-        return;
-    }
-
-    
-    # Real work goes here.
-    $self->Log('notice', "Received a " . $req->function
-        . " request (transaction $trn_id)");
-
-    $trn->request($req);
-    my $response;
-    my $exception;
-
-    eval { $response = $self->run_app($trn) };
-
-    if (defined $response && !$@) {
+    if (ref $resp) {
         return $sock->send(Device::Modbus::TCP->build_apu($trn, $response->pdu));
     }
-    else {
-        my $err_msg =
-              "Client:      " . $sock->peerhost
-            . "Unit:        " . $trn->unit
-            . "Transaction: " . $trn->id
-            . "Function:    " . $trn->request->function
-            ;
-        if ($@) {
-            $self->Error("Application crashed: $@\n" . $err_msg);
-        }
-        elsif (!defined $response) {
-            $self->Error("Application did not return a response: $@\n"
-                . $err_msg);
-        }
     
-        $exception = Device::Modbus::Exception->new(
-            function_code  => $trn->request->function_code,
-            exception_code => 0x04
-        );
-    }
+    my $exception = Device::Modbus::Exception->new(
+        function       => $trn->request->function,
+        exception_code => 0x04
+    );
+
     $sock->send(Device::Modbus::TCP->build_apu($trn, $exception->pdu));
 }
  

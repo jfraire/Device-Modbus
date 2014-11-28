@@ -46,18 +46,6 @@ sub parse_message {
     $raddr++;
     $waddr++;
     
-    unless (
-           $rqty >= 1 && $rqty <= 0x007d
-        && $wqty >= 1 && $wqty <= 0x0079
-        && $wbytes == 2*$wqty )
-    {
-        return Device::Modbus::Exception->new(
-            function_code  => $code,
-            exception_code => 3,
-            request        => $args{message}
-        );
-    }
-
     return $class->new(
         function       => $args{function},
         read_address   => $raddr,
