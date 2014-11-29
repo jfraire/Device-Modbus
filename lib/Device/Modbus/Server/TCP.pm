@@ -4,7 +4,7 @@ use Device::Modbus;
 use Device::Modbus::TCP;
 use Device::Modbus::Transaction;
 use Device::Modbus::Exception;
-use parent 'Net::Daemon';
+use parent qw(Net::Daemon Device::Modbus::Server);
 
 use strict;
 use warnings;
@@ -23,6 +23,7 @@ sub new {
     );
 
     my $server = $class->SUPER::new(\%attrs, $args);
+    $server->init_server;
     return $server;
 }
 
@@ -46,6 +47,7 @@ sub Run {
         return;
     }
 
+    #### Call generic server routine
     my $resp = $self->modbus_server($unit, $pdu);
 
     # Transaction is needed to build response message

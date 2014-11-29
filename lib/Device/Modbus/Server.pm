@@ -1,7 +1,6 @@
 package Device::Modbus::Server;
 
 use Device::Modbus;
-use Device::Modbus::Transaction;
 use Device::Modbus::Exception;
 use Carp;
 use strict;
@@ -36,23 +35,23 @@ sub add_server_unit {
     $server_units{$unit_id} = { %default_unit };
 }
 
-sub addr_limits_discrete_inputs {
-    return shift->addr_limits('discrete_inputs',   @_);
+sub limits_discrete_inputs {
+    return shift->limits('discrete_inputs',   @_);
 }
 
-sub addr_limits_discrete_outputs {
-    return shift->addr_limits('discrete_outputs',  @_);
+sub limits_discrete_outputs {
+    return shift->limits('discrete_outputs',  @_);
 }
 
-sub addr_limits_input_registers {
-    return shift->addr_limits('input_registers',   @_);
+sub limits_input_registers {
+    return shift->limits('input_registers',   @_);
 }
 
-sub addr_limits_holding_registers {
-    return shift->addr_limits('holding_registers', @_);
+sub limits_holding_registers {
+    return shift->limits('holding_registers', @_);
 }
 
-sub addr_limits {
+sub limits {
     my ($proto, $func, $unit, $min, $max) = @_;
     croak "Server unit <$unit> does not exist"
         unless exists $server_units{$unit};
@@ -65,6 +64,16 @@ sub addr_limits {
     return @{ $server_units{$unit}->{$func} };
 }
 
+# To be overrided in subclasses
+sub init_server {
+    my $server = shift;
+    $server->add_server_unit(1);
+}
+
+
+
+# Parses message, checks request for errors and calls external
+# process to manage the request
 sub modbus_server {
     my ($server, $unit, $pdu) = @_;
 
@@ -171,7 +180,7 @@ sub modbus_server {
         $self->Error("Application crashed: $@\n" . $err_msg);
     }
     elsif (!defined $response) {
-        $self->Error("Application did not return a response: $@\n"
+        $self->Error("Application did not return a response:\n"
             . $err_msg);
     }
 
@@ -181,3 +190,4 @@ sub modbus_server {
     );
 }
     
+1;

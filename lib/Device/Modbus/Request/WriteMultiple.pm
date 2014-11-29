@@ -6,7 +6,7 @@ extends 'Device::Modbus::Message';
 
 has address  => (is => 'ro', required => 1);
 has values   => (is => 'ro', required => 1);
-has quantity => (is => 'rw');
+has quantity => (is => 'lazy');
 
 sub _build_pdu {
     my $self = shift;
@@ -34,8 +34,7 @@ sub _build_pdu_to_write_multiple_registers {
     
     # Values is an array reference of numbers
     my @values   = @{$self->values};
-    my $quantity = scalar @values;
-    $self->quantity($quantity);
+    my $quantity = $self->quantity;
 
     # Build the pdu
     my @pdu = ($self->function_code, $self->address-1,
@@ -43,7 +42,12 @@ sub _build_pdu_to_write_multiple_registers {
     return pack 'CnnCn*', @pdu;
 }
 
-
+sub _build_quantity {
+    my $self = shift;
+    my @values   = @{$self->values};
+    return scalar @values;
+}
+    
 sub parse_message {
     my ($class, %args) = @_;
 
