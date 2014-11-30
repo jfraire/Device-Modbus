@@ -54,17 +54,15 @@ my $crc_low = [
 ];
 
 sub header {
-    my ($class, $trn, $pdu) = @_;
-    my $header = pack 'C', $trn->unit;
+    my ($proto, $unit) = @_;
+    my $header = pack 'C', $unit;
     return $header;
 }
 
 # Taken from Protocol::Modbus
 sub crc_for {
-    my ($class, $header, $pdu) = @_;
+    my ($proto, $msg) = @_;
     
-    my $msg = $header . $pdu;
-
     my $crcl  = 0xFF;
     my $crch  = 0xFF;
     my @bytes = split(//, $msg);
@@ -80,14 +78,15 @@ sub crc_for {
 }
 
 sub footer {
-    return shift->crc_for(@_);
+    my ($proto, $header, $pdu) = @_;
+    return $proto->crc_for($header.$pdu);
 }
 
 #### Build messages
 
 sub build_apu {
-    my ($class, $trn, $pdu) = @_;
-    my $header = $class->header($trn);
+    my ($class, $unit, $pdu) = @_;
+    my $header = $class->header($unit);
     my $footer = $class->footer($header, $pdu);
     my $apu    = $header . $pdu . $footer;
     return $apu;
