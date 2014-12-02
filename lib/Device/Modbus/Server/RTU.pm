@@ -1,7 +1,6 @@
 package Device::Modbus::Server::RTU;
 
 use Device::Modbus;
-use Device::Modbus::Transaction;
 use Device::Modbus::Exception;
 use Moo;
 

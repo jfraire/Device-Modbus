@@ -1,19 +1,20 @@
 Device-Modbus version 0.01
 ==========================
 
-This distribution aims towards implementing Modbus communications in Perl. It should be possible to use it to write Modbus TCP and RTU clients and servers.
+This distribution aims towards implementing Modbus communications in Perl. It should be possible to write Modbus TCP and RTU clients and servers.
 
-In particular, servers should be able to execute arbitrary code to process requests. This will allow for applications such as Modbus gateways, RTU packet spies, or database front-end applications that communicates directly with external devices. 
+In particular, servers should be able to execute arbitrary code to process requests. This will allow for applications such as Modbus gateways, RTU packet spies, or database front-end applications that communicate directly with external devices. 
 
 CURRENT STATUS
 
-Currently, only blocking Modbus TCP clients are functional.
+Currently, the distribution is under development. It has been successfully tested as TCP and RTU clients. A very simple version of a TCP server was successful as well.
 
 MILESTONES
 
 - Modbus TCP server module to be used along with Net::Daemon
 - Non-blocking Modbus TCP clients
 - Modbus RTU client
+- Modbus RTU server
 
 INSTALLATION
 
