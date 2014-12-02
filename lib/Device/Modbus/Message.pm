@@ -3,7 +3,8 @@ package Device::Modbus::Message;
 use Moo;
 
 has function => (is => 'ro', required => 1);
-has pdu => (is => 'rw', lazy => 1, builder => 1);
+has pdu      => (is => 'rw', lazy => 1, builder => 1);
+has unit     => (is => 'rw', default => sub {0xff}); # Default for TCP
 
 #### Functions and function codes
 

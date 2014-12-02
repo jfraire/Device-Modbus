@@ -9,12 +9,12 @@ my $client = Device::Modbus::Client::RTU->new(
     port     => '/dev/ttyUSB0',
     baudrate => 19200,
     parity   => 'none',
-    unit     => 1
 );
 
 my $req = Device::Modbus->read_holding_registers(
     address  => 1,
-    quantity => 1
+    quantity => 1,
+    unit     => 1
 );
 
 say Dumper $req;

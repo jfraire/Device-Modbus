@@ -10,7 +10,6 @@ has baudrate  => (is => 'ro',   default  => sub {9600});
 has databits  => (is => 'ro',   default  => sub {8});
 has parity    => (is => 'ro',   default  => sub {'even'});
 has stopbits  => (is => 'ro',   default  => sub {1});
-has unit      => (is => 'ro',   default  => sub {1});
 has timeout   => (is => 'rw',   default  => sub {2});
 has char_time => (is => 'lazy');
 

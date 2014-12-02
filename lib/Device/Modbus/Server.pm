@@ -78,6 +78,8 @@ sub modbus_server {
 
     ### Parse message
     my $req = Device::Modbus->parse_request($pdu);
+    $req->unit($unit);
+    
     my $resp;
 
     # Treat unimplemented functions -- return exception 1
@@ -85,7 +87,8 @@ sub modbus_server {
         return (
             Device::Modbus::Exception->new(
                 function       => $req,    # Function requested
-                exception_code => 1        # Unimplemented function
+                exception_code => 1,       # Unimplemented function
+                unit           => $unit
             ), $resp );
     }
 
@@ -104,14 +107,16 @@ sub modbus_server {
             return (
                 Device::Modbus::Exception->new(
                     function       => $fcn,
-                    exception_code => 2
+                    exception_code => 2,
+                    unit           => $unit
                 ), $resp);
         }
         unless ($qty >= 1 && $qty <= $max - $min - 1) {
             return (
                 Device::Modbus::Exception->new(
                     function       => $fcn,
-                    exception_code => 3
+                    exception_code => 3,
+                    unit           => $unit
                 ), $resp);
         }
     }
@@ -125,7 +130,8 @@ sub modbus_server {
             return (
                 Device::Modbus::Exception->new(
                     function       => $fcn,
-                    exception_code => 2
+                    exception_code => 2,
+                    unit           => $unit
                 ), $resp);
         }
 
@@ -135,7 +141,8 @@ sub modbus_server {
             return (
                 Device::Modbus::Exception->new(
                     function       => $fcn,
-                    exception_code => 3
+                    exception_code => 3,
+                    unit           => $unit
                 ), $resp);
         }
 
@@ -157,7 +164,8 @@ sub modbus_server {
             return (
                 Device::Modbus::Exception->new(
                     function       => $fcn,
-                    exception_code => 2
+                    exception_code => 2,
+                    unit           => $unit
                 ), $resp);
         }
 
@@ -171,6 +179,7 @@ sub modbus_server {
                 Device::Modbus::Exception->new(
                     function       => $fcn,
                     exception_code => 3,
+                    unit           => $unit
                 ), $resp);
         }
     }
@@ -181,12 +190,11 @@ sub modbus_server {
 
     # Return if the request was processed correctly
     if (defined $resp && !$@) {
+        $resp->unit($unit);
         return $resp;
     }
 
     my $err_msg =
-        "Unit:        "
-      . $unit
       . "Function:    "
       . $req->function;
     if ($@) {
@@ -199,7 +207,8 @@ sub modbus_server {
     return (
         Device::Modbus::Exception->new(
             function       => $req->function,
-            exception_code => 0x04
+            exception_code => 0x04,
+            unit           => $unit
         ), $resp);
 }
 
