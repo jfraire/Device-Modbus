@@ -4,16 +4,16 @@ use Moo;
 
 extends 'Device::Modbus::Message';
 
-has address  => (is => 'ro', required => 1);
-has value    => (is => 'ro', required => 1);
+has address => (is => 'ro', required => 1);
+has value   => (is => 'ro', required => 1);
 
 sub _build_pdu {
-    my $self = shift;
+    my $self  = shift;
     my $value = $self->value;
     if ($self->function eq 'Write Single Coil') {
         $value = $self->{value} ? 0xFF00 : 0;
     }
-    my @pdu  = ($self->function_code, $self->address-1, $value);
+    my @pdu = ($self->function_code, $self->address - 1, $value);
     return pack 'Cnn', @pdu;
 }
 

@@ -4,9 +4,9 @@ use Moo;
 
 extends 'Device::Modbus::Message';
 
-has read_address   => (is => 'ro', required => 1);
-has read_quantity  => (is => 'ro', required => 1);
-has write_address  => (is => 'ro', required => 1);
+has read_address  => (is => 'ro', required => 1);
+has read_quantity => (is => 'ro', required => 1);
+has write_address => (is => 'ro', required => 1);
 has write_quantity => (is => 'lazy');
 has write_bytes    => (is => 'lazy');
 has values         => (is => 'ro', required => 1);
@@ -18,18 +18,15 @@ sub _build_write_quantity {
 
 sub _build_write_bytes {
     my $self = shift;
-    return 2*$self->write_quantity;
+    return 2 * $self->write_quantity;
 }
 
 sub _build_pdu {
     my $self = shift;
-    my @pdu = (
-        $self->function_code,
-        $self->read_address - 1,
-        $self->read_quantity,
-        $self->write_address - 1,
-        $self->write_quantity,
-        $self->write_bytes,
+    my @pdu  = (
+        $self->function_code,  $self->read_address - 1,
+        $self->read_quantity,  $self->write_address - 1,
+        $self->write_quantity, $self->write_bytes,
         @{$self->values}
     );
 
@@ -40,12 +37,12 @@ sub _build_pdu {
 sub parse_message {
     my ($class, %args) = @_;
 
-    my ($code, $raddr, $rqty, $waddr, $wqty, $wbytes, @values)
-        = unpack 'CnnnnCn*', $args{message};
+    my ($code, $raddr, $rqty, $waddr, $wqty, $wbytes, @values) =
+      unpack 'CnnnnCn*', $args{message};
 
     $raddr++;
     $waddr++;
-    
+
     return $class->new(
         function       => $args{function},
         read_address   => $raddr,

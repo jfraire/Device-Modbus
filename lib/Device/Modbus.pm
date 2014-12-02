@@ -24,7 +24,7 @@ use Device::Modbus::Response::ReadWrite;
 
 sub read_coils {
     my $class = shift;
-    my $req = Device::Modbus::Request::Read->new(
+    my $req   = Device::Modbus::Request::Read->new(
         function => 'Read Coils',
         @_
     );
@@ -33,7 +33,7 @@ sub read_coils {
 
 sub read_discrete_inputs {
     my $class = shift;
-    my $req = Device::Modbus::Request::Read->new(
+    my $req   = Device::Modbus::Request::Read->new(
         function => 'Read Discrete Inputs',
         @_
     );
@@ -42,7 +42,7 @@ sub read_discrete_inputs {
 
 sub read_input_registers {
     my $class = shift;
-    my $req = Device::Modbus::Request::Read->new(
+    my $req   = Device::Modbus::Request::Read->new(
         function => 'Read Input Registers',
         @_
     );
@@ -51,7 +51,7 @@ sub read_input_registers {
 
 sub read_holding_registers {
     my $class = shift;
-    my $req = Device::Modbus::Request::Read->new(
+    my $req   = Device::Modbus::Request::Read->new(
         function => 'Read Holding Registers',
         @_
     );
@@ -60,7 +60,7 @@ sub read_holding_registers {
 
 sub write_single_coil {
     my $class = shift;
-    my $req = Device::Modbus::Request::WriteSingle->new(
+    my $req   = Device::Modbus::Request::WriteSingle->new(
         function => 'Write Single Coil',
         @_
     );
@@ -69,7 +69,7 @@ sub write_single_coil {
 
 sub write_single_register {
     my $class = shift;
-    my $req = Device::Modbus::Request::WriteSingle->new(
+    my $req   = Device::Modbus::Request::WriteSingle->new(
         function => 'Write Single Register',
         @_
     );
@@ -78,16 +78,16 @@ sub write_single_register {
 
 sub write_multiple_coils {
     my $class = shift;
-    my $req = Device::Modbus::Request::WriteMultiple->new(
+    my $req   = Device::Modbus::Request::WriteMultiple->new(
         function => 'Write Multiple Coils',
         @_
     );
     return $req;
 }
-    
+
 sub write_multiple_registers {
     my $class = shift;
-    my $req = Device::Modbus::Request::WriteMultiple->new(
+    my $req   = Device::Modbus::Request::WriteMultiple->new(
         function => 'Write Multiple Registers',
         @_
     );
@@ -96,7 +96,7 @@ sub write_multiple_registers {
 
 sub read_write_registers {
     my $class = shift;
-    my $req = Device::Modbus::Request::ReadWrite->new(
+    my $req   = Device::Modbus::Request::ReadWrite->new(
         function => 'Read/Write Multiple Registers',
         @_
     );
@@ -107,7 +107,7 @@ sub read_write_registers {
 
 sub coils_read {
     my $class = shift;
-    my $res = Device::Modbus::Response::ReadDiscrete->new(
+    my $res   = Device::Modbus::Response::ReadDiscrete->new(
         function => 'Read Coils',
         @_
     );
@@ -116,7 +116,7 @@ sub coils_read {
 
 sub discrete_inputs_read {
     my $class = shift;
-    my $res = Device::Modbus::Response::ReadDiscrete->new(
+    my $res   = Device::Modbus::Response::ReadDiscrete->new(
         function => 'Read Discrete Inputs',
         @_
     );
@@ -125,7 +125,7 @@ sub discrete_inputs_read {
 
 sub holding_registers_read {
     my $class = shift;
-    my $res = Device::Modbus::Response::ReadRegisters->new(
+    my $res   = Device::Modbus::Response::ReadRegisters->new(
         function => 'Read Holding Registers',
         @_
     );
@@ -134,7 +134,7 @@ sub holding_registers_read {
 
 sub input_registers_read {
     my $class = shift;
-    my $res = Device::Modbus::Response::ReadRegisters->new(
+    my $res   = Device::Modbus::Response::ReadRegisters->new(
         function => 'Read Input Registers',
         @_
     );
@@ -143,7 +143,7 @@ sub input_registers_read {
 
 sub single_coil_write {
     my $class = shift;
-    my $res = Device::Modbus::Response::WriteSingle->new(
+    my $res   = Device::Modbus::Response::WriteSingle->new(
         function => 'Write Single Coil',
         @_
     );
@@ -152,7 +152,7 @@ sub single_coil_write {
 
 sub single_register_write {
     my $class = shift;
-    my $res = Device::Modbus::Response::WriteSingle->new(
+    my $res   = Device::Modbus::Response::WriteSingle->new(
         function => 'Write Single Register',
         @_
     );
@@ -161,7 +161,7 @@ sub single_register_write {
 
 sub multiple_coils_write {
     my $class = shift;
-    my $res = Device::Modbus::Response::WriteMultiple->new(
+    my $res   = Device::Modbus::Response::WriteMultiple->new(
         function => 'Write Multiple Coils',
         @_
     );
@@ -170,7 +170,7 @@ sub multiple_coils_write {
 
 sub multiple_registers_write {
     my $class = shift;
-    my $res = Device::Modbus::Response::WriteMultiple->new(
+    my $res   = Device::Modbus::Response::WriteMultiple->new(
         function => 'Write Multiple Registers',
         @_
     );
@@ -179,7 +179,7 @@ sub multiple_registers_write {
 
 sub registers_read_write {
     my $class = shift;
-    my $res = Device::Modbus::Response::ReadWrite->new(
+    my $res   = Device::Modbus::Response::ReadWrite->new(
         function => 'Read/Write Multiple Registers',
         @_
     );
@@ -197,7 +197,7 @@ sub parse_request {
 
     my $request;
     my $function_code = unpack 'C', $binary_req;
-    my $function      = Device::Modbus::Message->function_for($function_code);
+    my $function = Device::Modbus::Message->function_for($function_code);
 
     if ($function_code > 0 && $function_code <= 4) {
         $request = Device::Modbus::Request::Read->parse_message(
@@ -227,7 +227,7 @@ sub parse_request {
         return $function_code;
     }
 
-    return $request;    
+    return $request;
 }
 
 ### Response parsing
@@ -237,7 +237,7 @@ sub parse_response {
 
     my $response;
     my $function_code = unpack 'C', $binary_req;
-    my $function      = Device::Modbus::Message->function_for($function_code);
+    my $function = Device::Modbus::Message->function_for($function_code);
 
     if ($function_code == 0x01 || $function_code == 0x02) {
         $response = Device::Modbus::Response::ReadDiscrete->parse_message(

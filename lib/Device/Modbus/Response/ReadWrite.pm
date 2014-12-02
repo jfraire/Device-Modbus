@@ -4,14 +4,14 @@ use Moo;
 
 extends 'Device::Modbus::Message';
 
-has bytes  => (is => 'rw');
+has bytes => (is => 'rw');
 has values => (is => 'ro', required => 1);
 
 sub _build_pdu {
-    my $self = shift;
-    my $bytes = 2*scalar(@{$self->values});
+    my $self  = shift;
+    my $bytes = 2 * scalar(@{$self->values});
     $self->bytes($bytes);
-    my @pdu  = ($self->function_code, $self->bytes, @{$self->values});
+    my @pdu = ($self->function_code, $self->bytes, @{$self->values});
     return pack 'CCn*', @pdu;
 }
 
