@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 28;
+use Test::More tests => 27;
 
 BEGIN {
     use_ok('Device::Modbus');
@@ -17,8 +17,6 @@ BEGIN {
         'By default, client would talk to localhost';
     is $client->port, 502,
         'By default, client uses port 502';
-    is $client->unit, 0xff,
-        'By default, client talks to unit 0xff';
     is $client->max_transactions, 16,
         'The Modbus standard calls for a maximum of 16 transactions';
     is $client->timeout, 0.2,
@@ -39,7 +37,14 @@ BEGIN {
         'The waiting room is empty after retrieving id 1';
 
 
-    my $trn = $client->init_transaction;
+    my $req = Device::Modbus->read_coils(
+        address  => 20,
+        quantity => 19
+    );
+    isa_ok $req, 'Device::Modbus::Request::Read';
+
+
+    my $trn = $client->init_transaction($req);
     isa_ok $trn, 'Device::Modbus::Transaction';
     is $trn->id, 2,
         'Transaction id was increased by one';
@@ -55,12 +60,6 @@ BEGIN {
     is_deeply $client->waiting_room->{$trn->id}, $trn,
         'The transaction is now in the waiting room';
 
-
-    my $req = Device::Modbus->read_coils(
-        address  => 20,
-        quantity => 19
-    );
-    isa_ok $req, 'Device::Modbus::Request::Read';
 
     $trn = $client->request_transaction($req);
     isa_ok $trn, 'Device::Modbus::Transaction';

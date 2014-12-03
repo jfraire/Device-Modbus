@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-use Test::More tests => 15;
+use Test::More tests => 14;
 use strict;
 use warnings;
 
@@ -19,7 +19,6 @@ my %defaults = (
     parity   => 'even',
     databits => 8,
     stopbits => 1,
-    unit     => 1,
 );
 
 while (my ($key, $value) = each %defaults) {

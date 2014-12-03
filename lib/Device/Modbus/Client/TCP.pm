@@ -2,13 +2,13 @@ package Device::Modbus::Client::TCP;
 
 use Device::Modbus;
 use Device::Modbus::TCP;
+use Device::Modbus::Transaction;
 use IO::Socket::INET;
 use Time::HiRes qw(time);
 use Moo;
 
 has host     => (is => 'ro', default => sub {'127.0.0.1'});
 has port     => (is => 'ro', default => sub {502});
-has unit     => (is => 'ro', default => sub {0xff});
 has blocking => (is => 'ro', default => sub {1});
 has timeout  => (is => 'rw', default => 0.2);
 has socket => (is => 'rw', builder => 1, handles => [qw(connected close)]);
@@ -34,8 +34,7 @@ my $transaction_id = 0;
 # Probably useless...
 sub request_transaction {
     my ($self, $req) = @_;
-    my $trn = $self->init_transaction || return undef;
-    $trn->request($req);
+    my $trn = $self->init_transaction($req) || return undef;
     return $trn;
 }
 
@@ -51,12 +50,13 @@ sub next_trn_id {
 }
 
 sub init_transaction {
-    my $self = shift;
+    my ($self, $req) = @_;
     my $id   = $self->next_trn_id || return;
     my $trn  = Device::Modbus::Transaction->new(
         id      => $id,
         timeout => $self->timeout,
-        unit    => $self->unit
+        unit    => $req->unit,
+        request => $req
     );
     return $trn;
 }

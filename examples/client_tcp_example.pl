@@ -5,10 +5,13 @@ use Device::Modbus::Client::TCP;
 use Data::Dumper;
 use Modern::Perl;
 
-my $client = Device::Modbus::Client::TCP->new( unit => 1 );
+my $client = Device::Modbus::Client::TCP->new();
+
+
 my $req    = Device::Modbus->read_holding_registers(
     address  => 122,
-    quantity => 6
+    quantity => 6,
+    unit     => 1
 );
 
 my $trn = $client->request_transaction($req);
