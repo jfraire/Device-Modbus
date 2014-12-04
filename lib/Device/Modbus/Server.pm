@@ -6,9 +6,11 @@ use Carp;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 # Memory limits and memory areas per function
 
-my %dispatch = (
+my %mem_for = (
     'Read Coils'                    => 'discrete_outputs',
     'Read Discrete Inputs'          => 'discrete_inputs',
     'Read Input Registers'          => 'input_registers',
@@ -52,16 +54,16 @@ sub limits_holding_registers {
 }
 
 sub limits {
-    my ($proto, $func, $unit, $min, $max) = @_;
+    my ($self, $mem, $unit, $min, $max) = @_;
     croak "Server unit <$unit> does not exist"
       unless exists $server_units{$unit};
     if (defined $min) {
-        $server_units{$unit}->{$func}[0] = $min;
+        $server_units{$unit}->{$mem}[0] = $min;
     }
     if (defined $max) {
-        $server_units{$unit}->{$func}[1] = $max;
+        $server_units{$unit}->{$mem}[1] = $max;
     }
-    return @{$server_units{$unit}->{$func}};
+    return @{$server_units{$unit}->{$mem}};
 }
 
 # To be overrided in subclasses
@@ -94,7 +96,7 @@ sub modbus_server {
 
     ### Validations that throw Modbus::Exceptions
     my $fcn = $req->function;
-    my ($min, $max) = $server->addr_limits($unit, $mem_for{$fcn});
+    my ($min, $max) = $server->limits($mem_for{$fcn}, $unit);
 
     # All of read and multiple write functions
     if (   ref $req eq 'Device::Modbus::Request::Read'
@@ -103,21 +105,19 @@ sub modbus_server {
         my $addr = $req->address;
         my $qty  = $req->quantity;
 
-        unless ($addr >= $min && $addr + $qty <= $max) {
-            return (
-                Device::Modbus::Exception->new(
-                    function       => $fcn,
-                    exception_code => 2,
-                    unit           => $unit
-                ), $resp);
+        unless ($addr >= $min && $addr+$qty-1 <= $max) {
+            return Device::Modbus::Exception->new(
+                function       => $fcn,
+                exception_code => 2,
+                unit           => $unit
+            );
         }
-        unless ($qty >= 1 && $qty <= $max - $min - 1) {
-            return (
-                Device::Modbus::Exception->new(
-                    function       => $fcn,
-                    exception_code => 3,
-                    unit           => $unit
-                ), $resp);
+        unless ($qty >= 1 && $qty <= $max-$min+1) {
+            return Device::Modbus::Exception->new(
+                function       => $fcn,
+                exception_code => 3,
+                unit           => $unit
+            );
         }
     }
 
@@ -127,23 +127,21 @@ sub modbus_server {
         my $val  = $req->value;
 
         unless ($addr >= $min && $addr <= $max) {
-            return (
-                Device::Modbus::Exception->new(
-                    function       => $fcn,
-                    exception_code => 2,
-                    unit           => $unit
-                ), $resp);
+            return Device::Modbus::Exception->new(
+                function       => $fcn,
+                exception_code => 2,
+                unit           => $unit
+            );
         }
 
         if ($fcn eq 'Write Single Register'
             && !($val >= 0x0000 && $val <= 0xffff))
         {
-            return (
-                Device::Modbus::Exception->new(
-                    function       => $fcn,
-                    exception_code => 3,
-                    unit           => $unit
-                ), $resp);
+            return Device::Modbus::Exception->new(
+                function       => $fcn,
+                exception_code => 3,
+                unit           => $unit
+            );
         }
 
     }
@@ -161,12 +159,11 @@ sub modbus_server {
             && $waddr >= $min
             && $waddr + $wqty <= $max)
         {
-            return (
-                Device::Modbus::Exception->new(
-                    function       => $fcn,
-                    exception_code => 2,
-                    unit           => $unit
-                ), $resp);
+            return Device::Modbus::Exception->new(
+                function       => $fcn,
+                exception_code => 2,
+                unit           => $unit
+            );
         }
 
         unless ($rqty >= 1
@@ -175,17 +172,16 @@ sub modbus_server {
             && $wqty <= $max
             && $wbytes == 2 * $wqty)
         {
-            return (
-                Device::Modbus::Exception->new(
-                    function       => $fcn,
-                    exception_code => 3,
-                    unit           => $unit
-                ), $resp);
+            return Device::Modbus::Exception->new(
+                function       => $fcn,
+                exception_code => 3,
+                unit           => $unit
+            );
         }
     }
 
     ### Real work is perfomed here
-    eval { $resp = $self->process_request($unit, $req) };
+    eval { $resp = $server->process_request($unit, $req) };
 
 
     # Return if the request was processed correctly
@@ -194,22 +190,20 @@ sub modbus_server {
         return $resp;
     }
 
-    my $err_msg =
-      . "Function:    "
-      . $req->function;
+    my $err_msg = 'Function: '.$req->function;
+
     if ($@) {
-        $self->Error("Application crashed: $@\n" . $err_msg);
+        $server->Error("Application crashed: $@\n" . $err_msg);
     }
     elsif (!defined $resp) {
-        $self->Error("Application did not return a response:\n" . $err_msg);
+        $server->Error("Application did not return a response:\n" . $err_msg);
     }
 
-    return (
-        Device::Modbus::Exception->new(
-            function       => $req->function,
-            exception_code => 0x04,
-            unit           => $unit
-        ), $resp);
+    return Device::Modbus::Exception->new(
+        function       => $req->function,
+        exception_code => 0x04,
+        unit           => $unit
+    );
 }
 
 1;

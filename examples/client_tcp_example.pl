@@ -9,19 +9,22 @@ my $client = Device::Modbus::Client::TCP->new();
 
 
 my $req    = Device::Modbus->read_holding_registers(
-    address  => 122,
-    quantity => 6,
-    unit     => 1
+    unit     => 1,
+    address  => 6,
+    quantity => 5
 );
 
-my $trn = $client->request_transaction($req);
-$client->send_request($trn) || die "Send error";
-$client->receive_response   || die "Receive error";
+foreach (1..5) {
+    my $trn = $client->request_transaction($req);
+    $client->send_request($trn) || die "Send error";
+    $client->receive_response   || die "Receive error";
 
-if (ref $trn->response eq 'Device::Modbus::Exception') {
-    say Dumper $trn->response;
+    if (ref $trn->response eq 'Device::Modbus::Exception') {
+        say Dumper $trn->response;
+    }
+    else {
+        say "Values: ", join '-', @{$trn->response->values};
+    }
 }
-else {
-    say "Values: ", join '-', @{$trn->response->values};
-}
+
 $client->close;

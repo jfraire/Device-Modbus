@@ -18,10 +18,10 @@ sub init_server {
 
     $server->add_server_unit(1);
     
-    $server->limits_discrete_inputs(1,16);
-    $server->limits_discrete_outputs(1,16);
-    $server->limits_input_registers(1,10);
-    $server->limits_holding_registers(1,10);
+    $server->limits_discrete_inputs(1,1,16);
+    $server->limits_discrete_outputs(1,1,16);
+    $server->limits_input_registers(1,1,10);
+    $server->limits_holding_registers(1,1,10);
 }
 
 sub process_request {
@@ -41,7 +41,7 @@ sub process_request {
                 $mem_model = 'holding_registers';
             }
         }
-        $memory{holding_registers}->{$addr-1} = $val;
+        $memory{holding_registers}->{$addr-1} = $value;
 
         $resp = Device::Modbus::Response::WriteSingle->new(
             function => $req->function,
@@ -83,7 +83,7 @@ sub process_request {
     if (ref $req eq 'Device::Modbus::Request::Read') {
         my $addr = $req->address;
         my $qty  = $req->quantity;
-        my ($mem, $req, $class);
+        my ($mem, $class);
 
         given ($req->function) {
             when ('Read Coils') {
@@ -104,7 +104,7 @@ sub process_request {
             }
         }
 
-        my @vals = @{ $memory{$mem} }[$addr-1..$addr-1+$qty];
+        my @vals = @{ $memory{$mem} }[$addr-1..$addr+$qty-2];
 
         $resp = $class->new(
             function => $req->function,
@@ -115,5 +115,8 @@ sub process_request {
     return $resp;
 }
 
-1;
+package main;
+
+my $server = Test::Modbus::Server->new;
+$server->Bind;
        

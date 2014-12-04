@@ -28,16 +28,14 @@ sub start {
         next if ($self->unit != $unit);
 
         # Go through the generic server routine
-        my ($req, $resp) = $self->modbus_server($unit, $pdu);
+        my $func = ord(substr $pdu,0,1);
+        my $resp = $self->modbus_server($unit, $pdu);
 
-        if (ref $req eq 'Device::Modbus::Exception') {
-            $resp = $req;
-        }
-        elsif (!defined $resp)  {
+        if (!defined $resp)  {
             $resp = Device::Modbus::Exception->new(
-                function       => $req->function,
-                exception_code => 0x04,
-                unit           => $unit
+                unit           => $unit,
+                function       => Device::Modbus::Exception->function_for($func),
+                exception_code => 0x04
             );
         }
             
