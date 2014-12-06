@@ -7,8 +7,6 @@ use Device::Modbus::Exception;
 use Role::Tiny::With;
 use parent qw(Net::Daemon Device::Modbus::Server);
 
-use Data::Dumper;
-
 with 'Device::Modbus::TCP';
 use strict;
 use warnings;
@@ -87,6 +85,10 @@ sub Run {
         }
     }
     $sock->close;
+}
+
+sub start {
+    shift->Bind;
 }
  
 1;

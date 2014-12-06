@@ -2,13 +2,20 @@ package Device::Modbus::Server::RTU;
 
 use Device::Modbus;
 use Device::Modbus::Exception;
+use Carp;
 use Moo;
 
-has spy_mode  => (is => 'ro', default  => sub { 0 });
-has unit      => (is => 'ro', required => 1);
+has spy_mode  => (is => 'ro', predicate => 1);
+has unit      => (is => 'ro', predicate => 1);
 
 extends 'Device::Modbus::Server';
 with    'Device::Modbus::RTU';
+
+sub BUILD {
+    my $self = shift;
+    croak "The server must be a spy or it must have a unit number"
+        unless $self->has_spy_mode || $self->has_unit;
+}
 
 sub start {
     my $self = shift;
@@ -21,7 +28,7 @@ sub start {
         
         if ($self->spy_mode) {
             print '--> '.join '-', map { unpack 'C*' } $unit, split(//, $pdu);
-            next;
+            next unless $self->has_unit;
         }
 
         # Listen only for the given Modbus address

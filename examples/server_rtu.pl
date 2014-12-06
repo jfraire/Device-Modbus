@@ -3,7 +3,7 @@
 package Test::Modbus::Server;
 
 use Device::Modbus;
-use parent 'Device::Modbus::Server::TCP';
+use parent 'Device::Modbus::Server::RTU';
 use Modern::Perl;
 
 my %memory = (
@@ -117,6 +117,9 @@ sub process_request {
 
 package main;
 
-my $server = Test::Modbus::Server->new;
+my $server = Test::Modbus::Server->new(
+    port => '/dev/ttyUSB0',
+    unit => 3
+);
 $server->start;
        
