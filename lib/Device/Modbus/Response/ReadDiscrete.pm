@@ -4,6 +4,7 @@ use Moo;
 
 extends 'Device::Modbus::Message';
 
+use overload '""' => \&stringify;
 has bytes    => (is => 'rw');
 has values   => (is => 'ro', required => 1);
 
@@ -28,6 +29,13 @@ sub parse_message {
         values   => \@values,
         pdu      => $args{message}
     );
+}
+
+sub stringify {
+    my $self = shift;
+    return 'Response: Function: [' . $self->function .'] '
+        . 'Bytes: [' . $self->bytes . '] '
+        . 'Values: ['. join('-', @{$self->values}) . ']';
 }
 
 1;

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 20;
 BEGIN { use_ok('Device::Modbus') };
 
 # Issue a Read/Write Multiple Registers request
@@ -47,6 +47,19 @@ BEGIN { use_ok('Device::Modbus') };
         'Values to write returned correctly';
     is $request->pdu, $message,
         'Original message is saved in pdu';
+
+    like "$request", qr{Read/Write Multiple Registers},
+        'Function is correctly stringified';
+    like "$request", qr{Read address: \[0x04\]},
+        'Read address is correctly stringified';
+    like "$request", qr{Read quantity: \[6\]},
+        'Read quantity is correctly stringified';
+    like "$request", qr{Write address: \[0x0f\]},
+        'Write address is correctly stringified';
+    like "$request", qr{Write bytes: \[6\]},
+        'Write bytes is correctly stringified';
+    like "$request", qr{Write values: \[255-255-255\]},
+        'Write values is correctly stringified';
 }
 
 

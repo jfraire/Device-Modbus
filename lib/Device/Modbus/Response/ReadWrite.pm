@@ -1,5 +1,6 @@
 package Device::Modbus::Response::ReadWrite;
 
+use overload '""' => \&stringify;
 use Moo;
 
 extends 'Device::Modbus::Message';
@@ -26,6 +27,13 @@ sub parse_message {
         values   => \@values,
         pdu      => $args{message}
     );
+}
+
+sub stringify {
+    my $self = shift;
+    return 'Response: Function: [' . $self->function .'] '
+        . 'Bytes: [' . $self->bytes . '] '
+        . 'Values: ['. join('-', @{$self->values}) . ']';
 }
 
 1;

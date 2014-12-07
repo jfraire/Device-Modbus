@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 24;
 BEGIN { use_ok('Device::Modbus') };
 
 # Build a response object for a read coils request
@@ -74,6 +74,14 @@ BEGIN { use_ok('Device::Modbus') };
         'Values recovered correctly';
     is $response->pdu, $message,
         'Original message is saved in pdu';
+
+    like "$response", qr{Read Discrete Inputs},
+        'Function is correctly stringified';
+    like "$response", qr{Bytes: \[3\]},
+        'Bytes read is correctly stringified';
+    my $values = join '-', @{$response->values};
+    like "$response", qr{Values: \[$values\]},
+        'Values are correctly stringified';
 }
 
 

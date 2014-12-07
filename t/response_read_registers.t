@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 23;
+use Test::More tests => 26;
 BEGIN { use_ok('Device::Modbus') };
 
 # Build a response object for a read holding registers request
@@ -78,6 +78,13 @@ BEGIN { use_ok('Device::Modbus') };
         'Values recovered correctly';
     is $response->pdu, $message,
         'Original message is saved in pdu';
+
+    like "$response", qr{Read Input Registers},
+        'Function is correctly stringified';
+    like "$response", qr{Bytes: \[2\]},
+        'Bytes read is correctly stringified';
+    like "$response", qr{Values: \[10\]},
+        'Values are correctly stringified';
 }
 
 done_testing();

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 17;
 BEGIN { use_ok('Device::Modbus') };
 
 # Read Coils request
@@ -72,6 +72,13 @@ BEGIN { use_ok('Device::Modbus') };
     my $pdu_string = unpack('H*', $pdu);
     is $pdu_string, '0400080001',
         'PDU for Read Input Registers function is correct';
+
+    like "$request", qr{Read Input Registers},
+        'Function is correctly stringified';
+    like "$request", qr{Address: \[0x09\]},
+        'Address is correctly stringified';
+    like "$request", qr{Quantity: \[1\]},
+        'Quantity is correctly stringified';
 }
 
 done_testing();

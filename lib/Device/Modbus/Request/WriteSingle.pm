@@ -1,5 +1,6 @@
 package Device::Modbus::Request::WriteSingle;
 
+use overload '""' => \&stringify;
 use Moo;
 
 extends 'Device::Modbus::Message';
@@ -32,6 +33,13 @@ sub parse_message {
         value    => $value,
         pdu      => $args{message}
     );
+}
+
+sub stringify {
+    my $self = shift;
+    return 'Request: Function: [' . $self->function .'] '
+        . 'Address: [' . sprintf ('%#.2x', $self->address). '] '
+        . 'Value: [' . $self->value . ']';
 }
 
 1;

@@ -1,5 +1,6 @@
 package Device::Modbus::Request::ReadWrite;
 
+use overload '""' => \&stringify;
 use Moo;
 
 extends 'Device::Modbus::Message';
@@ -18,7 +19,7 @@ sub _build_write_quantity {
 
 sub _build_write_bytes {
     my $self = shift;
-    return 2 * $self->write_quantity;
+    return length pack 'n*', @{$self->values};
 }
 
 sub _build_pdu {
@@ -53,6 +54,16 @@ sub parse_message {
         values         => \@values,
         pdu            => $args{message}
     );
+}
+
+sub stringify {
+    my $self = shift;
+    return 'Request: Function: [' . $self->function .'] '
+        . 'Read address: [' . sprintf ('%#.2x', $self->read_address). '] '
+        . 'Read quantity: ['. $self->read_quantity . '] '
+        . 'Write address: [' . sprintf ('%#.2x', $self->write_address). '] '
+        . 'Write bytes: [' . $self->write_bytes. '] '
+        . 'Write values: ['. join('-', @{$self->values}) . '] ';
 }
 
 1;

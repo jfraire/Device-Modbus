@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 19;
+use Test::More tests => 22;
 BEGIN { use_ok('Device::Modbus') };
 
 # Write Multiple Coils response
@@ -72,6 +72,13 @@ BEGIN { use_ok('Device::Modbus') };
         'Quantity of registers returned correctly';
     is $response->pdu, $message,
         'Original message is saved in pdu';
+
+    like "$response", qr{Write Multiple Registers},
+        'Function is correctly stringified';
+    like "$response", qr{Address: \[0x02\]},
+        'Address is correctly stringified';
+    like "$response", qr{Quantity: \[2\]},
+        'Quantitty is correctly stringified';
 }
 
 done_testing();
