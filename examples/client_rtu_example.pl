@@ -17,11 +17,10 @@ my $req = Device::Modbus->read_holding_registers(
     unit     => 1
 );
 
-say Dumper $req;
-
 while (1) {
-    say "Sent bytes: " . $client->send_request($req);
+    $client->send_request($req);
+    say "-> $req";
     my $resp = $client->receive_response;
-    say Dumper $resp;
+    say "<- $resp";
     sleep 1;
 }
