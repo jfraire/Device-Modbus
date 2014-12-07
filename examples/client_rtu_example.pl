@@ -2,7 +2,6 @@
 
 use Device::Modbus;
 use Device::Modbus::Client::RTU;
-use Data::Dumper;
 use Modern::Perl;
 
 my $client = Device::Modbus::Client::RTU->new(
