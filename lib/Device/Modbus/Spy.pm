@@ -55,7 +55,7 @@ sub start {
             if (defined $req && $is_request) {
                 print "--> $req\n";
             }
-            elsif (defined $res && !$is_request) {
+            elsif (defined $resp && !$is_request) {
                 print "<-- $resp\n";
             }
             elsif (defined $req) {
@@ -64,7 +64,7 @@ sub start {
                 $is_request = 1;
                 print "--> (!) $req\n";
             }
-            elsif (defined $res) {
+            elsif (defined $resp) {
                 # Request was not parsed correctly even though we expected
                 # a request
                 $is_request = 0;
@@ -78,6 +78,7 @@ sub start {
         # Toggle $is_request
         $is_request = $is_request ? 0 : 1;
         print "\n";
+    }
 }
 
 1;
