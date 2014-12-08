@@ -7,7 +7,7 @@ In particular, servers should be able to execute arbitrary code to process reque
 
 CURRENT STATUS
 
-Currently, the distribution is under development. It has been successfully tested as TCP and RTU clients. A very simple version of a TCP server was successful as well.
+Currently, the distribution is under development. It has been successfully tested as TCP and RTU client, as TCP server, and as RTU spy.
 
 MILESTONES
 
@@ -15,6 +15,7 @@ MILESTONES
 - Non-blocking Modbus TCP clients
 - Modbus RTU client
 - Modbus RTU server
+- Modbus RTU spy
 
 INSTALLATION
 

@@ -6,7 +6,18 @@ WriteMakefile(
     NAME              => 'Device::Modbus',
     VERSION_FROM      => 'lib/Device/Modbus.pm',
     PREREQ_PM         => { Moo => 0 },
-    ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/Device/Modbus.pm',
-       AUTHOR         => 'Julio Fraire <julio.fraire@gmail.com>') : ()),
+    ABSTRACT_FROM     => 'lib/Device/Modbus.pm',
+    AUTHOR            => 'Julio Fraire <julio.fraire@gmail.com>',
+    META_MERGE        => {
+		'meta-spec'   => {
+			version => 2,
+		},
+		resources     => {
+			repository => {
+				type => 'git',
+				url  => 'https://github.com/jfraire/Device-Modbus.git',
+				web  => 'https://github.com/jfraire/Device-Modbus',
+			},
+		},
+	},
 );
