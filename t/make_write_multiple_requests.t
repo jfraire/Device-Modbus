@@ -26,7 +26,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Address is correctly stringified';
     like "$request", qr{Quantity: \[10\]},
         'Quantity of values is correctly stringified';
-    like "$request", qr{Values: \[1-0-1-1-0-0-1-1-1-0\]},
+    like "$request", qr{Values: \[1, 0, 1, 1, 0, 0, 1, 1, 1, 0\]},
         'Values are correctly stringified';
 }
 
@@ -52,7 +52,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Address is correctly stringified';
     like "$request", qr{Quantity: \[2\]},
         'Quantity of values is correctly stringified';
-    like "$request", qr{Values: \[10-258\]},
+    like "$request", qr{Values: \[10, 258\]},
         'Values are correctly stringified';
 }
 

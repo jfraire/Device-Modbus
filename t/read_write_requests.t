@@ -58,7 +58,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Write address is correctly stringified';
     like "$request", qr{Write bytes: \[6\]},
         'Write bytes is correctly stringified';
-    like "$request", qr{Write values: \[255-255-255\]},
+    like "$request", qr{Write values: \[255, 255, 255\]},
         'Write values is correctly stringified';
 }
 

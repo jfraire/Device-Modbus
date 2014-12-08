@@ -41,7 +41,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Function is correctly stringified';
     like "$response", qr{Bytes: \[12\]},
         'Bytes read is correctly stringified';
-    like "$response", qr{Values: \[254-2765-1-3-13-255\]},
+    like "$response", qr{Values: \[254, 2765, 1, 3, 13, 255\]},
         'Values are correctly stringified';
 }
 

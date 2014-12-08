@@ -79,7 +79,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Function is correctly stringified';
     like "$response", qr{Bytes: \[3\]},
         'Bytes read is correctly stringified';
-    my $values = join '-', @{$response->values};
+    my $values = join ', ', @{$response->values};
     like "$response", qr{Values: \[$values\]},
         'Values are correctly stringified';
 }
