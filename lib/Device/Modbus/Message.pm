@@ -10,7 +10,7 @@ has unit     => (is => 'rw', default => sub {0xff}); # Default for TCP
 
 my %code_for = (
 
-    # Bit access functions             fcn
+    # Bit access functions    fcn
     'Read Discrete Inputs' => 0x02,
     'Read Coils'           => 0x01,
     'Write Single Coil'    => 0x05,

@@ -276,6 +276,22 @@ sub parse_response {
     return $response;
 }
 
+sub parse_exception {
+    my ($class, $binary_req) = @_;
+
+    my ($fcn_code, $exc_code) = unpack 'Cn', $binary_req;
+
+    return $fcn_code unless $fcn_code > 0x80;
+    
+    my $fcn = Device::Modbus::Message->function_for($fcn_code-0x80);
+
+    return Device::Modbus::Exception->new(
+        function       => $fcn,
+        exception_code => $exc_code
+    );
+}
+    
+
 1;
 
 __END__

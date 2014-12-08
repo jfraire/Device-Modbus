@@ -40,36 +40,44 @@ sub start {
         if ($function_code == 23) {
             my $bytes = unpack 'C', substr $pdu, 1, 1;
             $is_request = 0 if length($pdu) == 2+$bytes;
-        } 
+        }
 
-        # Parse the message twice anyway
-        my $req  = Device::Modbus->parse_request($pdu);
-        my $resp = Device::Modbus->parse_response($pdu);
-
-        if (defined $req && $is_request) {
-            print "--> $req\n";
-        }
-        elsif (defined $res && !$is_request) {
-            print "<-- $resp\n";
-        }
-        elsif (defined $req) {
-            # Response was not parsed correctly even though we expected
-            # a response
-            $is_request = 1;
-            print "--> (!) $req\n";
-        }
-        elsif (defined $res) {
-            # Request was not parsed correctly even though we expected
-            # a request
-            $is_request = 0;
-            print "<-- (!) $resp\n";
+        # What if it is an exception?
+        if ($function_code > 0x80) {
+            my $exc = Device::Modbus->parse_exception($pdu);
+            print "*** (!) $exc\n";
         }
         else {
-            print "-- Unable to parse PDU\n";
+            # Parse the message twice anyway
+            my $req  = Device::Modbus->parse_request($pdu);
+            my $resp = Device::Modbus->parse_response($pdu);
+
+            if (defined $req && $is_request) {
+                print "--> $req\n";
+            }
+            elsif (defined $res && !$is_request) {
+                print "<-- $resp\n";
+            }
+            elsif (defined $req) {
+                # Response was not parsed correctly even though we expected
+                # a response
+                $is_request = 1;
+                print "--> (!) $req\n";
+            }
+            elsif (defined $res) {
+                # Request was not parsed correctly even though we expected
+                # a request
+                $is_request = 0;
+                print "<-- (!) $resp\n";
+            }
+            else {
+                print "*** (!) Unable to parse PDU\n";
+            }
         }
 
         # Toggle $is_request
         $is_request = $is_request ? 0 : 1;
+        print "\n";
 }
 
 1;
