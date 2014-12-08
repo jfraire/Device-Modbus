@@ -84,7 +84,7 @@ sub stringify {
     return 'Request: Function: [' . $self->function .'] '
         . 'Address: [' . sprintf ('%#.2x', $self->address). '] '
         . 'Quantity: ['. $self->quantity . '] '
-        . 'Values: [' . join('-', @{$self->values}) . ']';
+        . 'Values: [' . join(', ', @{$self->values}) . ']';
 }
 
 1;

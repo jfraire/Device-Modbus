@@ -63,7 +63,7 @@ sub stringify {
         . 'Read quantity: ['. $self->read_quantity . '] '
         . 'Write address: [' . sprintf ('%#.2x', $self->write_address). '] '
         . 'Write bytes: [' . $self->write_bytes. '] '
-        . 'Write values: ['. join('-', @{$self->values}) . '] ';
+        . 'Write values: ['. join(', ', @{$self->values}) . '] ';
 }
 
 1;

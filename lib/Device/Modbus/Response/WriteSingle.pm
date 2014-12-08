@@ -38,7 +38,7 @@ sub parse_message {
 sub stringify {
     my $self = shift;
     return 'Response: Function: [' . $self->function .'] '
-        . 'Address: [' . sprintf("%02x", $self->address) . '] '
+        . 'Address: [' . sprintf("%#.2x", $self->address) . '] '
         . 'Value: ['. $self->value . ']';
 }
 

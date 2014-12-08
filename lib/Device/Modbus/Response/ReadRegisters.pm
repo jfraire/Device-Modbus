@@ -33,7 +33,7 @@ sub stringify {
     my $self = shift;
     return 'Response: Function: [' . $self->function .'] '
         . 'Bytes: [' . $self->bytes . '] '
-        . 'Values: ['. join('-', @{$self->values}) . ']';
+        . 'Values: ['. join(', ', @{$self->values}) . ']';
 }
 
 1;

@@ -10,23 +10,27 @@ with 'Device::Modbus::RTU';
 sub start {
     my $self = shift;
 
+    my %old_msg = (unit => 0, function => 0);
     my $is_request = 1;
     while (1) {
         my $message = $self->read_port;
         next unless $message;
 
         ### Break message
+        my %this_msg;
         my ($unit, $pdu, $footer) = $self->break_message($message);
-        print "Unit: [$unit]\n";
-        print "PDU:  [".join('-', map { unpack 'H*' } split //, $pdu)."]\n";
-        print "CDC:  [".join('-', map { unpack 'H*' } split //, $footer)."]\n";
 
         ### Parse message
         my $function_code = unpack 'C', $pdu;
 
+        %this_msg = ( unit => $unit, function => $function_code );
+
         # There should be a request and then a response, but which is which?
-        # Requests to write single registers and coils are the same
-        # as their responses
+
+        # It is a request if unit and function are different than the last message
+        if ($this_msg{unit} != $old_msg{unit} || $this_msg{function} != $this_msg{function}) {
+            $is_request = 1;
+        }
 
         # Reading functions. Requests are 5 bytes always, and responses
         # only some times...
@@ -74,6 +78,10 @@ sub start {
                 print "*** (!) Unable to parse PDU\n";
             }
         }
+
+        print "Unit: [$unit]\n";
+        print "PDU:  [".join('-', map { unpack 'H*' } split //, $pdu)."]\n";
+        print "CDC:  [".join('-', map { unpack 'H*' } split //, $footer)."]\n";
 
         # Toggle $is_request
         $is_request = $is_request ? 0 : 1;
