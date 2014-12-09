@@ -32,6 +32,18 @@ This module requires these other non-standard modules and libraries:
 
   * Moo
 
+SEE ALSO
+
+In Perl, you can find other Modbus related distributions. I think the
+leading one would be Protocol::Modbus, by Cossimo, which implements
+Modbus TCP clients. While there is code for RTU clients, it is not as
+mature.
+
+There are also some scripts that implement both servers and clients.
+A couple worth looking at is formed by MBclient and mbserved. The
+later is available in GitHub and they were both written by the same
+author.
+
 COPYRIGHT AND LICENCE
 
 Copyright (C) 2014 by Julio Fraire

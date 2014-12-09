@@ -295,40 +295,153 @@ sub parse_exception {
 1;
 
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-Device::Modbus - Perl extension for blah blah blah
+Device::Modbus - Perl distribution to implement Modbus communications
 
 =head1 SYNOPSIS
 
-  use Device::Modbus;
-  blah blah blah
+This is a Modbus TCP client:
+
+ use Device::Modbus;
+ use Device::Modbus::Client::TCP;
+ use Modern::Perl;
+
+ my $client = Device::Modbus::Client::TCP->new();
+
+ my $req    = Device::Modbus->read_holding_registers(
+    unit     => 1,
+    address  => 6,
+    quantity => 5
+ );
+
+ foreach (1..5) {
+    my $trn = $client->request_transaction($req);
+    say "-> $req";
+    $client->send_request($trn) || die "Send error";
+    $client->receive_response   || die "Receive error";
+    my $response = $trn->response;
+    say "<- $response";
+ }
+
+ $client->close;
+
+A Modbus RTU client would be:
+
+ #! /usr/bin/env perl
+
+ use Device::Modbus;
+ use Device::Modbus::Client::RTU;
+ use Modern::Perl;
+
+ my $client = Device::Modbus::Client::RTU->new(
+    port     => '/dev/ttyUSB0',
+    baudrate => 19200,
+    parity   => 'none',
+ );
+
+ my $req = Device::Modbus->read_holding_registers(
+    address  => 1,
+    quantity => 1,
+    unit     => 1
+ );
+
+ while (1) {
+    $client->send_request($req);
+    say "-> $req";
+    my $resp = $client->receive_response;
+    say "<- $resp";
+    sleep 1;
+ }
 
 =head1 DESCRIPTION
 
-Stub documentation for Device::Modbus, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
+Modbus is a simple client/server communication protocol developed by Modicon in 1979. It is implemented by thousands of devices to transfer data in an industrial environment. Its roots in the early automation world are clearly visible through its model, where writable single bits are called I<coils> after relay contacts, for example.
 
-Blah blah blah.
+The protocol follows a model that distiguishes between four types of data:
 
+=over
+
+=item * Discrete Inputs
+
+Read-only, bit addressable data. 
+
+=item * Coils
+
+Writable, bit addressable data.
+
+=item * Input Registers
+
+Read/Write, word addressable data.
+
+=item * Holding Registers
+
+Read/Write, world addressable data.
+
+=back
+
+Modbus offers functions to access each of these I<areas>. The application is free to map this model to its particular needs.
+
+As it would be expected from such an old and pervasive protocol, it exists in three frame formats. The first one is Modbus RTU, which is a binary representation of the protocol suitable for transmision over a serial port using RS485 as the physical and data link layers. In this model, only one master should exist in the bus. Many instruments and controllers exist today that provide this mode of communication.
+
+The second variant is Modbus ASCII. This is also a serial protocol which is a less efficient cousin of RTU, which should be implemented over a serial line. This variant is not implemented in this distribution.
+
+The third frame format is Modbus TCP, which implements the protocol over the Ethernet port using TCP sockets. Using this model, any device can send requests to any other element in the network. This variant is implemented in this distribution.
+
+To learn more about Modbus, please visit L<http://www.modbus.org>.
+
+=head1 MOTIVATION AND GOALS
+
+We bought an HMI (I<human-machine interface>, a touchscreen) that communicates via Modbus TCP and we wanted to bring information from a database. I thought this should be possible to do with Perl, but it was not. I found mostly Modbus clients and no servers. As I learned more about Modbus, then just a fancy word, it was clear that it could be done. It should be done.
+
+The goal for this distribution is then to provide easy ways to write clients and servers both for the RTU and TCP variants. In RTU, a debugging tool that is very useful to have is a spy that allows you to see the messages between a server and a client, or to read the messages sent by a controller. A spy such as this is easy to implement once you have the pieces for clients and servers available.
+
+The servers, on the other hand, must be able to execute arbitrary code to react to Modbus requests. This should allow to write database front ends that are reachable by Modbus, or to write protocol converters. The applications are endless.
+
+=head1 USAGE
+
+The usage of Device::Modbus depends on what you want to do. Servers, clients and the spy are quite different from each other. The protocol itself is broken into requests, responses and exception objects. These objects appear throughout the applications and thus, we shall begin with their description.
+
+=head2 Modbus messages
+
+=head2 Modbus functions
+
+=head3 Read functions
+
+=head3 Write functions
+
+=head3 Read/Write Registers
+
+=head2 Clients
+
+=head3 RTU
+
+=head3 TCP
+
+=head2 Servers
+
+=head3 RTU
+
+=head3 TCP
+
+=head2 Modbus RTU Spy
+
+=head1 GITHUB REPOSITORY
+
+You can find the repository of this distribution in GitHub:
+
+L<https://github.com/jfraire/Device-Modbus>
 
 =head1 SEE ALSO
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
+These are other implementations of Modbus in Perl:
 
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
+L<Protocol::Modbus>, L<MBclient>, L<mbserverd|https://github.com/sourceperl/mbserverd>.
 
 =head1 AUTHOR
 
-Julio Fraire, E<lt>julio@E<gt>
+Julio Fraire, E<lt>julio.fraire@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
