@@ -60,8 +60,6 @@ sub read_port {
         last if $message;
     }
 
-    return undef unless $message;
-
     return $message;
 }
 
