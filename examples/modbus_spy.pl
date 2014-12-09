@@ -12,4 +12,12 @@ my $spy = Device::Modbus::Spy->new(
     parity   => 'none',
 );
 
-$spy->start;
+while (1) {
+    $spy->watch_port;
+
+    say $spy->message;
+    say $spy->unit;
+    say $spy->pdu;
+    say $spy->cdc;
+    say '---';
+}
