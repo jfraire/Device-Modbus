@@ -377,43 +377,166 @@ Read/Write, word addressable data.
 
 =item * Holding Registers
 
-Read/Write, world addressable data.
+Read/Write, word addressable data.
 
 =back
 
-Modbus offers functions to access each of these I<areas>. The application is free to map this model to its particular needs.
+Modbus offers functions to access each of these types. The application is free to map this model onto its particular needs.
 
 As it would be expected from such an old and pervasive protocol, it exists in three frame formats. The first one is Modbus RTU, which is a binary representation of the protocol suitable for transmision over a serial port using RS485 as the physical and data link layers. In this model, only one master should exist in the bus. Many instruments and controllers exist today that provide this mode of communication.
 
 The second variant is Modbus ASCII. This is also a serial protocol which is a less efficient cousin of RTU, which should be implemented over a serial line. This variant is not implemented in this distribution.
 
-The third frame format is Modbus TCP, which implements the protocol over the Ethernet port using TCP sockets. Using this model, any device can send requests to any other element in the network. This variant is implemented in this distribution.
+The third frame format is Modbus TCP, which implements the protocol over Ethernet using TCP sockets. Using this model, any device can send requests to any other element in the network. This variant is implemented in this distribution.
 
 To learn more about Modbus, please visit L<http://www.modbus.org>.
 
 =head1 MOTIVATION AND GOALS
 
-We bought an HMI (I<human-machine interface>, a touchscreen) that communicates via Modbus TCP and we wanted to bring information from a database. I thought this should be possible to do with Perl, but it was not. I found mostly Modbus clients and no servers. As I learned more about Modbus, then just a fancy word, it was clear that it could be done. It should be done.
+I was working with an HMI (human-machine interface) that communicates via Modbus TCP and it was required to bring information from a database. I thought this should be possible to do with Perl, but it was not. I found a couple of Modbus clients but no servers. As I learned more about Modbus, then just a fancy word, it was clear that it could be done. It should be done.
 
-The goal for this distribution is then to provide easy ways to write clients and servers both for the RTU and TCP variants. In RTU, a debugging tool that is very useful to have is a spy that allows you to see the messages between a server and a client, or to read the messages sent by a controller. A spy such as this is easy to implement once you have the pieces for clients and servers available.
+The goal for this distribution is then to provide easy ways to write clients and servers both for the RTU and TCP variants. In RTU, it is possible to make a spy that allows you to see the messages between a server and a client, or to read the messages sent by a controller, and this is very useful as a debugging tool. It is easy to implement a spy once you have servers available.
 
-The servers, on the other hand, must be able to execute arbitrary code to react to Modbus requests. This should allow to write database front ends that are reachable by Modbus, or to write protocol converters. The applications are endless.
+The servers must be able to execute arbitrary code to react to Modbus requests. This should allow to write database front ends that are reachable by Modbus, or to write protocol converters. There are many interesting possibilities.
 
 =head1 USAGE
 
-The usage of Device::Modbus depends on what you want to do. Servers, clients and the spy are quite different from each other. The protocol itself is broken into requests, responses and exception objects. These objects appear throughout the applications and thus, we shall begin with their description.
+The usage of Device::Modbus depends on what you want to do. Servers, clients and the spy are quite different from each other. While clients issue requests and read responses, servers do the opposite.
 
-=head2 Modbus messages
+Therefore, the protocol itself is broken into requests, responses and exception objects. These objects appear in every application and thus, we shall begin with their description.
 
 =head2 Modbus functions
 
+This distribution implements only the basic read and write functions of the Modbus specification. Moreover, while the specification calls for one-based addressing, the current implementation in Modicon controllers is zero-based. Device::Modbus addressing is zero-based.
+
+When writing Modbus clients, once the communication channel is open (a socket or a serial port) you want to create requests. The client will then send these requests to the server, and wait for its responses.
+
 =head3 Read functions
+
+The following reading functions have been implemented, both as requests and as responses:
+
+=over
+
+=item * Read Discrete Inputs
+
+=item * Read Coils
+
+=item * Read Input Registers
+
+=item * Read Holding Registers
+
+=back
+
+All of the requests share the same parameters with the significant difference that the first two functions work over discrete, bit values, and the last two, over word registers which are returned as numbers. The same is valid for response objects:
+
+ # These are all Modbus requests:
+ $req = Device::Modbus->read_discrete_inputs(
+    address  => 0x32,
+    quantity => 5
+ );
+
+ $req = Device::Modbus->read_coils(
+    address  => 0x032,
+    quantity => 5
+ );
+
+ $req = Device::Modbus->read_input_registers(
+    address  => 23,
+    quantity => 6
+ );
+
+ $req = Device::Modbus->read_holding_registers(
+    address  => 22,
+    quantity => 1
+ );
+
+ # And the following methods create responses:
+ $res = Device::Modbus->discrete_inputs_read(
+    values => [1, 1, 0, 0, 1]
+ );
+
+ $res = Device::Modbus->coils_read(
+    values => [1, 1, 0, 0, 1]
+ );
+
+ $res = Device::Modbus->input_registers_read(
+    values => [12, 234, 24, 2, 224, 65368]
+ );
+
+ $res = Device::Modbus->holding_registers_read(
+    values => [12]
+ );
 
 =head3 Write functions
 
+Just like for reading, there are functions to write into bit and word-addressable zones. More over, you can write either one or multiple contiguous values using Modbus functions. Requests and responses for the following functions are implemented in Device::Modbus:
+
+=over
+
+=item * Write Single Coil
+
+=item * Write Multiple Coils
+
+=item * Write Single Register
+
+=item * Write Multiple Registers
+
+=back
+
+Register-based functions work over the holding register area. Input registers are read-only.
+
+The method to produce write requests are:
+
+ # Methods that return write requests:
+ $req = Device::Modbus->write_single_coil(
+
+ );
+
+ $req = Device::Modbus->write_multiple_coils(
+
+ );
+
+ $req = Device::Modbus->write_single_register(
+
+ );
+
+ $req = Device::Modbus->write_multiple_registers(
+
+ );
+
+ # The following methods build requests:
+ $res = Device::Modbus->single_coil_write(
+
+ );
+
+ $res = Device::Modbus->multiple_coils_write(
+
+ );
+
+ $res = Device::Modbus->single_register_write(
+
+ );
+
+ $res = Device::Modbus->multiple_registers_write(
+
+ );
+
 =head3 Read/Write Registers
 
+The final funtion that is implemented in Device::Modbus is to read and write registers in a single request:
+
+ # Read/Write Registers request:
+ $req = Device::Modbus->read_write_registers(
+
+ );
+
+ $res = Device::Modbus->registers_read_write(
+
+ );
+
 =head2 Clients
+
+Being able to issue requests and parsing responses is only half of the problem. The other half is getting down to the details of the transmission, and in Modbus there are two ways to do it: RTU and TCP.
 
 =head3 RTU
 
@@ -429,9 +552,7 @@ The usage of Device::Modbus depends on what you want to do. Servers, clients and
 
 =head1 GITHUB REPOSITORY
 
-You can find the repository of this distribution in GitHub:
-
-L<https://github.com/jfraire/Device-Modbus>
+You can find the repository of this distribution in L<GitHub|https://github.com/jfraire/Device-Modbus>.
 
 =head1 SEE ALSO
 

@@ -7,7 +7,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Write Multiple Coils response
 {
     my $response = Device::Modbus->multiple_coils_write(
-        address  => 20,
+        address  => 19,
         quantity => 10
     );
 
@@ -24,7 +24,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Write Multiple Registers response
 {
     my $response = Device::Modbus->multiple_registers_write(
-        address  => 2,
+        address  => 1,
         quantity => 2
     );
 
@@ -48,7 +48,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Write Multiple Coils name is retrieved correctly';
     is $response->function_code, 0x0f,
         'Function code returned correctly';
-    is $response->address, 20,
+    is $response->address, 19,
         'Initial address returned correctly';
     is $response->quantity, 10,
         'Quantity of coils returned correctly';
@@ -66,7 +66,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Write Multiple Registers name is retrieved correctly';
     is $response->function_code, 0x10,
         'Function code returned correctly';
-    is $response->address, 2,
+    is $response->address, 1,
         'Initial address returned correctly';
     is $response->quantity, 2,
         'Quantity of registers returned correctly';
@@ -75,7 +75,7 @@ BEGIN { use_ok('Device::Modbus') };
 
     like "$response", qr{Write Multiple Registers},
         'Function is correctly stringified';
-    like "$response", qr{Address: \[0x02\]},
+    like "$response", qr{Address: \[0x01\]},
         'Address is correctly stringified';
     like "$response", qr{Quantity: \[2\]},
         'Quantitty is correctly stringified';

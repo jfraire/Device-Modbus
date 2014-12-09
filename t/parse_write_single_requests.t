@@ -14,7 +14,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Write Single Coil name is retrieved correctly';
     is $request->function_code, 0x05,
         'Function code returned correctly';
-    is $request->address, 173,
+    is $request->address, 172,
         'Initial address returned correctly';
     is $request->value, 1,
         'Quantity of coils returned correctly';
@@ -32,7 +32,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Write Single Register name is retrieved correctly';
     is $request->function_code, 0x06,
         'Function code returned correctly';
-    is $request->address, 2,
+    is $request->address, 1,
         'Initial address returned correctly';
     is $request->value, 3,
         'Quantity of coils returned correctly';

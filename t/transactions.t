@@ -17,7 +17,7 @@ BEGIN {
     isa_ok $trn, 'Device::Modbus::Transaction';
 
     my $request = Device::Modbus->read_coils(
-        address  => 20,
+        address  => 19,
         quantity => 19
     );
 

@@ -14,7 +14,7 @@ sub _build_pdu {
     if ($self->function eq 'Write Single Coil') {
         $value = $self->{value} ? 0xFF00 : 0;
     }
-    my @pdu = ($self->function_code, $self->address - 1, $value);
+    my @pdu = ($self->function_code, $self->address, $value);
     return pack 'Cnn', @pdu;
 }
 
@@ -24,8 +24,6 @@ sub parse_message {
     my ($code, $address, $value) = unpack 'Cnn', $args{message};
 
     $value = 1 if $code == 5 && $value;
-
-    $address++;
 
     return $class->new(
         function => $args{function},

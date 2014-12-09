@@ -5,8 +5,8 @@ use Moo;
 
 extends 'Device::Modbus::Message';
 
-has address => (is => 'ro', required => 1);
-has values  => (is => 'ro', required => 1);
+has address  => (is => 'ro', required => 1);
+has values   => (is => 'ro', required => 1);
 has quantity => (is => 'lazy');
 
 sub _build_pdu {
@@ -26,7 +26,7 @@ sub _build_pdu_to_write_multiple_coils {
 
     # Build the pdu
     my @pdu =
-      ($self->function_code, $self->address - 1, $quantity, scalar(@$values));
+      ($self->function_code, $self->address, $quantity, scalar(@$values));
     return pack('CnnC', @pdu) . join '', @$values;
 }
 
@@ -39,7 +39,7 @@ sub _build_pdu_to_write_multiple_registers {
 
     # Build the pdu
     my @pdu = (
-        $self->function_code, $self->address - 1,
+        $self->function_code, $self->address,
         $quantity, 2 * $quantity, @values
     );
     return pack 'CnnCn*', @pdu;
@@ -69,7 +69,6 @@ sub parse_message {
           $args{message};
     }
 
-    $address++;
     return $class->new(
         function => $args{function},
         address  => $address,

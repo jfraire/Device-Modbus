@@ -7,9 +7,9 @@ BEGIN { use_ok('Device::Modbus') };
 # Issue a Read/Write Multiple Registers request
 {
     my $request = Device::Modbus->read_write_registers(
-        read_address  => 4,
+        read_address  => 3,
         read_quantity => 6,
-        write_address => 15,
+        write_address => 14,
         values        => [0x00ff, 0x00ff, 0x00ff]
     );
 

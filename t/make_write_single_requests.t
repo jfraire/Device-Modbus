@@ -7,7 +7,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Write Single Coil
 {
     my $request = Device::Modbus->write_single_coil(
-        address  => 173,
+        address  => 172,
         value    => 1
     );
 
@@ -22,7 +22,7 @@ BEGIN { use_ok('Device::Modbus') };
 
     like "$request", qr{Write Single Coil},
         'Function is correctly stringified';
-    like "$request", qr{Address: \[0xad\]},
+    like "$request", qr{Address: \[0xac\]},
         'Address is correctly stringified';
     like "$request", qr{Value: \[1\]},
         'Value is correctly stringified';
@@ -31,7 +31,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Write Single Register
 {
     my $request = Device::Modbus->write_single_register(
-        address  => 2,
+        address  => 1,
         value    => 0x03
     );
 
@@ -46,7 +46,7 @@ BEGIN { use_ok('Device::Modbus') };
 
     like "$request", qr{Write Single Register},
         'Function is correctly stringified';
-    like "$request", qr{Address: \[0x02\]},
+    like "$request", qr{Address: \[0x01\]},
         'Address is correctly stringified';
     like "$request", qr{Value: \[3\]},
         'Value is correctly stringified';

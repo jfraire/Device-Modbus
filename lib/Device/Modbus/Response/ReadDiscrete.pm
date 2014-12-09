@@ -1,10 +1,10 @@
 package Device::Modbus::Response::ReadDiscrete;
 
+use overload '""' => \&stringify;
 use Moo;
 
 extends 'Device::Modbus::Message';
 
-use overload '""' => \&stringify;
 has bytes    => (is => 'rw');
 has values   => (is => 'ro', required => 1);
 

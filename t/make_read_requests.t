@@ -7,7 +7,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Read Coils request
 {
     my $request = Device::Modbus->read_coils(
-        address  => 20,
+        address  => 19,
         quantity => 19
     );
 
@@ -26,7 +26,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Read Discrete Inputs
 {
     my $request = Device::Modbus->read_discrete_inputs(
-        address  => 197,
+        address  => 196,
         quantity => 218-196
     );
 
@@ -43,7 +43,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Read Holding Registers
 {
     my $request = Device::Modbus->read_holding_registers(
-        address  => 108,
+        address  => 107,
         quantity => 110-107
     );
 
@@ -60,7 +60,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Read Input Registers
 {
     my $request = Device::Modbus->read_input_registers(
-        address  => 9,
+        address  => 8,
         quantity => 1
     );
 
@@ -75,7 +75,7 @@ BEGIN { use_ok('Device::Modbus') };
 
     like "$request", qr{Read Input Registers},
         'Function is correctly stringified';
-    like "$request", qr{Address: \[0x09\]},
+    like "$request", qr{Address: \[0x08\]},
         'Address is correctly stringified';
     like "$request", qr{Quantity: \[1\]},
         'Quantity is correctly stringified';

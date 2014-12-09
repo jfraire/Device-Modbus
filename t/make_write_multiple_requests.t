@@ -7,7 +7,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Write Multiple Coils
 {
     my $request = Device::Modbus->write_multiple_coils(
-        address  => 20,
+        address  => 19,
         values   => [1,0,1,1,0,0,1,1,1,0]
     );
 
@@ -22,7 +22,7 @@ BEGIN { use_ok('Device::Modbus') };
 
     like "$request", qr{Write Multiple Coils},
         'Function is correctly stringified';
-    like "$request", qr{Address: \[0x14\]},
+    like "$request", qr{Address: \[0x13\]},
         'Address is correctly stringified';
     like "$request", qr{Quantity: \[10\]},
         'Quantity of values is correctly stringified';
@@ -33,7 +33,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Write Multiple Registers
 {
     my $request = Device::Modbus->write_multiple_registers(
-        address  => 2,
+        address  => 1,
         values   => [0x000A, 0x0102]
     );
 
@@ -48,7 +48,7 @@ BEGIN { use_ok('Device::Modbus') };
 
     like "$request", qr{Write Multiple Registers},
         'Function is correctly stringified';
-    like "$request", qr{Address: \[0x02\]},
+    like "$request", qr{Address: \[0x01\]},
         'Address is correctly stringified';
     like "$request", qr{Quantity: \[2\]},
         'Quantity of values is correctly stringified';

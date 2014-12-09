@@ -7,7 +7,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Write Single Coil
 {
     my $response = Device::Modbus->single_coil_write(
-        address  => 173,
+        address  => 172,
         value    => 1
     );
 
@@ -24,7 +24,7 @@ BEGIN { use_ok('Device::Modbus') };
 # Write Single Register
 {
     my $response = Device::Modbus->single_register_write(
-        address  => 2,
+        address  => 1,
         value    => 0x03
     );
 
@@ -48,7 +48,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Write Single Coil name is retrieved correctly';
     is $response->function_code, 0x05,
         'Function code returned correctly';
-    is $response->address, 173,
+    is $response->address, 172,
         'Initial address returned correctly';
     is $response->value, 1,
         'Quantity of coils returned correctly';
@@ -66,7 +66,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Write Single Register name is retrieved correctly';
     is $response->function_code, 0x06,
         'Function code returned correctly';
-    is $response->address, 2,
+    is $response->address, 1,
         'Initial address returned correctly';
     is $response->value, 3,
         'Quantity of coils returned correctly';

@@ -14,7 +14,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Function name is retrieved correctly';
     is $request->function_code, 0x01,
         'Function code returned correctly';
-    is $request->address, 20,
+    is $request->address, 19,
         'Initial address returned correctly';
     is $request->quantity, 19,
         'Quantity of coils returned correctly';
@@ -32,7 +32,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Function name is retrieved correctly';
     is $request->function_code, 0x02,
         'Function code returned correctly';
-    is $request->address, 197,
+    is $request->address, 196,
         'Initial address returned correctly';
     is $request->quantity, 218-196,
         'Quantity of discrete inputs returned correctly';
@@ -50,7 +50,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Function name is retrieved correctly';
     is $request->function_code, 0x03,
         'Function code returned correctly';
-    is $request->address, 108,
+    is $request->address, 107,
         'Initial address returned correctly';
     is $request->quantity, 3,
         'Quantity of holding registers returned correctly';
@@ -68,7 +68,7 @@ BEGIN { use_ok('Device::Modbus') };
         'Function name is retrieved correctly';
     is $request->function_code, 0x04,
         'Function code returned correctly';
-    is $request->address, 9,
+    is $request->address, 8,
         'Initial address returned correctly';
     is $request->quantity, 1,
         'Quantity of input registers returned correctly';

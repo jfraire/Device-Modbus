@@ -5,9 +5,9 @@ use Moo;
 
 extends 'Device::Modbus::Message';
 
-has read_address  => (is => 'ro', required => 1);
-has read_quantity => (is => 'ro', required => 1);
-has write_address => (is => 'ro', required => 1);
+has read_address   => (is => 'ro', required => 1);
+has read_quantity  => (is => 'ro', required => 1);
+has write_address  => (is => 'ro', required => 1);
 has write_quantity => (is => 'lazy');
 has write_bytes    => (is => 'lazy');
 has values         => (is => 'ro', required => 1);
@@ -25,8 +25,8 @@ sub _build_write_bytes {
 sub _build_pdu {
     my $self = shift;
     my @pdu  = (
-        $self->function_code,  $self->read_address - 1,
-        $self->read_quantity,  $self->write_address - 1,
+        $self->function_code,  $self->read_address,
+        $self->read_quantity,  $self->write_address,
         $self->write_quantity, $self->write_bytes,
         @{$self->values}
     );
