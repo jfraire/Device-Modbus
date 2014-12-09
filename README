@@ -11,11 +11,13 @@ Currently, the distribution is under development. It has been successfully teste
 
 MILESTONES
 
-- Modbus TCP server module to be used along with Net::Daemon
-- Non-blocking Modbus TCP clients
-- Modbus RTU client
+- Modbus TCP server to be used along with Net::Daemon -- Works...
+- Non-blocking Modbus TCP clients -- Works...
+- Modbus RTU client -- Works!
 - Modbus RTU server
-- Modbus RTU spy
+- Modbus RTU spy -- Works!
+
+The RTU client has been tested with a temperature controller, and the spy was tested with a Modicon 241 PLC. The TCP client and server have been tested against Modbus-Tk, a Python package similar in scope to Device::Modbus. So far, so good.
 
 INSTALLATION
 
@@ -31,6 +33,7 @@ DEPENDENCIES
 This module requires these other non-standard modules and libraries:
 
   * Moo
+  * Net::Daemon
 
 SEE ALSO
 
