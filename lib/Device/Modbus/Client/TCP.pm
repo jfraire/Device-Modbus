@@ -11,7 +11,7 @@ has host     => (is => 'ro', default => sub {'127.0.0.1'});
 has port     => (is => 'ro', default => sub {502});
 has blocking => (is => 'ro', default => sub {1});
 has timeout  => (is => 'rw', default => 0.2);
-has socket => (is => 'rw', builder => 1, handles => [qw(connected close)]);
+has socket   => (is => 'rw', builder => 1, handles => [qw(connected close)]);
 
 has waiting_room     => (is => 'rw', default => sub { +{} });
 has max_transactions => (is => 'rw', default => sub {16});

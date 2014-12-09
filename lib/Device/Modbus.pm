@@ -489,36 +489,44 @@ The method to produce write requests are:
 
  # Methods that return write requests:
  $req = Device::Modbus->write_single_coil(
-
+    address => 26,
+    value   =>  0
  );
 
  $req = Device::Modbus->write_multiple_coils(
-
+    address => 256,
+    values  => [1,0,0,1,1]
  );
 
  $req = Device::Modbus->write_single_register(
-
+    address =>  26,
+    value   => 820
  );
 
  $req = Device::Modbus->write_multiple_registers(
-
+    address => 256,
+    values  => [1,2,0,0,12,23]
  );
 
  # The following methods build requests:
  $res = Device::Modbus->single_coil_write(
-
+    address => 26,
+    value   =>  0
  );
 
  $res = Device::Modbus->multiple_coils_write(
-
+    address => 256,
+    values  => [1,0,0,1,1]
  );
 
  $res = Device::Modbus->single_register_write(
-
+    address =>  26,
+    value   => 820
  );
 
  $res = Device::Modbus->multiple_registers_write(
-
+    address => 256,
+    values  => [1,2,0,0,12,23]
  );
 
 =head3 Read/Write Registers
@@ -527,26 +535,199 @@ The final funtion that is implemented in Device::Modbus is to read and write reg
 
  # Read/Write Registers request:
  $req = Device::Modbus->read_write_registers(
-
+    read_address    => 127,
+    read_quantities =>   6,
+    write_address   =>  32,
+    values          => [122,132,154,26]
  );
 
  $res = Device::Modbus->registers_read_write(
-
+    values => [1,0,0,24,12,56]
  );
+
+=head2 Request and response stringification
+
+As a useful debugging tool, requests and responses are stringified to produce human-readable messages. You can, for example:
+
+ say "$req";
+
+to have a nice message telling you the function represented and its parameters.
 
 =head2 Clients
 
 Being able to issue requests and parsing responses is only half of the problem. The other half is getting down to the details of the transmission, and in Modbus there are two ways to do it: RTU and TCP.
 
-=head3 RTU
+Anyway, both RTU and TCP clients share some functionality. Both need to establish a connection channel (a serial port or a socket) and they both need to send requests and receive responses.
 
-=head3 TCP
+=head3 Methods common to both clients
+
+=over
+
+=item send_request($obj)
+
+To send a request via the serial line (Modbus RTU), this method receives a request object. However, in the case of Modbus TCP it requires a transaction (more on this later):
+
+ $client_rtu->send_request($req);
+ $client_tcp->send_request($trn);
+
+=item receive_response()
+
+This method must be called to receive a response. In the case of Modbus RTU, it will look at input through the serial port; Modbus TCP clients will read from the client's socket.
+
+ my $res = $client->receive_response()
+
+=back
+
+=head3 RTU client
+
+The constructor can take the following arguments:
+
+=over
+
+=item * port (required)
+
+=item * databits (default: 8)
+
+=item * stopbits (default: 1)
+
+=item * parity (default: even. Other valid values are 'none' and 'odd')
+
+=item * baudrate (default: 9600)
+
+=item * timeout (default: 2, in seconds)
+
+=back
+
+It uses L<Device::SerialPort> and so it is not Windows friendly (but this should be easy to change).
+
+=head3 TCP client
+
+The TCP client is more complex because it is not restricted to wait for each response. However, because communication is established via the client, each client can talk to a single server.
+
+The constructor will take the following arguments:
+
+=over
+
+=item * host (default: 127.0.0.1)
+
+=item * port (default: 502)
+
+=item * blocking (default: 1)
+
+=item * timeout (default: 0.2, in seconds)
+
+=back
+
+=head4 Transactions
+
+Because sockets can be established in non-blocking mode, the client uses transactions. A transaction is an envelope that serves to relate a response to its request, as responses might arrive in a different order. Each transaction is uniquely identified. The identification number is sent along with the request and is returned by the server, thus permitting to find the request that originated a fresh response.
+
+ # First create a request object
+ my $req = Device::Modbus->read_coils(
+    address  => 23,
+    quantity =>  2
+ );
+
+ # and then use it to request a new transaction. You can reuse the same
+ # request for many transactions, as the example server in the
+ # synopsis
+ my $trn = $client->request_transaction($req);
+
+ # send_request will extract the request from the transaction and it
+ # will use the transaction id number to build the Modbus message
+ $client->send_request($trn);
+
+ # In a separate piece of code:
+ my $trn = $client->receive_response;
 
 =head2 Servers
 
-=head3 RTU
+Device::Modbus provides two classes to implement servers: Device::Modbus::Server::RTU and Device::Modbus::Server::TCP. Your server must inherit from any of these two. Your server class should establish valid address limits for each Modbus data model zone (coils, discrete inputs, input registers and holding registers) and it must provide a method responsible for the generation of the actual responses. Then, your class must be instantiated by a script that will simply call its constructor and start the server.
 
-=head3 TCP
+Servers can implement several units. This is useful, for example, for writing Modbus TCP to RTU gateways, where a multitude of RTU servers are mapped onto a TCP network using the same IP address. You need to create the units that will be available through Device::Modbus servers:
+
+ $server->add_server_unit($unit_id);
+
+where the unit id is a number. This will simply add a bank of default address limits that the unit will accept. By default, these are set to the maximum of the Modbus specification. You must add at least one server unit.
+
+Given these limits, servers must read requests and then check that:
+
+=over
+
+=item The requested function is implemented (exception 1 if it is not)
+
+=item The requested addresses are within limits (exception 2)
+
+=item The quantity of data requested is within limits (exception 3)
+
+=item The values to write are valid (exception 3 for writing functions)
+
+=back
+
+The following methods allow you to declare validity limits:
+
+=over
+
+=item limits_discrete_inputs($unit, $min, $max)
+
+=item limits_discrete_outputs($unit, $min, $max)
+
+=item limits_input_registers($unit, $min, $max)
+
+=item limits_holding_registers($unit, $min, $max)
+
+=back
+
+Adding units and adjusting their limits is usually performed in a method called C<init_server>. The default implementation simply creates a default unit with id 1. This code is available in the example servers:
+
+ sub init_server {
+    my $server = shift;
+
+    $server->add_server_unit(1);
+    
+    $server->limits_discrete_inputs(1,1,16);
+    $server->limits_discrete_outputs(1,1,16);
+    $server->limits_input_registers(1,1,10);
+    $server->limits_holding_registers(1,1,10);
+ }
+
+The server will start an infinite loop which will parse the request, validate it, and then call a user defined routine called C<process_request>. This routine will receive the server object, the unit number and the request itself. This routine is responsible for returning an appropriate response. It is called like this:
+
+ ### Real work is perfomed here
+ eval { $resp = $server->process_request($unit, $req) };
+
+Finally, the C<start> method is used to start the infinite loop. It takes no arguments:
+
+ $server->start;
+
+Visit the C<examples> directory to see a couple of functional servers.
+
+=head3 Constructor for Modbus RTU server
+
+The RTU server shares the same constructor as the client and adds one argument, the unit number to listen for:
+
+my $server = Test::Modbus::Server->new(
+    port => '/dev/ttyUSB0',
+    unit => 3
+);
+ 
+=head3 Constructor for Modbus TCP server
+
+The TCP server inherits from L<Net::Daemon>. This is very nice, as Net::Daemon takes care of the management of sockets and it provides different execution modes, like forking, threading or single process servers. It can read its configuration arguments from a file and can take arguments from the command line. Please see its documentation.
+
+The constructor has the following arguments:
+
+=over
+
+=item pidfile  (default: none)
+
+=item localport (default: 502)
+
+=item logfile (default: STDERR)
+
+=back
+
+as well as all the arguments received directly by Net::Daemon.
 
 =head2 Modbus RTU Spy
 
