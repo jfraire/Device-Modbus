@@ -731,6 +731,72 @@ as well as all the arguments received directly by Net::Daemon.
 
 =head2 Modbus RTU Spy
 
+While developing machines, a Modbus spy is a very useful tool to have. I have found already connection problems (inverted wires) and programming problems. Device::Modbus provides a simple spy that can be used like this (from the example program):
+
+ #! /usr/bin/env perl
+
+ use Device::Modbus;
+ use Device::Modbus::Spy;
+ use Modern::Perl;
+
+ say "Starting Modbus Spy";
+
+ my $spy = Device::Modbus::Spy->new(
+    port     => '/dev/ttyUSB0',
+    baudrate => 19200,
+    parity   => 'none',
+ );
+
+ while (1) {
+    $spy->watch_port;
+
+    say $spy->message;
+    say $spy->unit;
+    say $spy->pdu;
+    say $spy->cdc;
+    say '---';
+ }
+
+The $spy object returns textual descriptions, where the message method returns the stringified request or response. The output of the above program looks like this:
+
+ --> Request: Function: [Write Multiple Registers] Address: [0x14e] Quantity: [12] Values: [1, 0, 2, 0, 0, 500, 50, 100, 50, 50, 100, 0]
+ Unit: [3]
+ PDU:  [10-01-4e-00-0c-18-00-01-00-00-00-02-00-00-00-00-01-f4-00-32-00-64-00-32-00-32-00-64-00-00]
+ CDC:  [2a-2d]
+ ---
+ --> Request: Function: [Write Single Register] Address: [0x1100] Value: [47872]
+ Unit: [3]
+ PDU:  [06-11-00-bb-00]
+ CDC:  [ff-e4]
+ ---
+
+The spy also provides a method called C<function> that will simply give you the number of the function used. It can be used to filter the output by function:
+
+ while (1) {
+    $spy->watch_port;
+
+    next unless $spy->function == 3;
+    say $spy->message;
+    say $spy->unit;
+    say $spy->pdu;
+    say $spy->cdc;
+    say '---';
+ }
+
+or you could filter by unit:
+
+ while (1) {
+    $spy->watch_port;
+
+    next unless $spy->unit =~ m{\W3\W};
+    say $spy->message;
+    say $spy->unit;
+    say $spy->pdu;
+    say $spy->cdc;
+    say '---';
+ }
+
+
 =head1 GITHUB REPOSITORY
 
 You can find the repository of this distribution in L<GitHub|https://github.com/jfraire/Device-Modbus>.
