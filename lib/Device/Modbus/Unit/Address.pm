@@ -23,8 +23,7 @@ sub BUILD {
     croak "Invalid Modbus model type: zone '" . $self->zone . "' does not exist"
         unless exists $valid_zone{$self->zone};
     croak "Modbus zone '" . $self->zone . "' is read-only"
-        if ($self->zone eq 'discrete_inputs' || $self->zone eq 'input_registers')
-        && $self->read_write eq 'write';
+        if $self->read_write eq 'write' && $valid_zone{$self->zone} eq 'ro';
     croak "Address read_write must be either read or write"
         unless $self->read_write =~ /^read|write$/;
     croak "The routine for an address must be a code reference"

@@ -14,7 +14,7 @@ sub _build_pdu {
 sub stringify {
     my $self = shift;
     return 'Exception: Function: [' . $self->function .'] '
-        . 'Code [' . sprintf ('%02h', $self->exception_code). ']';
+        . 'Code [' . sprintf ('%02x', $self->exception_code). ']';
 }
 
 1;

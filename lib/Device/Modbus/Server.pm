@@ -9,10 +9,20 @@ use Moo;
 has units => (is => 'rwp', default => sub { +{} });
 
 sub add_server_unit {
-    my ($self, $unit_id) = @_;
-    my $unit = Device::Modbus::Unit->new(id => $unit_id);
-    $self->units->{$unit_id} = $unit;
-    return $unit;
+    my ($self, $unit, $id) = @_;
+
+    if (ref $unit) {
+        $self->units->{$unit->id} = $unit;
+        return $unit;
+    }
+    else {
+        # $unit is a class name
+        eval "require $unit";
+        croak "Unable to load module '$unit': $@" if $@;
+        my $new_unit = $unit->new(id => $id);
+        $self->units->{$id} = $new_unit;
+        return $new_unit;
+    }
 }
 
 sub get_server_unit {
@@ -43,19 +53,27 @@ sub modbus_server {
     my $unit = $server->get_server_unit($unit_id);
     my $func = $req->function;
 
-    # Process write requests first
-    if (ref $req eq 'Device::Modbus::Request::WriteSingle') {
-        my $zone;
-        my $addr  = $req->address;
-        my $qty   = 1;
-        my $value = $req->value;
-        
+    my ($zone, $mode, $addr, $qty, $val, $type);
+
+    ### Process write requests first
+    if (ref($req) =~ /Write(?:Single|Multiple)?$/) {
         if ($func eq 'Write Single Coil') {
             $zone = 'discrete_outputs';
+            $mode = 'write';
+            $addr = $req->address;
+            $qty  = 1;
+            $val  = $req->value;
+            $type = 'Device::Modbus::Response::WriteSingle';
         }
         elsif ($func eq 'Write Single Register') {
             $zone = 'holding_registers';
-            unless ($value >= 0x0000 && $value <= 0xffff) {
+            $mode = 'write';
+            $addr = $req->address;
+            $qty  = 1;
+            $val  = $req->value;
+            $type = 'Device::Modbus::Response::WriteSingle';
+
+            unless ($val >= 0x0000 && $val <= 0xffff) {
                 return Device::Modbus::Exception->new(
                     function       => $func,
                     exception_code => 3,
@@ -63,51 +81,28 @@ sub modbus_server {
                 );
             }
         }
-        else {
-            return Device::Modbus::Exception->new(
-                function       => $func,
-                exception_code => 1,
-                unit           => $unit_id
-            );
-        }
-
-        my $match = $unit->route($zone, 'write', $addr, $qty);
-        
-        return Device::Modbus::Exception->new(
-            function       => $func,
-            exception_code => $match,
-            unit           => $unit_id
-        ) unless ref $match; 
-
-        eval {
-            $match->routine->($unit, $server, $value);
-        };
-
-        return Device::Modbus::Exception->new(
-            function       => $func,
-            exception_code => 4,
-            unit           => $unit_id
-        ) if $@;
-
-        return Device::Modbus::Response::WriteSingle->new(
-            function => $func,
-            address  => $addr,
-            value    => $value,
-            unit     => $unit_id
-        );
-    }
-
-    if (ref $req eq 'Device::Modbus::Request::WriteMultiple') {
-        my $zone;
-        my $addr   = $req->address;
-        my $qty    = $req->quantity;
-        my $values = $req->values;
-
-        if ($func eq 'Write Multiple Coils') {
+        elsif (ref $req eq 'Write Multiple Coils') {
             $zone = 'discrete_outputs';
+            $mode = 'write';
+            $addr = $req->address;
+            $qty  = $req->quantity;
+            $val  = $req->values;
+            $type = 'Device::Modbus::Response::WriteMultiple';
         }
         elsif ($func eq 'Write Multiple Registers') {
             $zone = 'holding_registers';
+            $mode = 'write';
+            $addr = $req->address;
+            $qty  = $req->quantity;
+            $val  = $req->values;
+            $type = 'Device::Modbus::Response::WriteMultiple';
+        }
+        elsif ($func eq 'Read/Write Multiple Registers') {
+            $zone = 'holding_registers',
+            $mode = 'write';
+            $addr = $req->write_address;
+            $qty  = $req->write_quantity;
+            $val  = $req->values;
         }
         else {
             return Device::Modbus::Exception->new(
@@ -117,8 +112,8 @@ sub modbus_server {
             );
         }
 
-        my $match = $unit->route($zone, 'write', $addr, $qty);
-        
+        my $match = $unit->route($zone, $mode, $addr, $qty);
+            
         return Device::Modbus::Exception->new(
             function       => $func,
             exception_code => $match,
@@ -126,70 +121,63 @@ sub modbus_server {
         ) unless ref $match; 
 
         eval {
-            $match->routine->($unit, $server, $values);
+            $match->routine->($unit, $server, $val);
         };
 
-        return Device::Modbus::Exception->new(
-            function       => $func,
-            exception_code => 4,
-            unit           => $unit_id
-        ) if $@;
+        if ($@) {
+            print STDERR $@;
+            return Device::Modbus::Exception->new(
+                function       => $func,
+                exception_code => 4,
+                unit           => $unit_id
+            );
+        }
 
-        return Device::Modbus::Response::WriteMultiple->new(
-            function => $func,
-            address  => $addr,
-            quantity => $qty,
-            unit     => $unit_id
-        );
-    }
+        my $resp;
+        if (ref $req eq 'Device::Modbus::Request::WriteSingle') {
+            $resp = Device::Modbus::Response::WriteSingle->new(
+                function => $func,
+                address  => $addr,
+                value    => $val,
+                unit     => $unit_id
+            );
+        }
+        elsif (ref $req eq 'Device::Modbus::Request::WriteMultiple') {
+            $resp = Device::Modbus::Response::WriteSingle->new(
+                function => $func,
+                address  => $addr,
+                quantity => $qty,
+                unit     => $unit_id
+            );
+        }
 
-    if (ref $req eq 'Device::Modbus::Request::ReadWrite') {
-        my $zone   = 'holding_registers',
-        my $addr   = $req->write_address;
-        my $values = $req->values;
-        my $qty    = $req->write_quantity;
-
-        my $match = $unit->route($zone, 'write', $addr, $qty);
-        
-        return Device::Modbus::Exception->new(
-            function       => $func,
-            exception_code => $match,
-            unit           => $unit_id
-        ) unless ref $match; 
-
-        eval {
-            $match->routine->($unit, $server, $values);
-        };
-
-        return Device::Modbus::Exception->new(
-            function       => $func,
-            exception_code => 4,
-            unit           => $unit_id
-        ) if $@;
+        return $resp if defined $resp;
     }
 
     # Process read requests
-    if (ref $req eq 'Device::Modbus::Request::Read') {
-        my $zone;
-        my $addr = $req->address;
-        my $qty  = $req->quantity;
-        my $class;
+    if (ref($req) =~ /Read(?:Write)?$/) {
+        $addr = $req->address;
+        $qty  = $req->quantity;
 
         if ($func eq 'Read Coils') {
-            $zone  = 'discrete_coils';
-            $class = 'Device::Modbus::Response::ReadDiscrete';
+            $zone = 'discrete_coils';
+            $type = 'Device::Modbus::Response::ReadDiscrete';
         }
-        elsif($func eq  'Read Discrete Inputs') {
-            $zone  = 'discrete_inputs'; 
-            $class = 'Device::Modbus::Response::ReadDiscrete';
+        elsif($func eq 'Read Discrete Inputs') {
+            $zone = 'discrete_inputs'; 
+            $type = 'Device::Modbus::Response::ReadDiscrete';
         }
-        elsif($func eq  'Read Input Registers') {
-            $zone  = 'input_registers'; 
-            $class = 'Device::Modbus::Response::ReadRegisters';
+        elsif($func eq 'Read Input Registers') {
+            $zone = 'input_registers'; 
+            $type = 'Device::Modbus::Response::ReadRegisters';
         }
-        elsif($func eq  'Read Holding Registers') {
-            $zone  = 'holding_registers'; 
-            $class = 'Device::Modbus::Response::ReadRegisters';
+        elsif($func eq 'Read Holding Registers') {
+            $zone = 'holding_registers'; 
+            $type = 'Device::Modbus::Response::ReadRegisters';
+        }
+        elsif($func eq 'Read/Write Multiple Registers') {
+            $zone = 'holding_registers'; 
+            $type = 'Device::Modbus::Response::ReadWrite';
         }
         else {
             return Device::Modbus::Exception->new(
@@ -218,11 +206,17 @@ sub modbus_server {
             unit           => $unit_id
         ) if $@;
         
-        return $class->new(
+        return $type->new(
             function => $func,
             values   => \@vals
         );
     }
+
+    return Device::Modbus::Exception->new(
+        function       => $func,
+        exception_code => 1,
+        unit           => $unit_id
+    );
 }
 
 1;
