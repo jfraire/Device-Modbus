@@ -12,7 +12,7 @@ sub _build_pdu {
     my $self  = shift;
     my $value = $self->value;
     if ($self->function eq 'Write Single Coil') {
-        $value = $self->{value} ? 0xFF00 : 0;
+        $value = $self->value ? 0xFF00 : 0;
     }
     my @pdu = ($self->function_code, $self->address, $value);
     return pack 'Cnn', @pdu;

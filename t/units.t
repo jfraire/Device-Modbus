@@ -1,4 +1,4 @@
-use Test::More tests => 12;
+use Test::More tests => 15;
 use strict;
 use warnings;
 
@@ -14,36 +14,41 @@ BEGIN { use_ok 'Device::Modbus::Unit' }
     is  $unit->id, 3,
         'Unit created successfully and ID is correct';
 
-    is_deeply $unit->addresses, {},
-        'Addresses will be stored in a hash reference';
+    is ref $unit->addresses->{'holding_registers:read'}, 'ARRAY',
+        'Addresses will be stored in a hash of array refs';
+    is scalar @{$unit->addresses->{'holding_registers:read'}}, 0,
+        'The arrays start empty';
 
-    #                Zone            addr qty    method
-    #           -------------------  ---- --- -----------------
-    $unit->get('holding_registers',   3,   5,  sub { return 6 });
+    #                Zone           addr  qty    method
+    #           ------------------- ----- --- -----------------
+    $unit->get('holding_registers', '1-5', 5,  sub { return 6 });
 
-    ok $unit->test('holding_registers', 'Read', 3, 5),
-        'Unit now has an address for reading';
+    is scalar @{$unit->addresses->{'holding_registers:read'}}, 1,
+        'Added an address to the holding_registers:read array';
 
-    is ref $unit->get_address('holding_registers', 3, 5), 'CODE',
-        "The 'get' routine of the requested address is there";
+    my $match = $unit->route('holding_registers', 'read', 3, 5);
 
-    is $unit->get_address('holding_registers', 3, 5)->(), 6,
-        "Executing 'get' routines works fine";
+    isa_ok $match, 'Device::Modbus::Unit::Address',
+        'Routing mechanism works';
 
+    is $match->routine->(), 6,
+        "Executing 'get' routine works fine";
+    undef $match;
 
+    #                Zone            addr  qty    method
+    #           -------------------  ---- -----  -----------------
+    $unit->put('holding_registers',   33, '1,3',  sub { return 19 });
 
-    #                Zone            addr qty    method
-    #           -------------------  ---- ---  -----------------
-    $unit->put('holding_registers',    3,  5,  sub { return 19 });
+    is scalar @{$unit->addresses->{'holding_registers:write'}}, 1,
+        'Added an address to the holding_registers:write array';
 
-    ok $unit->test('holding_registers', 'Write', 3, 5),
-        'Unit now has an address for writting';
+    $match = $unit->route('holding_registers', 'write', 33, 3);
 
-    is ref $unit->put_address('holding_registers', 3, 5), 'CODE',
-        "The 'put' routine of the requested address is there";
+    isa_ok $match, 'Device::Modbus::Unit::Address',
+        'Routing mechanism works';
 
-    is $unit->put_address('holding_registers', 3, 5)->(), 19,
-        "Executing 'put' routines works fine";
+    is $match->routine->(), 19,
+        "Executing 'put' routine works fine";
 }
 
 {
@@ -55,6 +60,10 @@ BEGIN { use_ok 'Device::Modbus::Unit' }
     sub hello {
         return 'Dolly';
     }
+
+    sub good_bye {
+        return 'Adieu';
+    }
 }
 
 my $unit = Hello->new(id => 4);
@@ -62,11 +71,18 @@ my $unit = Hello->new(id => 4);
 #                Zone            addr qty   method
 #           -------------------  ---- ---  ---------
 $unit->put('holding_registers',    2,  1,  'hello');
-$unit->get('holding_registers',    6,  1,  'hello');
+$unit->get('holding_registers',    6,  1,  'good_bye');
 
-is $unit->put_address('holding_registers',2,1)->(), 'Dolly',
+my $match = $unit->route('holding_registers','write', 2,1);
+isa_ok $match, 'Device::Modbus::Unit::Address';
+
+is $match->routine->(), 'Dolly',
     'Named methods can be entered into the dispatch table -- put';
-is $unit->get_address('holding_registers',6,1)->(), 'Dolly',
-    'Named methods can be entered into the dispatch table -- set';
+
+$match = $unit->route('holding_registers','read', 6, 1);
+isa_ok $match, 'Device::Modbus::Unit::Address';
+
+is $match->routine->(), 'Adieu',
+    'Named methods can be entered into the dispatch table -- get';
 
 done_testing();

@@ -1,54 +1,77 @@
 package Device::Modbus::Unit;
 
+use Device::Modbus::Unit::Address;
 use Carp;
 use Moo;
 
 has id         => (is => 'ro', required  => 1);
-has addresses  => (is => 'rw', default   => sub {+{}}); 
+has addresses  => (
+    is      => 'rw',
+    default => sub {+{
+        'discrete_coils:read'     => [],
+        'discrete_coils:write'    => [],
+        'discrete_inputs:read'    => [],
+        'input_registers:read'    => [],
+        'holding_registers:read'  => [],
+        'holding_registers:write' => [],
+        }
+    }
+); 
 
 sub put {
-    my ($self, $zone, $addr, $qty, $method) = @_;
-    my $key = "$zone:Write:$addr:$qty";
+    my ($self, $zone, $route, $qty, $method) = @_;
     if (!ref $method) {
         $method = $self->can($method); # returns a ref to method
     }
-    croak "'put' could not resolve a code reference for address $addr"
+    croak "'put' could not resolve a code reference for route $route"
         unless ref $method && ref $method eq 'CODE';
 
-    $self->addresses->{$key}{put} = $method;
+    my $addr = Device::Modbus::Unit::Address->new(
+        route      => $route,
+        zone       => $zone,
+        quantity   => $qty,
+        read_write => 'write',
+        routine    => $method
+    );
+    
+    push @{$self->addresses->{"$zone:write"}}, $addr;
 }
 
 sub get {
-    my ($self, $zone, $addr, $qty, $method) = @_;
-    my $key = "$zone:Read:$addr:$qty";
+    my ($self, $zone, $route, $qty, $method) = @_;
     if (!ref $method) {
         $method = $self->can($method); # returns a ref to method
     }
-    croak "'get' could not resolve a code reference for address $addr"
+    croak "'get' could not resolve a code reference for route $route"
         unless ref $method && ref $method eq 'CODE';
 
-    $self->addresses->{$key}{get} = $method;
+    my $addr = Device::Modbus::Unit::Address->new(
+        route      => $route,
+        zone       => $zone,
+        quantity   => $qty,
+        read_write => 'read',
+        routine    => $method
+    );
+    
+    push @{$self->addresses->{"$zone:read"}}, $addr;
 }
 
-sub test {
+# Tests a requested zone, address, qty against existing addresses.
+# Returns the first successful match. Returns the Modbus error number
+# otherwise (3 for invalid qty and 2 for invalid address)
+sub route {
     my ($self, $zone, $mode, $addr, $qty) = @_;
+    my $addresses = $self->addresses->{"$zone:$mode"};
 
-    my $key = "$zone:$mode:$addr:$qty";
+    my $match;
+    foreach my $address (@$addresses) {
+        next unless $address->test_route($addr);
+        $match = $address;
+        return $match if $match->test_quantity($qty);
+    }
 
-    my $test = exists $self->addresses->{$key};
-    return $test;
-}
-
-sub get_address {
-    my ($self, $zone, $addr, $qty) = @_;
-    my $key = "$zone:Read:$addr:$qty";
-    return $self->addresses->{$key}{get};
-}
-
-sub put_address {
-    my ($self, $zone, $addr, $qty) = @_;
-    my $key = "$zone:Write:$addr:$qty";
-    return $self->addresses->{$key}{put};
+    return 3 if defined $match; # Address matched, not quantity
+    return 2;                   # Did not match
 }
 
 1;
