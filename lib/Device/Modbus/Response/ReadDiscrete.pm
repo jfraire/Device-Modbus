@@ -5,15 +5,27 @@ use Moo;
 
 extends 'Device::Modbus::Message';
 
-has bytes    => (is => 'rw');
-has values   => (is => 'ro', required => 1);
+has bytes        => (is => 'lazy');
+has values       => (is => 'ro', required => 1);
+has _flat_values => (is => 'lazy');
 
-sub _build_pdu {
+sub _build_bytes {
+    my $self = shift;
+    my $values = $self->_flat_values;
+    return scalar @$values;
+}
+
+sub _build__flat_values {
     my $self = shift;
     my ($quantity, $values) = $self->flatten_bit_values($self->values);
-    my $bytes = scalar @$values;
-    $self->bytes($bytes);
-    my @pdu = ($self->function_code, $bytes);
+    return $values;
+}
+
+sub _build_pdu {
+    my $self   = shift;
+    my $values = $self->_flat_values;
+    my $bytes  = $self->bytes;
+    my @pdu    = ($self->function_code, $bytes);
     return pack('CCC*', @pdu) . join '', @$values;
 }
 

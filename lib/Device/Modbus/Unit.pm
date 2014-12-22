@@ -16,7 +16,11 @@ has addresses  => (
         'holding_registers:write' => [],
         }
     }
-); 
+);
+
+sub init_unit {
+    return 1;
+}
 
 sub put {
     my ($self, $zone, $route, $qty, $method) = @_;

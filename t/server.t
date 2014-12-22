@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-use Test::More tests => 12;
+use Test::More tests => 22;
 use strict;
 use warnings;
 
@@ -38,12 +38,22 @@ BEGIN {
     }
 
     sub hello {
-        my ($unit, $server, $val) = @_;
+        my ($unit, $server, $req, $addr, $qty, $val) = @_;
+        isa_ok $unit,    'Device::Modbus::Unit';
+        isa_ok $server,  'Device::Modbus::Server';
+        isa_ok $req,     'Device::Modbus::Message';
+        is $addr,  2, 'Address passed correctly to write routine';
+        is $qty,   1, 'Quantity passed correctly to write routine';
         is $val, 565, 'Value passed correctly to write routine';
     }
 
     sub good_bye {
-        my ($unit, $server) = @_;
+        my ($unit, $server, $req, $addr, $qty) = @_;
+        isa_ok $unit,    'Device::Modbus::Unit';
+        isa_ok $server,  'Device::Modbus::Server';
+        isa_ok $req,     'Device::Modbus::Message';
+        is $addr,  2, 'Address passed correctly to write routine';
+        is $qty,   1, 'Quantity passed correctly to write routine';
         return 6;
     }
 }
@@ -52,7 +62,7 @@ my $server = Device::Modbus::Server->new;
 isa_ok $server, 'Device::Modbus::Server';
 
 my $unit = My::Unit->new(id => 3);
-$unit->init_unit;
+#$unit->init_unit;
 
 $server->add_server_unit($unit);
 {

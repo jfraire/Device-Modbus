@@ -33,11 +33,11 @@ BEGIN { use_ok('Device::Modbus') };
         'Read/Write Register request name is retrieved correctly';
     is $request->function_code, 0x17,
         'Function code returned correctly';
-    is $request->read_address, 4,
+    is $request->read_address, 3,
         'Initial address returned correctly';
     is $request->read_quantity, 6,
         'Read quantity returned correctly';
-    is $request->write_address, 15,
+    is $request->write_address, 14,
         'Write address returned correctly';
     is $request->write_quantity, 3,
         'Quantity of registers to write returned correctly';
@@ -50,11 +50,11 @@ BEGIN { use_ok('Device::Modbus') };
 
     like "$request", qr{Read/Write Multiple Registers},
         'Function is correctly stringified';
-    like "$request", qr{Read address: \[0x04\]},
+    like "$request", qr{Read address: \[0x03\]},
         'Read address is correctly stringified';
     like "$request", qr{Read quantity: \[6\]},
         'Read quantity is correctly stringified';
-    like "$request", qr{Write address: \[0x0f\]},
+    like "$request", qr{Write address: \[0x0e\]},
         'Write address is correctly stringified';
     like "$request", qr{Write bytes: \[6\]},
         'Write bytes is correctly stringified';

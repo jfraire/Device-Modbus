@@ -41,9 +41,6 @@ sub parse_message {
     my ($code, $raddr, $rqty, $waddr, $wqty, $wbytes, @values) =
       unpack 'CnnnnCn*', $args{message};
 
-    $raddr++;
-    $waddr++;
-
     return $class->new(
         function       => $args{function},
         read_address   => $raddr,
