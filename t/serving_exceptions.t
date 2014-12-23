@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-use Test::More tests => 18;
+use Test::More tests => 20;
 use strict;
 use warnings;
 
@@ -121,6 +121,16 @@ isa_ok $unit, 'My::Unit';
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 4,
         'Route handler died and correct exception was returned';
+    diag $resp;
+}
+{
+    # Invalid request
+    my $pdu  = pack 'Cnn', 12, 25, 643; 
+    my $resp = $server->modbus_server(3, $pdu);
+
+    isa_ok $resp, 'Device::Modbus::Exception';
+    is $resp->exception_code => 1,
+        'Catched invalid function and correct exception was returned';
     diag $resp;
 }
 
