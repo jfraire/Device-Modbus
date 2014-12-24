@@ -4,9 +4,10 @@ use Device::Modbus;
 use Device::Modbus::Exception;
 use Device::Modbus::Unit;
 use Carp;
-use Moo;
+use Moo::Role;
 
 has units => (is => 'rwp', default => sub { +{} });
+requires 'start';
 
 sub add_server_unit {
     my ($self, $unit, $id) = @_;
@@ -74,7 +75,6 @@ sub modbus_server {
             $qty  = 1;
             $val  = $req->value;
             $type = 'Device::Modbus::Response::WriteSingle';
-
             unless ($val >= 0x0000 && $val <= 0xffff) {
                 return Device::Modbus::Exception->new(
                     function       => $func,

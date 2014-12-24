@@ -9,8 +9,19 @@ BEGIN {
 }
 
 {
-    my $server = Device::Modbus::Server->new();
-    isa_ok $server, 'Device::Modbus::Server';
+    package My::Server;
+    use Moo;
+    with 'Device::Modbus::Server';
+
+    sub start {
+        print STDERR "# Required by Device::Modbus::Server\n";
+    }
+}
+
+{
+    my $server = My::Server->new();
+    ok $server->does('Device::Modbus::Server'),
+        'The server object plays Device::Modbus::Server';
 
     is_deeply $server->units, {},
         'Units are saved in a hash reference which starts empty';
@@ -40,7 +51,7 @@ BEGIN {
     sub hello {
         my ($unit, $server, $req, $addr, $qty, $val) = @_;
         isa_ok $unit,    'Device::Modbus::Unit';
-        isa_ok $server,  'Device::Modbus::Server';
+        ok $server->does('Device::Modbus::Server'), 'Server role implemented';
         isa_ok $req,     'Device::Modbus::Message';
         is $addr,  2, 'Address passed correctly to write routine';
         is $qty,   1, 'Quantity passed correctly to write routine';
@@ -50,7 +61,7 @@ BEGIN {
     sub good_bye {
         my ($unit, $server, $req, $addr, $qty) = @_;
         isa_ok $unit,    'Device::Modbus::Unit';
-        isa_ok $server,  'Device::Modbus::Server';
+        ok $server->does('Device::Modbus::Server'), 'Server role implemented';
         isa_ok $req,     'Device::Modbus::Message';
         is $addr,  2, 'Address passed correctly to write routine';
         is $qty,   1, 'Quantity passed correctly to write routine';
@@ -58,11 +69,11 @@ BEGIN {
     }
 }
 
-my $server = Device::Modbus::Server->new;
-isa_ok $server, 'Device::Modbus::Server';
+my $server = My::Server->new();
+ok $server->does('Device::Modbus::Server'),
+    'The server object plays Device::Modbus::Server';
 
 my $unit = My::Unit->new(id => 3);
-#$unit->init_unit;
 
 $server->add_server_unit($unit);
 {

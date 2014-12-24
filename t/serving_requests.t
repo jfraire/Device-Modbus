@@ -12,6 +12,17 @@ BEGIN {
 }
 
 {
+    package My::Server;
+    use Moo;
+    with 'Device::Modbus::Server';
+
+    sub start {
+        print STDERR "# Required by Device::Modbus::Server\n";
+    }
+}
+
+
+{
     package My::Unit;
     use Moo;
     extends 'Device::Modbus::Unit';
@@ -71,8 +82,9 @@ BEGIN {
     }
 }
 
-my $server = Device::Modbus::Server->new;
-isa_ok $server, 'Device::Modbus::Server';
+my $server = My::Server->new;
+ok $server->does('Device::Modbus::Server'),
+    'The server object plays role Device::Modbus::Server';
 
 my $unit = $server->add_server_unit('My::Unit', 3);
 isa_ok $unit, 'My::Unit';

@@ -4,15 +4,12 @@ use Device::Modbus;
 use Device::Modbus::TCP;
 use Device::Modbus::Transaction;
 use Device::Modbus::Exception;
-use Role::Tiny::With;
-use parent qw(Net::Daemon Device::Modbus::Server);
+use Moo;
 
-with 'Device::Modbus::TCP';
-use strict;
-use warnings;
+with 'Device::Modbus::TCP', 'Device::Modbus::Server';
+extends qw(Net::Daemon);
 
-
-sub new {
+sub FOREIGNBUILDARGS {
     my ($class, $attrs, $args) = @_;
 
     # These are default options, to override by config file or
@@ -26,9 +23,7 @@ sub new {
         %$attrs
     );
 
-    my $server = $class->SUPER::new(\%attrs, $args);
-    $server->init_server;
-    return $server;
+    return \%attrs, $args;
 }
 
 sub Run {
@@ -41,9 +36,9 @@ sub Run {
         my $rc = $sock->recv($msg, 260);
         unless (defined $rc) {
             $self->Error('Communication error while receiving data');
-            return;
+            last;
         }
-        return unless $msg;
+        next unless $msg;
         
         $self->Log('notice', 'Received message from ' . $sock->peerhost);
 
@@ -55,7 +50,6 @@ sub Run {
         }
 
         #### Call generic server routine
-        my $func = ord(substr $pdu,0,1);
         my $resp = $self->modbus_server($unit, $pdu);
 
         # Transaction is needed to build response message
@@ -64,24 +58,12 @@ sub Run {
             unit    => $unit
         );
 
-        if (ref $resp) {
-            my $apu = $self->build_apu($trn, $resp->pdu);
-            $sock->send($apu);
-            next;
-        }
-        
-        my $exception = Device::Modbus::Exception->new(
-            unit           => $unit,
-            function       => Device::Modbus::Exception->function_for($func),
-            exception_code => 0x04
-        );
-
-        my $apu = $self->build_apu($trn, $exception->pdu);
+        my $apu = $self->build_apu($trn, $resp->pdu);
         $rc = $sock->send($apu);
 
         unless (defined $rc) {
             $self->Error('Communication error while sending response');
-            return;
+            last;
         }
     }
     $sock->close;

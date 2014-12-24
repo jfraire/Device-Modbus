@@ -7,8 +7,7 @@ use Moo;
 
 has unit => (is => 'ro', required => 1);
 
-extends 'Device::Modbus::Server';
-with    'Device::Modbus::RTU';
+with 'Device::Modbus::Server', 'Device::Modbus::RTU';
 
 sub start {
     my $self = shift;
@@ -26,14 +25,6 @@ sub start {
         my $func = ord(substr $pdu,0,1);
         my $resp = $self->modbus_server($unit, $pdu);
 
-        if (!defined $resp)  {
-            $resp = Device::Modbus::Exception->new(
-                unit           => $unit,
-                function       => Device::Modbus::Exception->function_for($func),
-                exception_code => 0x04
-            );
-        }
-            
         $self->write(
             $self->build_apu($unit, $resp->pdu)
         ) || warn "Failed sending response!";
