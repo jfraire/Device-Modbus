@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 27;
+use Test::More tests => 30;
 
 BEGIN {
     use_ok('Device::Modbus');
@@ -73,9 +73,15 @@ BEGIN {
     is unpack('h*', Device::Modbus::TCP->header($trn, $req->pdu)), unpack('h*', $mbap),
         'MBAP header is calculated as expected';
 
-    is  unpack('h*',Device::Modbus::TCP->build_apu($trn, $req->pdu)),
-        unpack('h*',$mbap . $req->pdu),
+    my $apu = Device::Modbus::TCP->build_apu($trn, $req->pdu);
+    is  unpack('h*', $apu),
+        unpack('h*', $mbap . $req->pdu),
         'And the request APU is also as expected';
+
+    my ($zid, $zunit, $zpdu) = Device::Modbus::TCP->break_message($apu);
+    is $zid, $trn->id,     'Transaction id parsed back from APU';
+    is $zunit, $trn->unit, 'Unit id parsed back from APU';
+    is $zpdu,  $req->pdu,  'PDU parsed back from APU';    
 }
 
 done_testing();

@@ -112,7 +112,7 @@ sub send_request {
         }
     }
     return undef unless $message;
-    my ($trn_id, $unit, $pdu) = Device::Modbus::TCP->break_message($message);
+    my ($trn_id, $unit, $pdu) = $self->break_message($message);
     return undef unless defined $trn_id && $trn_id == $trn->id;
     $self->get_from_waiting_room($trn_id);
 
