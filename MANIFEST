@@ -1,6 +1,7 @@
 Changes
-examples/client_rtu_example.pl
-examples/client_tcp_example.pl
+examples/client_rtu.pl
+examples/client_tcp.pl
+examples/LoadTester.pl
 examples/modbus_spy.pl
 examples/server_rtu.pl
 examples/server_tcp.pl
@@ -25,11 +26,14 @@ lib/Device/Modbus/Server/TCP.pm
 lib/Device/Modbus/Spy.pm
 lib/Device/Modbus/TCP.pm
 lib/Device/Modbus/Transaction.pm
+lib/Device/Modbus/Unit.pm
+lib/Device/Modbus/Unit/Address.pm
 LICENSE
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
 README
+t/addresses.t
 t/client_rtu.t
 t/client_tcp.t
 t/make_read_requests.t
@@ -44,4 +48,9 @@ t/response_read_discrete.t
 t/response_read_registers.t
 t/response_write_multiple.t
 t/response_write_single.t
+t/routing.t
+t/server.t
+t/serving_exceptions.t
+t/serving_requests.t
 t/transactions.t
+t/units.t

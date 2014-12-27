@@ -6,8 +6,8 @@ WriteMakefile(
     NAME              => 'Device::Modbus',
     VERSION_FROM      => 'lib/Device/Modbus.pm',
     PREREQ_PM         => {
-		Moo         => 1.006,
-		Net::Daemon => 0.48
+		'Moo'         => 1.00,
+		'Net::Server' => 2.008,
 	},
     ABSTRACT_FROM     => 'lib/Device/Modbus.pm',
     AUTHOR            => 'Julio Fraire <julio.fraire@gmail.com>',
