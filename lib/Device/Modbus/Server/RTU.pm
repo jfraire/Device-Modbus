@@ -22,8 +22,8 @@ sub start {
         next if ($self->unit != $unit);
 
         # Go through the generic server routine
-        my $func = ord(substr $pdu,0,1);
-        my $resp = $self->modbus_server($unit, $pdu);
+        my $req  = Device::Modbus->parse_request($pdu);
+        my $resp = $self->modbus_server($unit, $req);
 
         $self->write(
             $self->build_apu($unit, $resp->pdu)

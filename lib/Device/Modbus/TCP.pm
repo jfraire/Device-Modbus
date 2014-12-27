@@ -33,6 +33,7 @@ sub build_apu {
 sub break_message {
     my ($self, $message) = @_;
     my ($id, $proto, $length, $unit) = unpack 'nnnC', $message;
+    return if length($message) <= 7;
     my $pdu = substr $message, 7;
     return if length($pdu) != $length - 1;
     return $id, $unit, $pdu;

@@ -39,10 +39,7 @@ sub init_server {
 }
 
 sub modbus_server {
-    my ($server, $unit_id, $pdu) = @_;
-
-    ### Parse message
-    my $req = Device::Modbus->parse_request($pdu);    
+    my ($server, $unit_id, $req) = @_;
 
     # Treat unimplemented functions -- return exception 1
     if (!ref $req) {
