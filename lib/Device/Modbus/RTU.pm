@@ -24,8 +24,6 @@ sub _build_serial {
     my $self = shift;
 
     my $parity_bit = $self->parity eq 'none' ? 0 : 1;
-    my $char_time = sprintf '%d',
-      1000 * (8 + $self->stopbits + $parity_bit) / $self->baudrate;
 
     my $serial = Device::SerialPort->new($self->port);
     croak "Unable to open serial port " . $self->port unless $serial;
