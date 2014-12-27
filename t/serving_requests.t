@@ -94,9 +94,8 @@ isa_ok $unit, 'My::Unit';
         address  => 19,
         quantity => 4
     );
-    my $pdu = $request->pdu;
-
-    my $resp = $server->modbus_server(3, $pdu);
+    
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadDiscrete';
     diag $resp;
@@ -112,9 +111,8 @@ isa_ok $unit, 'My::Unit';
         address  => 19,
         value    => 1
     );
-    my $pdu = $request->pdu;
-
-    my $resp = $server->modbus_server(3, $pdu);
+    
+    my $resp = $server->modbus_server(3, $request);
     diag $resp;
 
     isa_ok $resp, 'Device::Modbus::Response::WriteSingle';
@@ -127,9 +125,8 @@ isa_ok $unit, 'My::Unit';
         address  => 23,
         values   => [1,0,1]
     );
-    my $pdu = $request->pdu;
-
-    my $resp = $server->modbus_server(3, $pdu);
+    
+    my $resp = $server->modbus_server(3, $request);
     diag $resp;
 
     isa_ok $resp, 'Device::Modbus::Response::WriteMultiple';
@@ -142,9 +139,8 @@ isa_ok $unit, 'My::Unit';
         address  => 4,
         quantity => 3
     );
-    my $pdu = $request->pdu;
-
-    my $resp = $server->modbus_server(3, $pdu);
+    
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadDiscrete';
     diag $resp;
@@ -160,9 +156,8 @@ isa_ok $unit, 'My::Unit';
         address  => 44,
         quantity => 2
     );
-    my $pdu = $request->pdu;
-
-    my $resp = $server->modbus_server(3, $pdu);
+    
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadRegisters';
     diag $resp;
@@ -178,9 +173,8 @@ isa_ok $unit, 'My::Unit';
         address  => 14,
         quantity => 6
     );
-    my $pdu = $request->pdu;
-
-    my $resp = $server->modbus_server(3, $pdu);
+    
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadRegisters';
     diag $resp;
@@ -196,9 +190,8 @@ isa_ok $unit, 'My::Unit';
         address  => 10,
         value    => 426
     );
-    my $pdu = $request->pdu;
-
-    my $resp = $server->modbus_server(3, $pdu);
+    
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::WriteSingle';
     diag $resp;
@@ -210,10 +203,9 @@ isa_ok $unit, 'My::Unit';
     my $request = Device::Modbus->write_multiple_registers(
         address => 31,
         values  => [66,22,77]
-    );
-    my $pdu = $request->pdu;
+    );    
 
-    my $resp = $server->modbus_server(3, $pdu);
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::WriteMultiple';
     diag $resp;
@@ -228,9 +220,8 @@ isa_ok $unit, 'My::Unit';
         write_address =>  9,
         values        => [62,27,76]
     );
-    my $pdu = $request->pdu;
 
-    my $resp = $server->modbus_server(3, $pdu);
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadWrite';
     diag $resp;

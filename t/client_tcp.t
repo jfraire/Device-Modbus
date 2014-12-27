@@ -19,7 +19,7 @@ BEGIN {
         'By default, client uses port 502';
     is $client->max_transactions, 16,
         'The Modbus standard calls for a maximum of 16 transactions';
-    is $client->timeout, 0.2,
+    is $client->timeout, 2,
         'Timeout for the client is correct';
 
 

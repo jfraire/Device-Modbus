@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-use Test::More tests => 20;
+use Test::More tests => 18;
 use strict;
 use warnings;
 
@@ -55,8 +55,7 @@ isa_ok $unit, 'My::Unit';
         address  => 19,
         quantity => 3
     );
-    my $pdu = $request->pdu;
-    my $resp = $server->modbus_server(3, $pdu);
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 2,
@@ -69,8 +68,7 @@ isa_ok $unit, 'My::Unit';
         address  => 742,
         quantity => 4
     );
-    my $pdu = $request->pdu;
-    my $resp = $server->modbus_server(3, $pdu);
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 3,
@@ -83,8 +81,7 @@ isa_ok $unit, 'My::Unit';
         address  => 742,
         quantity => 3
     );
-    my $pdu = $request->pdu;
-    my $resp = $server->modbus_server(3, $pdu);
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 4,
@@ -98,8 +95,7 @@ isa_ok $unit, 'My::Unit';
         address  => 19,
         values   => [0,0,0]
     );
-    my $pdu = $request->pdu;
-    my $resp = $server->modbus_server(3, $pdu);
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 2,
@@ -112,8 +108,7 @@ isa_ok $unit, 'My::Unit';
         address  => 742,
         value    => 0
     );
-    my $pdu = $request->pdu;
-    my $resp = $server->modbus_server(3, $pdu);
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 3,
@@ -126,22 +121,11 @@ isa_ok $unit, 'My::Unit';
         address  => 742,
         values   => [0,0,0]
     );
-    my $pdu = $request->pdu;
-    my $resp = $server->modbus_server(3, $pdu);
+    my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 4,
         'Route handler died and correct exception was returned';
-    diag $resp;
-}
-{
-    # Invalid request
-    my $pdu  = pack 'Cnn', 12, 25, 643; 
-    my $resp = $server->modbus_server(3, $pdu);
-
-    isa_ok $resp, 'Device::Modbus::Exception';
-    is $resp->exception_code => 1,
-        'Catched invalid function and correct exception was returned';
     diag $resp;
 }
 

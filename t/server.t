@@ -82,10 +82,8 @@ $server->add_server_unit($unit);
         value   => 565
     );
 
-    my $pdu = $req->pdu();
-
     my $resp;
-    eval { $resp = $server->modbus_server(3, $pdu); };
+    eval { $resp = $server->modbus_server(3, $req); };
     ok !$@, 'Running modbus_server survived';
 
     isa_ok $resp, 'Device::Modbus::Response::WriteSingle';
@@ -97,10 +95,8 @@ $server->add_server_unit($unit);
         quantity => 1
     );
 
-    my $pdu = $req->pdu();
-
     my $resp;
-    eval { $resp = $server->modbus_server(3, $pdu); };
+    eval { $resp = $server->modbus_server(3, $req); };
     ok !$@, 'Running modbus_server survived';
 
     isa_ok $resp, 'Device::Modbus::Response::ReadRegisters';
