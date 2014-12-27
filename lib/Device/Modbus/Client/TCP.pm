@@ -1,7 +1,6 @@
 package Device::Modbus::Client::TCP;
 
 use Device::Modbus;
-use Device::Modbus::TCP;
 use Device::Modbus::Transaction;
 use IO::Socket::INET;
 use Errno qw(:POSIX);
@@ -16,6 +15,8 @@ has socket   => (is => 'rw', builder => 1, handles => [qw(connected close)]);
 
 has waiting_room     => (is => 'rw', default => sub { +{} });
 has max_transactions => (is => 'rw', default => sub {16});
+
+with 'Device::Modbus::TCP';
 
 sub _build_socket {
     my $self = shift;
@@ -79,7 +80,7 @@ sub get_from_waiting_room {
 sub send_request {
     my ($self, $trn) = @_;
     return undef unless $trn;
-    my $apu = Device::Modbus::TCP->build_apu($trn, $trn->request_pdu);
+    my $apu = $self->build_apu($trn, $trn->request_pdu);
     local $SIG{'ALRM'} = sub { die "Connection timed out\n" };
     my $attempts = 0;
     my $message;

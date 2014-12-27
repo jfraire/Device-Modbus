@@ -19,9 +19,6 @@ sub default_values {
         host        => '*',
         ipv         => 4,
         proto       => 'tcp',
-        user        => 'nobody',
-        group       => 'nogroup',
-        max_servers => 20,
     };
 }
 
