@@ -30,7 +30,6 @@ foreach my $req (@reqs) {
     my $trn = $client->request_transaction($req);
     say "-> $req";
     $client->send_request($trn) || die "Send error";
-    $client->receive_response   || die "Receive error";
     my $response = $trn->response;
     say "<- $response";
 }

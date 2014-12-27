@@ -4,13 +4,14 @@ use Device::Modbus;
 use Device::Modbus::TCP;
 use Device::Modbus::Transaction;
 use IO::Socket::INET;
+use Errno qw(:POSIX);
 use Time::HiRes qw(time);
 use Moo;
 
 has host     => (is => 'ro', default => sub {'127.0.0.1'});
 has port     => (is => 'ro', default => sub {502});
 has blocking => (is => 'ro', default => sub {1});
-has timeout  => (is => 'rw', default => 0.2);
+has timeout  => (is => 'rw', default => 2);
 has socket   => (is => 'rw', builder => 1, handles => [qw(connected close)]);
 
 has waiting_room     => (is => 'rw', default => sub { +{} });
@@ -19,11 +20,11 @@ has max_transactions => (is => 'rw', default => sub {16});
 sub _build_socket {
     my $self = shift;
     return IO::Socket::INET->new(
-        PeerAddr => $self->host,
-        PeerPort => $self->port,
-        Blocking => $self->blocking,
-        Timeout  => $self->timeout,
-        Proto    => 'tcp'
+        PeerAddr  => $self->host,
+        PeerPort  => $self->port,
+        Blocking  => $self->blocking,
+        Timeout   => $self->timeout,
+        Proto     => 'tcp',
     );
 }
 
@@ -77,6 +78,52 @@ sub get_from_waiting_room {
 
 sub send_request {
     my ($self, $trn) = @_;
+    my $apu = Device::Modbus::TCP->build_apu($trn, $trn->request_pdu);
+    local $SIG{'ALRM'} = sub { die "Connection timed out\n" };
+    my $attempts = 0;
+    my $message;
+    {
+        my $sock = $self->socket;
+        eval {
+            alarm $self->timeout;
+            my $rc = $sock->send($apu);
+            if (!defined $rc) {
+                die "Communication error while sending request: $!";
+            }
+
+            alarm $self->timeout;
+            $rc = $self->socket->recv($message, 260);
+            if (exists $!{EINTR} && $!{EINTR} || length($message) == 0) {
+                die "Re-try communication";
+            }
+            if (!defined $rc) {
+                    die "Communication error while reading request: $!";
+            }
+            alarm 0;
+        };
+        if ($@) {
+            if ($@ =~ /Re-try|timed out/ && $attempts < 5) {
+                $sock->close;
+                $self->socket($self->_build_socket);
+                $attempts++;
+                redo;                    
+            }
+        }
+    }
+    return undef unless $message;
+    my ($trn_id, $unit, $pdu) = Device::Modbus::TCP->break_message($message);
+    return undef unless defined $trn_id && $trn_id == $trn->id;
+
+    my $resp = Device::Modbus->parse_response($pdu);
+    $trn->response($resp);
+    return $trn;
+}
+        
+    
+=for comment
+
+sub send_request {
+    my ($self, $trn) = @_;
     my $pdu   = $trn->request_pdu;
     my $apu   = Device::Modbus::TCP->build_apu($trn, $pdu);
     my $bytes = $self->socket->send($apu)
@@ -88,10 +135,11 @@ sub send_request {
 }
 
 sub receive_response {
-    my $self = shift;
+    my $self    = shift;
     my $message;
 
-    my $ret = $self->socket->recv($message, 260);
+    my $ret;
+    $ret = $self->socket->recv($message, 260);
     return undef if !defined $ret;
     return 0 unless length $message;
 
@@ -103,5 +151,7 @@ sub receive_response {
     $trn->response($resp);
     return $trn;
 }
+
+=cut
 
 1;

@@ -31,7 +31,14 @@ package main;
 use Device::Modbus::Server::TCP;
 
 my $unit   = Test::Modbus->new(id => 1);
-my $server = Device::Modbus::Server::TCP->new();
+my $server = Device::Modbus::Server::TCP->new(
+    log_level         =>  2,
+    min_servers       => 10,
+    max_servers       => 30,
+    min_spare_servers => 5,
+    max_spare_servers => 10,
+    max_requests      => 1000,
+);
 
 $server->add_server_unit($unit);
 $server->start;
