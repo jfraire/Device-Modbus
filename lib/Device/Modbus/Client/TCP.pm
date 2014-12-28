@@ -80,7 +80,7 @@ sub get_from_waiting_room {
 sub send_request {
     my ($self, $trn) = @_;
     return undef unless $trn;
-    my $apu = $self->build_apu($trn, $trn->request_pdu);
+    my $apu = $self->build_adu($trn, $trn->request_pdu);
     local $SIG{'ALRM'} = sub { die "Connection timed out\n" };
     my $attempts = 0;
     my $message;
@@ -113,8 +113,10 @@ sub send_request {
         }
     }
     return undef unless $message;
+
     my ($trn_id, $unit, $pdu) = $self->break_message($message);
     return undef unless defined $trn_id && $trn_id == $trn->id;
+
     $self->get_from_waiting_room($trn_id);
 
     my $resp = Device::Modbus->parse_response($pdu);
@@ -128,7 +130,7 @@ sub send_request {
 sub send_request {
     my ($self, $trn) = @_;
     my $pdu   = $trn->request_pdu;
-    my $apu   = Device::Modbus::TCP->build_apu($trn, $pdu);
+    my $apu   = Device::Modbus::TCP->build_adu($trn, $pdu);
     my $bytes = $self->socket->send($apu)
       || return undef;
     return undef unless $bytes eq length($apu);

@@ -20,7 +20,7 @@ sub footer {
 
 #### Build messages
 
-sub build_apu {
+sub build_adu {
     my ($self, $trn, $pdu) = @_;
     my $header = $self->header($trn, $pdu);
     my $footer = $self->footer($trn, $pdu);

@@ -73,7 +73,7 @@ BEGIN {
     is unpack('h*', Device::Modbus::TCP->header($trn, $req->pdu)), unpack('h*', $mbap),
         'MBAP header is calculated as expected';
 
-    my $apu = Device::Modbus::TCP->build_apu($trn, $req->pdu);
+    my $apu = Device::Modbus::TCP->build_adu($trn, $req->pdu);
     is  unpack('h*', $apu),
         unpack('h*', $mbap . $req->pdu),
         'And the request APU is also as expected';

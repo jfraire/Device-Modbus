@@ -2,7 +2,7 @@ use lib 't/lib';
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 16;
 
 BEGIN {
     use_ok('Device::Modbus');
@@ -44,29 +44,98 @@ sleep 3;
 my $client = Device::Modbus::Client::TCP->new(port => 22003);
 isa_ok $client, 'Device::Modbus::Client::TCP';
 
-my $req = Device::Modbus->read_holding_registers(
-        unit     => 1,
-        address  => 0,
-        quantity => 3
-);
-note $req;
+{
+    # It should succeed
+    my $req = Device::Modbus->read_holding_registers(
+            unit     => 1,
+            address  => 0,
+            quantity => 3
+    );
+    note $req;
 
-my $trn = $client->request_transaction($req);
-$client->send_request($trn) || die "Send error: $!";
+    my $trn = $client->request_transaction($req);
 
-my $response = $trn->response;
-ok defined $response,
-    'Response was received';
-note "$response";
+    $client->send_request($trn) || die "Send error";
 
-is_deeply $response->values, [100,101,102],
-    'Response received correctly';
+    my $response = $trn->response;
+    ok defined $response,
+        'Response was received';
+    note "$response";
 
-$client->close if defined $client;
+    is_deeply $response->values, [100,101,102],
+        'Response received correctly';
+}
+{
+    # It should return an exception 2: Wrong address
+    my $req = Device::Modbus->read_discrete_inputs(
+            unit     => 1,
+            address  => 1,
+            quantity => 6
+    );
+    note $req;
+
+    my $trn = $client->request_transaction($req);
+
+    $client->send_request($trn) || die "Send error";
+
+    my $response = $trn->response;
+    ok defined $response,
+        'Response was received';
+    note "$response";
+
+    isa_ok $response, 'Device::Modbus::Exception';
+    is $response->exception_code, 2,
+        'Exception code is correct - wrong address';
+}
+{
+    # It should return an exception 3: Wrong quantity
+    my $req = Device::Modbus->read_discrete_inputs(
+            unit     => 1,
+            address  => 0,
+            quantity => 3
+    );
+    note $req;
+
+    my $trn = $client->request_transaction($req);
+
+    $client->send_request($trn) || die "Send error";
+
+    my $response = $trn->response;
+    ok defined $response,
+        'Response was received';
+    note "$response";
+
+    isa_ok $response, 'Device::Modbus::Exception';
+    is $response->exception_code, 3,
+        'Exception code is correct - invalid quantity';
+}
+{
+    # It should return an exception 4: Server processing error
+    my $req = Device::Modbus->read_discrete_inputs(
+            unit     => 1,
+            address  => 0,
+            quantity => 6
+    );
+    note $req;
+
+    my $trn = $client->request_transaction($req);
+
+    $client->send_request($trn) || die "Send error";
+
+    my $response = $trn->response;
+    ok defined $response,
+        'Response was received';
+    note "$response";
+
+    isa_ok $response, 'Device::Modbus::Exception';
+    is $response->exception_code, 4,
+        'Exception code is correct - server error';
+}
 
 done_testing();
 
 END {
+    $client->close if defined $client;
     if ($pid) {
         note "Sending terminate signal to server process $pid";
         kill 1, $pid;

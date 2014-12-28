@@ -38,7 +38,7 @@ BEGIN {
     }
 
     sub dc_die {
-        die "# Should throw exception 4\n";
+        die '# Should die (exception code 4)';
     }
 }
 
@@ -60,7 +60,7 @@ isa_ok $unit, 'My::Unit';
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 2,
         'Address did not match and correct exception was returned';
-    diag $resp;
+    note $resp;
 }
 {
     # Invalid quantity
@@ -73,7 +73,7 @@ isa_ok $unit, 'My::Unit';
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 3,
         'Quantity did not match and correct exception was returned';
-    diag $resp;
+    note $resp;
 }
 {
     # Route handler dies
@@ -86,7 +86,7 @@ isa_ok $unit, 'My::Unit';
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 4,
         'Route handler died and correct exception was returned';
-    diag $resp;
+    note $resp;
 }
 
 {
@@ -100,7 +100,7 @@ isa_ok $unit, 'My::Unit';
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 2,
         'Address did not match and correct exception was returned';
-    diag $resp;
+    note $resp;
 }
 {
     # Invalid quantity
@@ -113,7 +113,7 @@ isa_ok $unit, 'My::Unit';
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 3,
         'Quantity did not match and correct exception was returned';
-    diag $resp;
+    note $resp;
 }
 {
     # Route handler dies
@@ -126,7 +126,7 @@ isa_ok $unit, 'My::Unit';
     isa_ok $resp, 'Device::Modbus::Exception';
     is $resp->exception_code => 4,
         'Route handler died and correct exception was returned';
-    diag $resp;
+    note $resp;
 }
 
 done_testing();

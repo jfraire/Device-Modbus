@@ -17,6 +17,7 @@ sub start {
         next unless $message;
                 
         my ($unit, $pdu, $footer) = $self->break_message($message);
+        warn "Failed breaking message!" unless defined $unit; 
         
         # Listen only for the given Modbus address
         next if ($self->unit != $unit);
@@ -26,7 +27,7 @@ sub start {
         my $resp = $self->modbus_server($unit, $req);
 
         $self->write(
-            $self->build_apu($unit, $resp->pdu)
+            $self->build_adu($unit, $resp->pdu)
         ) || warn "Failed sending response!";
     }
 }

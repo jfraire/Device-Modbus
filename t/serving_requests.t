@@ -98,7 +98,7 @@ isa_ok $unit, 'My::Unit';
     my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadDiscrete';
-    diag $resp;
+    note $resp;
     
     is shift @{$unit->last_command}, 'Read coils:19:4',
         'Read Coils server routine executed as expected';
@@ -113,7 +113,7 @@ isa_ok $unit, 'My::Unit';
     );
     
     my $resp = $server->modbus_server(3, $request);
-    diag $resp;
+    note $resp;
 
     isa_ok $resp, 'Device::Modbus::Response::WriteSingle';
     
@@ -127,7 +127,7 @@ isa_ok $unit, 'My::Unit';
     );
     
     my $resp = $server->modbus_server(3, $request);
-    diag $resp;
+    note $resp;
 
     isa_ok $resp, 'Device::Modbus::Response::WriteMultiple';
     
@@ -143,7 +143,7 @@ isa_ok $unit, 'My::Unit';
     my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadDiscrete';
-    diag $resp;
+    note $resp;
     
     is shift @{$unit->last_command}, 'Read discrete inputs:4:3',
         'Read Discrete Inputs server routine executed as expected';
@@ -160,7 +160,7 @@ isa_ok $unit, 'My::Unit';
     my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadRegisters';
-    diag $resp;
+    note $resp;
     
     is shift @{$unit->last_command}, 'Read input registers:44:2',
         'Read Input Registers server routine executed as expected';
@@ -177,7 +177,7 @@ isa_ok $unit, 'My::Unit';
     my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadRegisters';
-    diag $resp;
+    note $resp;
     
     is shift @{$unit->last_command}, 'Read holding registers:14:6',
         'Read Holding Registers server routine executed as expected';
@@ -194,7 +194,7 @@ isa_ok $unit, 'My::Unit';
     my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::WriteSingle';
-    diag $resp;
+    note $resp;
     
     is shift @{$unit->last_command}, 'Write holding registers:10:1:426',
         'Write Holding Registers server routine executed as expected';
@@ -208,7 +208,7 @@ isa_ok $unit, 'My::Unit';
     my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::WriteMultiple';
-    diag $resp;
+    note $resp;
     
     is shift @{$unit->last_command}, 'Write holding registers:31:3:662277',
         'Write Multiple Registers server routine executed as expected';
@@ -224,7 +224,7 @@ isa_ok $unit, 'My::Unit';
     my $resp = $server->modbus_server(3, $request);
 
     isa_ok $resp, 'Device::Modbus::Response::ReadWrite';
-    diag $resp;
+    note $resp;
     
     is shift @{$unit->last_command}, 'Write holding registers:9:3:622776',
         'Read/Write Registers server routine executed as expected (writing)';

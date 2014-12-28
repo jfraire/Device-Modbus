@@ -1,0 +1,184 @@
+=pod
+
+=head1 NAME
+
+Device::Modbus::Client - Write Modbus clients in Perl
+
+=head1 SYNOPSIS
+
+This is a Modbus TCP client:
+
+
+A Modbus RTU client would be:
+
+
+=head1 DESCRIPTION
+
+This POD documents Device::Modbus::Client::TCP and Device::Modbus::Client::RTU, the two client modules of the L<Device::Modbus> distribution. These modules allow you to send requests to Modbus devices, and to parse their responses.
+
+=head2 Clients
+
+Being able to issue requests and parsing responses is only half of the problem. The other half is getting down to the details of the transmission, and in Modbus there are two ways to do it: RTU and TCP.
+
+Anyway, both RTU and TCP clients share some functionality. Both need to establish a connection channel (a serial port or a socket) and they both need to send requests and receive responses.
+
+=head3 Methods common to both clients
+
+=over
+
+=item send_request($obj)
+
+To send a request via the serial line (Modbus RTU), this method receives a request object. However, in the case of Modbus TCP it requires a transaction (more on this later):
+
+ $client_rtu->send_request($req);
+ $client_tcp->send_request($trn);
+
+=item receive_response()
+
+This method must be called to receive a response. In the case of Modbus RTU, it will look at input through the serial port; Modbus TCP clients will read from the client's socket.
+
+ my $res = $client->receive_response()
+
+=back
+
+=head3 RTU client
+
+The constructor can take the following arguments:
+
+=over
+
+=item * port (required)
+
+=item * databits (default: 8)
+
+=item * stopbits (default: 1)
+
+=item * parity (default: even. Other valid values are 'none' and 'odd')
+
+=item * baudrate (default: 9600)
+
+=item * timeout (default: 2, in seconds)
+
+=back
+
+It uses L<Device::SerialPort> and so it is not Windows friendly (but this should be easy to change).
+
+=head3 TCP client
+
+The TCP client is more complex because it is not restricted to wait for each response. However, because communication is established via the client, each client can talk to a single server.
+
+The constructor will take the following arguments:
+
+=over
+
+=item * host (default: 127.0.0.1)
+
+=item * port (default: 502)
+
+=item * blocking (default: 1)
+
+=item * timeout (default: 0.2, in seconds)
+
+=back
+
+=head4 Transactions
+
+Because sockets can be established in non-blocking mode, the client uses transactions. A transaction is an envelope that serves to relate a response to its request, as responses might arrive in a different order. Each transaction is uniquely identified. The identification number is sent along with the request and is returned by the server, thus permitting to find the request that originated a fresh response.
+
+ # First create a request object
+ my $req = Device::Modbus->read_coils(
+    address  => 23,
+    quantity =>  2
+ );
+
+ # and then use it to request a new transaction. You can reuse the same
+ # request for many transactions, as the example server in the
+ # synopsis
+ my $trn = $client->request_transaction($req);
+
+ # send_request will extract the request from the transaction and it
+ # will use the transaction id number to build the Modbus message
+ $client->send_request($trn);
+
+ # In a separate piece of code:
+ my $trn = $client->receive_response;
+
+=head1 SENDING A MODBUS MESSAGE
+
+Requests and responses can only produce a PDU, the basic Modbus building block. To actually send a PDU, it must first be wrapped in an ADU of a given Modbus variant.
+
+=head2 Building the ADU
+
+Once the request or response has been built, it is necessary to wrap it into an ADU. This of course depends on the protocol variant that is being used. The roles Device::Modbus::RTU and Device::Modbus::TCP include the method C<build_adu>, and one of these roles is composed into each client and server so that you can say: 
+
+ my $pdu = $req->pdu;
+
+ # For Modbus RTU:
+ my $adu = $device->build_adu($unit, $pdu);
+
+ # For Modbus TCP:
+ my $adu = $device->build_adu($trn, $pdu);
+
+where C<$device> is either a client or a server object. The method C<pdu> produces the binary string representation of the request or response, which is wrapped into the ADU by the C<build_adu> method.
+
+=head2 Parsing requests and responses
+
+Clients emit requests and receive responses which they need to parse. Servers, on the other hand, need to parse requests. But first, received messages must be broken down, as they are really ADUs:
+
+ # For Modbus RTU:
+ my ($unit, $pdu, $footer) = $device->break_message($msg);
+
+ # For Modbus TCP:
+ my ($trn_id, $unit, $pdu) = $device->break_message($msg);
+
+
+The PDU string is the actual Modbus request or response in binary format and this is the piece that must be parsed.
+
+In the case of Modbus RTU, C<$unit> is the I<address> of the device on the bus. Since Modbus TCP uses IP addresses to distinguish between the different devices in the network, the unit number is used only when a Modbus TCP device I<represents> multiple independent banks of Modbus addresses. For example, a TCP to RTU gateway could hide a bus of devices under a single IP address over the TCP network; in this case, each RTU device would be addressable from the TCP side using the unit number.
+
+Modbus TCP messages also include a transaction number. Transactions in Modbus TCP are needed to implement non-blocking communications. While this is not yet supported by this distribution, the foundations are already in.
+
+The PDU can be parsed once the ADU has been broken. The two following methods are provided:
+
+ my $req = Device::Modbus->parse_request($msg);
+ my $res = Device::Modbus->parse_response($msg);
+
+=head1 GITHUB REPOSITORY
+
+You can find the repository of this distribution in L<GitHub|https://github.com/jfraire/Device-Modbus>.
+
+=head1 SEE ALSO
+
+The documentation of the distribution is split among these different documents:
+
+=over
+
+=item L<Device::Modbus> - For basic request and response objects
+
+=item L<Device::Modbus::Client>
+
+=item L<Device::Modbus::Server>
+
+=item L<Device::Modbus::Unit> - Server routing of requests
+
+=item L<Device::Modbus::Spy>
+
+=back
+
+These are other implementations of Modbus in Perl:
+
+L<Protocol::Modbus>, L<MBclient>, L<mbserverd|https://github.com/sourceperl/mbserverd>.
+
+=head1 AUTHOR
+
+Julio Fraire, E<lt>julio.fraire@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2015 by Julio Fraire
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.14.2 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

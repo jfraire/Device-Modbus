@@ -14,7 +14,7 @@ my %mem = (
 sub init_unit {
     my $unit = shift;
 
-    $unit->get('discrete_inputs',    0, 6, sub { return @{$mem{discrete_inputs}}[0..5];  });
+    $unit->get('discrete_inputs',    0, 6, sub { die 'Look for an exception code 4';  });
     $unit->get('holding_registers',  0, 3, sub { return @{$mem{holding_registers}}[0..2];});
     $unit->put('holding_registers',  0, 3, 'store_hr');
 }

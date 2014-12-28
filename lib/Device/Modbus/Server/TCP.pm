@@ -69,7 +69,7 @@ sub process_request {
             unit    => $unit
         );
 
-        my $apu = $self->build_apu($trn, $resp->pdu);
+        my $apu = $self->build_adu($trn, $resp->pdu);
 
         eval {
             alarm $self->timeout;

@@ -77,7 +77,7 @@ BEGIN {
 
     my $message = pack('CC',2,7) . pack('v', 4673);
 
-    is unpack('H*', $client->build_apu(2, pack 'C', 7)),
+    is unpack('H*', $client->build_adu(2, pack 'C', 7)),
         unpack('H*', $message),
         'APU calculated correclty';
 
