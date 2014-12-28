@@ -199,7 +199,7 @@ sub parse_request {
     my $function_code = unpack 'C', $binary_req;
     my $function = Device::Modbus::Message->function_for($function_code);
 
-    if ($function_code > 0 && $function_code <= 4) {
+    if ($function_code <= 4) {
         $request = Device::Modbus::Request::Read->parse_message(
             function => $function,
             message  => $binary_req,
