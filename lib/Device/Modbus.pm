@@ -305,10 +305,32 @@ Device::Modbus - Perl distribution to implement Modbus communications
 
 =head1 SYNOPSIS
 
-This is a Modbus TCP client:
+A Modbus TCP client:
 
+    use Device::Modbus;
+    use Device::Modbus::Client;
 
-A Modbus RTU client would be:
+    # These are the default parameters
+    my $client = Device::Modbus::Client::TCP->new(
+        host    => '127.0.0.1',
+        port    => 502,
+        timeout => 2
+    );
+
+    my $req = Device::Modbus->read_coils(
+        address  => 20,
+        quantity => 19
+    );
+
+    my $trn = $client->request_transaction($req);
+
+    $client->send_request($trn) || die "Send error";
+
+    my $response = $trn->response;
+
+    print "$response\n";
+
+A Modbus RTU client:
 
 
 =head1 DESCRIPTION

@@ -1,7 +1,7 @@
 #! /usr/bin/env perl
 
 use Test::MockObject;
-use Test::More tests => 26;
+use Test::More tests => 22;
 use strict;
 use warnings;
 
@@ -28,7 +28,7 @@ BEGIN {
             if ($self->test_timeout) {
                 return undef;
             }
-            is unpack('H*', $apu), 'ff010013001399dc',
+            is unpack('H*', $apu), '020100130004cc3f',
                 'APU to write via the serial port is correct';
             return length($apu);
         },
@@ -38,7 +38,7 @@ BEGIN {
                 sleep 1;
                 return undef;
             }
-            my $msg = pack 'H*', 'ff0500acff0059c5';
+            my $msg = pack 'H*', '0201010991ca';
             return (length($msg), $msg);
         },
     );
@@ -65,7 +65,7 @@ BEGIN {
             "Default value for $key is $value, as expected";
     }
 
-    can_ok $client, qw(send_request receive_response serial read_port);
+    can_ok $client, qw(send_request serial read_port);
 
     # This CRC is taken from the example in Modbus_over_serial_line_V1_02
     # which shows this result in binary and a different number in decimal
@@ -77,10 +77,6 @@ BEGIN {
 
     my $message = pack('CC',2,7) . pack('v', 4673);
 
-    is unpack('H*', $client->build_adu(2, pack 'C', 7)),
-        unpack('H*', $message),
-        'APU calculated correclty';
-
     my ($unit, $pdu, $footer) = $client->break_message($message);
     is $unit, 2,
         'Unit recovered from message';
@@ -90,23 +86,18 @@ BEGIN {
         'CRC recovered from message';
 }
 
+my $req = Device::Modbus->read_coils(
+    address  => 19,
+    quantity => 4,
+    unit     => 2
+);
 
-{
-    # Tests reading a response.
-    # This should time out. 
-    my $client = Device::Modbus::Client::RTU->new(
-        port    => '/dev/tty0',
-        timeout => 0.1
-    );
-    isa_ok $client, 'Device::Modbus::Client::RTU';
-    $client->serial->test_timeout(1);
+my $res = Device::Modbus->coils_read(
+    address => 19,
+    values  => [1,0,0,1],
+    unit    => 2
+);
 
-    eval {
-        $client->receive_response || die;
-    };
-    ok $@, 'Mocked serial port timed out correctly';
-}
-    
 {
     # Tests send_request using mocked serial port.
     # The send is supposed to fail.
@@ -117,66 +108,34 @@ BEGIN {
     isa_ok $client, 'Device::Modbus::Client::RTU';
     $client->serial->test_timeout(1);
 
-    my $request = Device::Modbus->read_coils(
-        address  => 19,
-        quantity => 19
-    );
-
-    my $bytes;
     eval {
-        $bytes = $client->send_request($request) || die;
+        $client->send_request($req) || die;
     };
     ok $@, 'send_request returns false on failure';
 }
 
 {
-    # Tests reading a response.
-    # This should succeed. 
+    # Tests a successful send/receive. 
     my $client = Device::Modbus::Client::RTU->new(
         port    => '/dev/tty0',
     );
     isa_ok $client, 'Device::Modbus::Client::RTU';
 
-    my $resp = Device::Modbus->single_coil_write(
-        address  => 172,
-        value    => 1
-    );
+#    diag unpack 'H*', $client->build_adu($req);
+#    diag unpack 'H*', $client->build_adu($res);
 
-    # my $apu = $client->build_apu($resp->unit, $resp->pdu);
-    # diag "APU: " . unpack 'H*', $apu;
-
-    my $received;
+    my $recv;
     eval {
-        $received = $client->receive_response || die;
+        $recv = $client->send_request($req) || die;
     };
     ok !$@, 'Survived receiving response through mocked serial port';
 
-    is "$received", "$resp",
+    isa_ok $recv, 'Device::Modbus::Response::ReadDiscrete';
+    # Per Modbus spec, values are multiple of 8 and are thus zero-padded
+    is_deeply $recv->values, [1,0,0,1,0,0,0,0],
+        'Mocked response values are as expected';
+    is $recv->function, 'Read Coils',
         'Mocked response was rebuilt correctly';
-}
-
-{
-    # Tests send_request using mocked serial port.
-    # The send is supposed to succeed.
-    
-    my $client = Device::Modbus::Client::RTU->new(
-        port    => '/dev/tty0',
-    );
-    isa_ok $client, 'Device::Modbus::Client::RTU';
-
-    my $request = Device::Modbus->read_coils(
-        address  => 19,
-        quantity => 19
-    );
-
-    my $bytes;
-    eval {
-        $bytes = $client->send_request($request) || die;
-    };
-    ok !$@, 'send_request survived with mocked-up serial port';
-
-    is $bytes, length($request->pdu) + 3,
-        'send_request returns the right number of bytes';
 }
 
 done_testing();

@@ -27,7 +27,7 @@ sub start {
         my $resp = $self->modbus_server($unit, $req);
 
         $self->write(
-            $self->build_adu($unit, $resp->pdu)
+            $self->build_adu($resp)
         ) || warn "Failed sending response!";
     }
 }

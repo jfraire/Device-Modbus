@@ -94,8 +94,9 @@ sub footer {
 #### Build messages
 
 sub build_adu {
-    my ($self, $unit, $pdu) = @_;
-    my $header = $self->header($unit);
+    my ($self, $req) = @_;
+    my $pdu    = $req->pdu;
+    my $header = $self->header($req->unit);
     my $footer = $self->footer($header, $pdu);
     my $apu    = $header . $pdu . $footer;
     return $apu;
