@@ -66,8 +66,8 @@ sub parse_message {
 
         # Reading functions
         if ($function_code <= 4) {
-            my $values = defined $resp ? scalar @{$resp->values} : 1;
-            my $bytes  = defined $resp ? $resp->bytes : 0;
+            my $values = scalar @{$resp->values};
+            my $bytes  = $resp->bytes;
             
             if (length($pdu) != 5) { # Requests are always 5 bytes
                 $self->is_request(0);
