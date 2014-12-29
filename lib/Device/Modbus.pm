@@ -6,6 +6,7 @@ use warnings;
 our $VERSION = '0.01';
 
 use Device::Modbus::Message;
+use Device::Modbus::Exception;
 use Device::Modbus::Request::Read;
 use Device::Modbus::Request::WriteSingle;
 use Device::Modbus::Request::WriteMultiple;

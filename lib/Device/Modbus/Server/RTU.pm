@@ -33,3 +33,69 @@ sub start {
 }
 
 1;
+
+__END__
+
+=head1 NAME Device::Modbus::Server::RTU - Modbus RTU server in Perl
+
+=head1 SYNOPSIS
+
+    use My::Unit;
+    use Modbus::Server::RTU;
+    use strict;
+    use warnings;
+
+    my $unit   = My::Unit->new(id => 1);
+    my $server = Modbus::Server::RTU->new(
+        port => '/dev/ttyUSB0',
+        unit => 3
+    );
+
+    $server->add_server_unit($unit);
+    $server->start;
+
+=head1 DESCRIPTION
+
+This module implements a simple Modbus RTU server. It works over a serial port, normally using an RS485 bus.
+
+=head1 USAGE
+
+Please see L<Device::Modbus::Server> first, as it contains a much broader discussion of this server. In this document, only the constructor is discussed.
+
+=head2 Constructor
+
+The constructor is in fact a result of applying the role Device::Modbus::RTU, which contains the definition of the serial port. It can take the following arguments:
+
+=over
+
+=item * port (required)
+
+=item * databits (default: 8)
+
+=item * stopbits (default: 1)
+
+=item * parity (default: even. Other valid values are 'none' and 'odd')
+
+=item * baudrate (default: 9600)
+
+=item * timeout (default: 2, in seconds)
+
+=back
+
+All these attributes have accessors of the same name.
+
+Device::Modbus::RTU uses L<Device::SerialPort> and so it is does not work in Windows (but this should be easy to change). Note that Device::Modbus::RTU is composed into Device::Modbus::Client::RTU too.
+
+=head1 AUTHOR
+
+Julio Fraire, E<lt>julio.fraire@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2015 by Julio Fraire
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.14.2 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

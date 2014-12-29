@@ -52,10 +52,10 @@ BEGIN {
         my ($unit, $server, $req, $addr, $qty, $val) = @_;
         isa_ok $unit,    'Device::Modbus::Unit';
         ok $server->does('Device::Modbus::Server'), 'Server role implemented';
-        isa_ok $req,     'Device::Modbus::Message';
-        is $addr,  2, 'Address passed correctly to write routine';
-        is $qty,   1, 'Quantity passed correctly to write routine';
-        is $val, 565, 'Value passed correctly to write routine';
+        isa_ok $req,       'Device::Modbus::Message';
+        is $addr,     2,   'Address passed correctly to write routine';
+        is $qty,      1,   'Quantity passed correctly to write routine';
+        is $val->[0], 565, 'Value passed correctly to write routine';
     }
 
     sub good_bye {

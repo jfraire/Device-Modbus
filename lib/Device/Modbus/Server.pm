@@ -62,7 +62,7 @@ sub modbus_server {
             $mode = 'write';
             $addr = $req->address;
             $qty  = 1;
-            $val  = $req->value;
+            $val  = [ $req->value ];
             $type = 'Device::Modbus::Response::WriteSingle';
         }
         elsif ($func eq 'Write Single Register') {
@@ -70,9 +70,9 @@ sub modbus_server {
             $mode = 'write';
             $addr = $req->address;
             $qty  = 1;
-            $val  = $req->value;
+            $val  = [ $req->value ];
             $type = 'Device::Modbus::Response::WriteSingle';
-            unless ($val >= 0x0000 && $val <= 0xffff) {
+            unless ($val->[0] >= 0x0000 && $val->[0] <= 0xffff) {
                 return Device::Modbus::Exception->new(
                     function       => $func,
                     exception_code => 3,
@@ -137,7 +137,7 @@ sub modbus_server {
             $resp = Device::Modbus::Response::WriteSingle->new(
                 function => $func,
                 address  => $addr,
-                value    => $val,
+                value    => $val->[0],
                 unit     => $unit_id
             );
         }
@@ -232,109 +232,222 @@ __END__
 
 =head1 NAME
 
-Device::Modbus - Perl distribution to implement Modbus communications
+Device::Modbus::Server - Server side of Device::Modbus
 
 =head1 SYNOPSIS
 
-This is a Modbus TCP client:
+    package My::Unit;
 
+    use parent 'Device::Modbus::Unit';
+    use strict;
+    use warnings;
 
-A Modbus RTU client would be:
+    my %mem = (
+        discrete_inputs   => [0,1,0,1,0,1],
+        input_registers   => [200,201,202],
+        holding_registers => [100,101,102],
+    );
+
+    sub init_unit {
+        my $unit = shift;
+
+        $unit->get('discrete_inputs',    0, 6,
+            sub { return @{$mem{discrete_inputs}}[0..5] }
+        );
+        $unit->get('holding_registers',  0, 3,
+            sub { return @{$mem{holding_registers}}[0..2] }
+        );
+        $unit->put('holding_registers',  0, 3, 'store_hr');
+    }
+
+    sub store_hr {
+        my ($unit, $server, $req, $addr, $qty, $val) = @_;
+        splice @{$mem{holding_registers}}, $addr, $qty, @$val;
+        return scalar @$val;
+    }
+
+And somewhere else:
+
+    use My::Unit;
+    use Modbus::Server::RTU;
+    use strict;
+    use warnings;
+
+    my $unit   = My::Unit->new(id => 1);
+    my $server = Modbus::Server::RTU->new(
+        port => '/dev/ttyUSB0',
+        unit => 3
+    );
+
+    $server->add_server_unit($unit);
+    $server->start;
 
 
 =head1 DESCRIPTION
 
-
-=head2 Servers
-
-Device::Modbus provides two classes to implement servers: Device::Modbus::Server::RTU and Device::Modbus::Server::TCP. Your server must inherit from any of these two. Your server class should establish valid address limits for each Modbus data model zone (coils, discrete inputs, input registers and holding registers) and it must provide a method responsible for the generation of the actual responses. Then, your class must be instantiated by a script that will simply call its constructor and start the server.
-
-Servers can implement several units. This is useful, for example, for writing Modbus TCP to RTU gateways, where a multitude of RTU servers are mapped onto a TCP network using the same IP address. You need to create the units that will be available through Device::Modbus servers:
-
- $server->add_server_unit($unit_id);
-
-where the unit id is a number. This will simply add a bank of default address limits that the unit will accept. By default, these are set to the maximum of the Modbus specification. You must add at least one server unit.
-
-Given these limits, servers must read requests and then check that:
+One of the goals for L<Device::Modbus> is to have the ability to write Modbus servers that execute arbitrary code. Given the Modbus data model, the interface requires I<units> which in turn must have I<zones>. Zones may be one of:
 
 =over
 
-=item The requested function is implemented (exception 1 if it is not)
+=item * Discrete Inputs
 
-=item The requested addresses are within limits (exception 2)
+Read-only, bit addressable data. 
 
-=item The quantity of data requested is within limits (exception 3)
+=item * Coils
 
-=item The values to write are valid (exception 3 for writing functions)
+Writable, bit addressable data.
+
+=item * Input Registers
+
+Read-only, word addressable data.
+
+=item * Holding Registers
+
+Read/Write, word addressable data.
 
 =back
 
-The following methods allow you to declare validity limits:
+Then, as implied above, each zone must have addresses.
+
+The addressing model is quite simple. Modbus requests indicate the operation to perform, an address, and a quantity of values either to read or write. Requests allow only for reading and/or writing, and the zone is implied by the chosen request.
+
+The programming of Device::Modbus::Server goes as follows. You first define classes which inherit from L<Device::Modbus::Unit>. These classes will have a set of zones and valid addresses. The addresses will contain the arbitrary code to execute when client requests arrive. Then, in a program a server object must be instantiated, whose class will be either L<Device::Modbus::Server::TCP> or L<Device::Modbus::Server::RTU>, and finally, you add to it the unit objects you just created.
+
+To gain flexibility, units "route" requests through their addresses. Addresses define their zone, the address range they will respond to, and the quantity of data they can receive or return. The first address to match a given request is executed and is responsible for returning that which is needed to prepare the Modbus response. In fact, your code does not even need to work with the Modbus protocol at all!
+
+This document will discuss only the generic Modbus server methods. For communication details and for the two different variants, please see L<Device::Modbus::Server::TCP> and L<Device::Modbus::Server::RTU>.
+
+=head1 UNITS
+
+To define a Unit, it is necessary to write a class that inherits from Device::Modbus::Unit. It needs to have a methdod called init_unit, which is responsible of defining the addresses that units of this class will serve. Device::Modbus::Unit provides two methods to define addresses: get and put.
+
+=head2 Defining addresses
+
+Read-only addresses are created by using the unit method C<get>, while C<put> allows for the creation of write-only addresses. They both take as input the following parameters:
 
 =over
 
-=item limits_discrete_inputs($unit, $min, $max)
+=item Zone
 
-=item limits_discrete_outputs($unit, $min, $max)
+Zone must be one of C<discrete_coils>, C<discrete_inputs>, C<input_registers>, C<holding_registers> (and of course, you cannot define a write-only address in a read-only zone)
 
-=item limits_input_registers($unit, $min, $max)
+=item Route
 
-=item limits_holding_registers($unit, $min, $max)
-
-=back
-
-Adding units and adjusting their limits is usually performed in a method called C<init_server>. The default implementation simply creates a default unit with id 1. This code is available in the example servers:
-
- sub init_server {
-    my $server = shift;
-
-    $server->add_server_unit(1);
-    
-    $server->limits_discrete_inputs(1,1,16);
-    $server->limits_discrete_outputs(1,1,16);
-    $server->limits_input_registers(1,1,10);
-    $server->limits_holding_registers(1,1,10);
- }
-
-The server will start an infinite loop which will parse the request, validate it, and then call a user defined routine called C<process_request>. This routine will receive the server object, the unit number and the request itself. This routine is responsible for returning an appropriate response. It is called like this:
-
- ### Real work is perfomed here
- eval { $resp = $server->process_request($unit, $req) };
-
-Finally, the C<start> method is used to start the infinite loop. It takes no arguments:
-
- $server->start;
-
-Visit the C<examples> directory to see a couple of functional servers.
-
-=head3 Constructor for Modbus RTU server
-
-The RTU server shares the same constructor as the client and adds one argument, the unit number to listen for:
-
-my $server = Test::Modbus::Server->new(
-    port => '/dev/ttyUSB0',
-    unit => 3
-);
- 
-=head3 Constructor for Modbus TCP server
-
-The TCP server inherits from L<Net::Daemon>. This is very nice, as Net::Daemon takes care of the management of sockets and it provides different execution modes, like forking, threading or single process servers. It can read its configuration arguments from a file and can take arguments from the command line. Please see its documentation.
-
-The constructor has the following arguments:
+Route is the address or address range that this route will accept. It must be a single scalar (a number or a string):
 
 =over
 
-=item pidfile  (default: none)
+=item A single number
 
-=item localport (default: 502)
+=item A string with comma-separated addresses (like '2,4,77')
 
-=item logfile (default: STDERR)
+=item A string defining a range of addresses (like '22-45')
+
+=item A string combining the last two options
+
+=item Simply '*', which matches all addresses.
 
 =back
 
-as well as all the arguments received directly by Net::Daemon.
+=item Quantity
 
+Takes the same format as the route. 
 
+=item Code to execute
+
+Takes either a code reference or the name of a method of the unit object.
+
+=back
+
+=head3 Routing examples
+
+The following examples come from the test suite (see routing.t):
+
+    6
+    '3, 8,5'
+    '1-5'
+    '1,3, 5 - 7,9'
+    '*'
+    '33-36'
+    '101, 145, 23-28, 56-60'
+
+These scalars are all valid for either the address or the quantity parameters, thus reaching a pretty flexible set-up (or so I hope).
+
+=head3 Execution of the address code
+
+When a request is routed to an address, its code will be executed as follows:
+
+ # Serving a read request (address added with 'get')
+ @vals = $code->($unit, $server, $req, $addr, $qty);
+
+ # Serving a write request (address added with 'put')
+ $code->($unit, $server, $req, $addr, $qty, $val);
+
+The parameters are, in order: the unit object, the server object, the received Modbus request, the requested address, the requested quantity of values to read or write, and in the case of write requests, an array reference of the values to write.
+
+If the routine dies, a Modbus exception with code 4 will be sent to the client.
+
+=head2 Example unit class
+
+This example is from the test suite.
+
+    package My::Unit;
+
+    use parent 'Device::Modbus::Unit';
+    use strict;
+    use warnings;
+
+    my %mem = (
+        discrete_inputs   => [0,1,0,1,0,1],
+        input_registers   => [200,201,202],
+        holding_registers => [100,101,102],
+    );
+
+    sub init_unit {
+        my $unit = shift;
+
+        $unit->get('discrete_inputs',    0, 6, sub { die 'Look for an exception code 4';  });
+        $unit->get('holding_registers',  0, 3, sub { return @{$mem{holding_registers}}[0..2];});
+        $unit->put('holding_registers',  0, 3, 'store_hr');
+    }
+
+    sub store_hr {
+        my ($unit, $server, $req, $addr, $qty, $val) = @_;
+        splice @{$mem{holding_registers}}, $addr, $qty, @$val;
+        return scalar @$val;
+    }
+
+    1;
+
+=head2 Server TCP and RTU common methods
+
+The two types of servers implement the same interface. The only difference is in the communication-related attributes. They both inherit from Device::Modbus::Server and this interface is very simple.
+
+=head3 add_server_unit
+
+This is the method which, once the server object has been instantiated, allows you to add one server unit to it. It can be called as multiple times to add more than one unit. A server needs at least one unit to be useful, so you must call this method at least once:
+
+ my $unit = My::Unit->new(id => 3);
+ $server->add_server_unit($unit);
+
+ # Or you can call it like this:
+ $server->add_server_unit('My::Unit', 3);
+
+This method is responsible of composing the unit into the server object and also of calling init_unit on it.
+
+=head3 get_server_unit
+
+Simply returns a server unit:
+
+ my $unit = $server->get_server_unit(3);
+
+=head3 start
+
+Starts the server, which enters in an infinite loop.
+
+=head2 Device::Modbus::Server::TCP and Device::Modbus::Server::RTU
+
+See L<Device::Modbus::Server::TCP> and L<Device::Modbus::Server::RTU> for information about the particularities.
 
 =head1 GITHUB REPOSITORY
 
