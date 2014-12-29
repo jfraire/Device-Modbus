@@ -80,7 +80,7 @@ sub get_from_waiting_room {
 sub send_request {
     my ($self, $trn) = @_;
     return undef unless $trn;
-    my $apu = $self->build_adu($trn, $trn->request_pdu);
+    my $apu = $self->build_adu($trn, $trn->request);
     local $SIG{'ALRM'} = sub { die "Connection timed out\n" };
     my $attempts = 0;
     my $message;

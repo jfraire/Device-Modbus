@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 19;
 
 BEGIN {
     use_ok('Device::Modbus');
@@ -37,8 +37,6 @@ BEGIN {
         'The request mutator works';
     is $trn->request_pdu, $pdu,
         'Request PDU retrieved correctly from transaction';
-    is $trn->unit, 0xff,
-        'Unit number (slave) is set to default value';
 
     $trn->set_expiration_time(5);
     is $trn->expires, 5.2,
@@ -57,7 +55,6 @@ BEGIN {
 {
     my $trn = Device::Modbus::Transaction->new(
         id      => 38999,
-        unit    => 24,
         timeout => 0.2
     );
     isa_ok $trn, 'Device::Modbus::Transaction';
@@ -80,8 +77,6 @@ BEGIN {
 
     is $trn->response_pdu, $pdu,
         'Request PDU retrieved correctly from transaction';
-    is $trn->unit, 24,
-        'Unit number (slave) works correctly';
 }
 
 

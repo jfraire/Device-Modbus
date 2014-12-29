@@ -3,7 +3,6 @@ package Device::Modbus::Transaction;
 use Moo;
 
 has id          => (is => 'ro', required => 1);
-has unit        => (is => 'ro', default => sub {0xff});
 has timeout     => (is => 'rw');
 has expires     => (is => 'rw');
 has max_retries => (is => 'rw', default => sub {3});

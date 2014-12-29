@@ -5,11 +5,11 @@ use Moo::Role;
 #### APU building
 
 sub header {
-    my ($self, $trn, $pdu) = @_;
+    my ($self, $trn, $req) = @_;
     my $header = pack 'nnnC', $trn->id,    # Transaction id
       0x0000,                              # Protocol number (Modbus)
-      length($pdu) + 1,                    # Length of PDU + 1 byte for unit
-      $trn->unit;                          # Unit number
+      length($req->pdu) + 1,               # Length of PDU + 1 byte for unit
+      $req->unit;                          # Unit number
     return $header;
 }
 
@@ -21,10 +21,10 @@ sub footer {
 #### Build messages
 
 sub build_adu {
-    my ($self, $trn, $pdu) = @_;
-    my $header = $self->header($trn, $pdu);
-    my $footer = $self->footer($trn, $pdu);
-    my $apu = $header . $pdu . $footer;
+    my ($self, $trn, $req) = @_;
+    my $header = $self->header($trn, $req);
+    my $footer = $self->footer($trn, $req);
+    my $apu = $header . $req->pdu . $footer;
     return $apu;
 }
 

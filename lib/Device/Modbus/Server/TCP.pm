@@ -64,12 +64,9 @@ sub process_request {
         $self->log(4, "Response: $resp");
 
         # Transaction is needed to build response message
-        my $trn = Device::Modbus::Transaction->new(
-            id      => $trn_id,
-            unit    => $unit
-        );
+        my $trn = Device::Modbus::Transaction->new(id => $trn_id);
 
-        my $apu = $self->build_adu($trn, $resp->pdu);
+        my $apu = $self->build_adu($trn, $resp);
 
         eval {
             alarm $self->timeout;

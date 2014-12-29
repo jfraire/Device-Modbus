@@ -214,7 +214,8 @@ sub modbus_server {
         
         return $type->new(
             function => $func,
-            values   => \@vals
+            values   => \@vals,
+            unit     => $unit_id
         );
     }
 

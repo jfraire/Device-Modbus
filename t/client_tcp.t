@@ -70,17 +70,17 @@ BEGIN {
         'Request is indeed in the transaction';
 
     my $mbap = pack 'nnnC', 3, 0, length($req->pdu)+1, 0xff;
-    is unpack('h*', Device::Modbus::TCP->header($trn, $req->pdu)), unpack('h*', $mbap),
+    is unpack('h*', Device::Modbus::TCP->header($trn, $req)), unpack('h*', $mbap),
         'MBAP header is calculated as expected';
 
-    my $apu = Device::Modbus::TCP->build_adu($trn, $req->pdu);
+    my $apu = Device::Modbus::TCP->build_adu($trn, $req);
     is  unpack('h*', $apu),
         unpack('h*', $mbap . $req->pdu),
         'And the request APU is also as expected';
 
     my ($zid, $zunit, $zpdu) = Device::Modbus::TCP->break_message($apu);
     is $zid, $trn->id,     'Transaction id parsed back from APU';
-    is $zunit, $trn->unit, 'Unit id parsed back from APU';
+    is $zunit, $req->unit, 'Unit id parsed back from APU';
     is $zpdu,  $req->pdu,  'PDU parsed back from APU';    
 }
 
