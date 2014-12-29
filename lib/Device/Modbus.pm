@@ -307,6 +307,8 @@ Device::Modbus - Perl distribution to implement Modbus communications
 
 A Modbus TCP client:
 
+    #! /usr/bin/env perl
+
     use Device::Modbus;
     use Device::Modbus::Client;
 
@@ -332,6 +334,32 @@ A Modbus TCP client:
 
 A Modbus RTU client:
 
+    #! /usr/bin/env perl
+
+    use Device::Modbus;
+    use Device::Modbus::Client::RTU;
+    use Modern::Perl;
+
+    my $client = Device::Modbus::Client::RTU->new(
+        port     => '/dev/ttyUSB0',
+        baudrate => 19200,
+        parity   => 'none',
+    );
+
+    my $req = Device::Modbus->read_holding_registers(
+        unit     => 1,
+        address  => 1,
+        quantity => 1
+    );
+
+    while (1) {
+        my $resp = $client->send_request($req);
+        say "-> $req";
+        say "<- $resp";
+        sleep 1;
+    }
+
+See the examples directory of the distribution to see servers and a Modbus RTU debugging program.
 
 =head1 DESCRIPTION
 
@@ -587,6 +615,12 @@ The response for a read/write multiple registers request, includes simply an arr
  $res = Device::Modbus->registers_read_write(
     values => [1,0,0,24,12,56]
  );
+
+=head3 Unit number
+
+Request, response and exception objects all take an optional I<unit> argument which is needed in Modbus RTU. This number represents the address of the device in the bus with which we are communicating with.
+
+In the case of Modbus TCP, the unit number is normally not necessary. It is used when there are multiple units in a single device, as might be in the case of a Modbus TCP to RTU gateway, for example.
 
 =head2 Writing a PDU
 

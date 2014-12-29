@@ -17,9 +17,8 @@ my $req = Device::Modbus->read_holding_registers(
 );
 
 while (1) {
-    $client->send_request($req);
+    my $resp = $client->send_request($req);
     say "-> $req";
-    my $resp = $client->receive_response;
     say "<- $resp";
     sleep 1;
 }
