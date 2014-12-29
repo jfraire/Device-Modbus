@@ -137,8 +137,8 @@ done_testing();
 END {
     $client->close if defined $client;
     if ($pid) {
-        note "Sending terminate signal to server process $pid";
-        kill 1, $pid;
+        note "Sending QUIT signal to server process $pid";
+        kill 3, $pid;
         note "Wait to end server: ", wait();
     }
 }
