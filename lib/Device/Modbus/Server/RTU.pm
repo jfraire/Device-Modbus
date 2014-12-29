@@ -45,13 +45,11 @@ __END__
     use strict;
     use warnings;
 
-    my $unit   = My::Unit->new(id => 1);
     my $server = Modbus::Server::RTU->new(
         port => '/dev/ttyUSB0',
-        unit => 3
     );
 
-    $server->add_server_unit($unit);
+    $server->add_server_unit('My::Unit', 1);
     $server->start;
 
 =head1 DESCRIPTION
@@ -60,7 +58,7 @@ This module implements a simple Modbus RTU server. It works over a serial port, 
 
 =head1 USAGE
 
-Please see L<Device::Modbus::Server> first, as it contains a much broader discussion of this server. In this document, only the constructor is discussed.
+Please see L<Device::Modbus::Server> first, as it contains a much broader discussion of this server. The server for Modbus RTU is so simple that we only have to discuss the constructor here.
 
 =head2 Constructor
 
@@ -84,7 +82,7 @@ The constructor is in fact a result of applying the role Device::Modbus::RTU, wh
 
 All these attributes have accessors of the same name.
 
-Device::Modbus::RTU uses L<Device::SerialPort> and so it is does not work in Windows (but this should be easy to change). Note that Device::Modbus::RTU is composed into Device::Modbus::Client::RTU too.
+Device::Modbus::RTU uses L<Device::SerialPort> and so it is does not work in Windows (but this should be easy to change).
 
 =head1 AUTHOR
 

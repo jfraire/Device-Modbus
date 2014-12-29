@@ -276,12 +276,11 @@ And somewhere else:
     use strict;
     use warnings;
 
-    my $unit   = My::Unit->new(id => 1);
     my $server = Modbus::Server::RTU->new(
         port => '/dev/ttyUSB0',
-        unit => 3
     );
 
+    my $unit   = My::Unit->new(id => 1);
     $server->add_server_unit($unit);
     $server->start;
 
