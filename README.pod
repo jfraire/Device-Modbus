@@ -1,0 +1,76 @@
+=head1 NAME Device-Modbus version 0.01
+
+This distribution aims towards implementing Modbus communications in Perl. It should make it possible to write Modbus TCP and RTU clients and servers.
+
+In particular, servers should be able to execute arbitrary code to process requests. This will allow for applications such as Modbus gateways or database front-end applications that communicate directly with external devices. 
+
+=head1 CURRENT STATUS
+
+Currently, the distribution is under development. It has been successfully tested as TCP and RTU client, as TCP server, and as a RTU spy.
+
+=head1 MILESTONES
+
+=over
+
+=item - Modbus TCP server -- Works!
+
+=item - Modbus TCP client -- Works! (in blocking mode only)
+
+=item - Modbus RTU client -- Works!
+
+=item - Modbus RTU server -- Yet untested
+
+=item - Modbus RTU spy    -- Works!
+
+=item - Documentation     -- Around 60%
+
+=item - Shared over CPAN  -- ...until it is ready!
+
+=back
+
+The RTU client has been tested with a temperature controller, and the spy was tested with a Modicon 241 PLC. The TCP client and server have been tested against Modbus-Tk, a Python package similar in scope to Device::Modbus. So far, so good.
+
+=head1 INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+=head1 DEPENDENCIES
+
+This module requires these other non-standard modules and libraries:
+
+=over
+
+=item - Moo
+
+=item - Net::Server
+
+=item - Device::SerialPort
+
+=item - Test::MockObject (for testing only)
+
+=back
+
+=head1 SEE ALSO
+
+In Perl, you can find other Modbus related distributions. I think the
+leading one would be L<Protocol::Modbus>, by Cossimo, which implements
+Modbus TCP clients. While there is code for RTU clients, it is not as
+mature.
+
+There are also some scripts that implement both a server and clients.
+A couple worth looking at is formed by MBclient and mbserved. The
+later is available in GitHub only and they were both written by the same
+author, l.lefebre L<https://github.com/sourceperl>.
+
+=head1 COPYRIGHT AND LICENCE
+
+Copyright (C) 2014 by Julio Fraire
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.14.2 or,
+at your option, any later version of Perl 5 you may have available.

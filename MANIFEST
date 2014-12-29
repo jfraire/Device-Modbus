@@ -6,6 +6,7 @@ examples/modbus_spy.pl
 examples/server_rtu.pl
 examples/server_tcp.pl
 lib/Device/Modbus.pm
+lib/Device/Modbus/Client.pod
 lib/Device/Modbus/Client/RTU.pm
 lib/Device/Modbus/Client/TCP.pm
 lib/Device/Modbus/Exception.pm
@@ -32,10 +33,13 @@ LICENSE
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-README
+README.pod
 t/addresses.t
 t/client_rtu.t
+t/client_server_tcp.t
 t/client_tcp.t
+t/lib/Device/SerialPort.pm
+t/lib/Test/Unit.pm
 t/make_read_requests.t
 t/make_write_multiple_requests.t
 t/make_write_single_requests.t
@@ -52,5 +56,6 @@ t/routing.t
 t/server.t
 t/serving_exceptions.t
 t/serving_requests.t
+t/spy.t
 t/transactions.t
 t/units.t

@@ -54,6 +54,10 @@
 \bcover_db\b
 \bcovered\b
 
+# Avoid Devel::NYTProf files
+\bnytprof.out
+\bnytprof/
+
 # Avoid MYMETA files
 ^MYMETA\.
 #!end included /usr/share/perl/5.14/ExtUtils/MANIFEST.SKIP
