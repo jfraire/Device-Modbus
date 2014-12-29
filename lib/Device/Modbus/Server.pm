@@ -204,6 +204,9 @@ sub modbus_server {
         my @vals;
         eval {
             @vals = $match->routine->($unit, $server, $req, $addr, $qty);
+            
+            die 'The quantity of values returned does not match the request'
+                unless scalar @vals == $qty;
         };
 
         return Device::Modbus::Exception->new(
@@ -309,31 +312,57 @@ Read/Write, word addressable data.
 
 Then, as implied above, each zone must have addresses.
 
-The addressing model is quite simple. Modbus requests indicate the operation to perform, an address, and a quantity of values either to read or write. Requests allow only for reading and/or writing, and the zone is implied by the chosen request.
+The addressing model is quite simple. Modbus requests indicate the operation to perform, an address, and a quantity of values either to read or write. Requests allow only for reading and/or writing, and the zone is implied by the request function.
 
-The programming of Device::Modbus::Server goes as follows. You first define classes which inherit from L<Device::Modbus::Unit>. These classes will have a set of zones and valid addresses. The addresses will contain the arbitrary code to execute when client requests arrive. Then, in a program a server object must be instantiated, whose class will be either L<Device::Modbus::Server::TCP> or L<Device::Modbus::Server::RTU>, and finally, you add to it the unit objects you just created.
+                     +---------------------------------+
+                     |            Unit 3               |
+                     |                                 |
+                     |  Zone: Holding Registers        |
+                     |  +---------------------------+  |
+                     |  | Address:  1               |  |
+                     |  | Quantity: 3               |  |
+                     |  | Read/Write:  Read-only    |  |
+ Modbus request -->  |  +---------------------------+  |
+ Read 3 registers    |  +---------------------------+  |
+ from address 1      |  | Address:  1-5             |  |
+                     |  | Quantity: *               |  |
+                     |  | Read/Write:  Write-only   |  |
+                     |  +---------------------------+  |
+                     +---------------------------------+
+ 
+Therefore, it is necessary to define units, which inherit from Device::Modbus::Unit. These units will have a set of zones and valid addresses (Device::Modbus::Unit::Address). When a request is received, it will be routed to the first address object that matches both in address and quantity. This Address object will contain the arbitrary code to execute to serve the request.
 
-To gain flexibility, units "route" requests through their addresses. Addresses define their zone, the address range they will respond to, and the quantity of data they can receive or return. The first address to match a given request is executed and is responsible for returning that which is needed to prepare the Modbus response. In fact, your code does not even need to work with the Modbus protocol at all!
+All of that happens in the Device::Modbus::Unit subclass. In a separate program, a server object must be instantiated, whose class will be either L<Device::Modbus::Server::TCP> or L<Device::Modbus::Server::RTU>, and finally, the different unit objects must be added to the server.
 
-This document will discuss only the generic Modbus server methods. For communication details and for the two different variants, please see L<Device::Modbus::Server::TCP> and L<Device::Modbus::Server::RTU>.
+To gain flexibility, units "route" requests through their addresses. Addresses define the address range they will respond to, and the quantity of data they can receive or return. The first address to match a given request is then executed to handle the request. In fact, your code does not even need to work with the Modbus protocol at all!
+
+This document will discuss only the generic Modbus server methods. For details of the two different variants, please see L<Device::Modbus::Server::TCP> and L<Device::Modbus::Server::RTU>.
 
 =head1 UNITS
 
-To define a Unit, it is necessary to write a class that inherits from Device::Modbus::Unit. It needs to have a methdod called init_unit, which is responsible of defining the addresses that units of this class will serve. Device::Modbus::Unit provides two methods to define addresses: get and put.
+There are only three Unit methods for your use: init_unit, get and put.
 
-=head2 Defining addresses
+=head2 init_unit
 
-Read-only addresses are created by using the unit method C<get>, while C<put> allows for the creation of write-only addresses. They both take as input the following parameters:
+This method will be executed when the unit is added to the server. It receives only the unit object. It is called as:
+
+ $unit->init_unit;
+
+In this method you are expected to list the set of addresses that this unit will be able to handle.
+
+=head2 Defining Unit addresses with C<get> and C<put>
+
+Device::Modbus::Unit provides two methods to define addresses: get and put. Read-only addresses are created by using the unit method C<get>, while C<put> allows for the creation of write-only addresses. They both take as input the following positional parameters:
 
 =over
 
-=item Zone
+=item 1. Zone
 
 Zone must be one of C<discrete_coils>, C<discrete_inputs>, C<input_registers>, C<holding_registers> (and of course, you cannot define a write-only address in a read-only zone)
 
-=item Route
+=item 2. Address
 
-Route is the address or address range that this route will accept. It must be a single scalar (a number or a string):
+This defines the address or address range that this route will accept. It must be a single scalar (a number or a string):
 
 =over
 
@@ -349,19 +378,21 @@ Route is the address or address range that this route will accept. It must be a 
 
 =back
 
-=item Quantity
+=item 3. Quantity
 
-Takes the same format as the route. 
+Takes the same format as the address parameter. 
 
-=item Code to execute
+=item 4. Code to execute
 
 Takes either a code reference or the name of a method of the unit object.
 
 =back
 
-=head3 Routing examples
+=head2 Address and quantity routing examples
 
-The following examples come from the test suite (see routing.t):
+As you noticed, both the address and quantity are quite flexible and allow for routing requests. To actually execute a piece of code, both quantity and address must match. The first matching address unit will be executed.
+
+The following examples are valid definitions for the address and quantity fields. They come from the test suite (see routing.t):
 
     6
     '3, 8,5'
@@ -371,9 +402,7 @@ The following examples come from the test suite (see routing.t):
     '33-36'
     '101, 145, 23-28, 56-60'
 
-These scalars are all valid for either the address or the quantity parameters, thus reaching a pretty flexible set-up (or so I hope).
-
-=head3 Execution of the address code
+=head2 Execution of the address code
 
 When a request is routed to an address, its code will be executed as follows:
 
@@ -383,9 +412,11 @@ When a request is routed to an address, its code will be executed as follows:
  # Serving a write request (address added with 'put')
  $code->($unit, $server, $req, $addr, $qty, $val);
 
-The parameters are, in order: the unit object, the server object, the received Modbus request, the requested address, the requested quantity of values to read or write, and in the case of write requests, an array reference of the values to write.
+The parameters are, in order: the unit object, the server object, the received Modbus request, the requested address, the requested quantity of values to read or write, and in the case of write requests, an array reference of the values received.
 
-If the routine dies, a Modbus exception with code 4 will be sent to the client.
+Note that, for read-only addresses, your code must return a list of values of length $qty. Otherwise an exception type 4 will be sent to the client (server failed). All values must be defined and in the appropriate range.
+
+If the routine dies, a Modbus exception with code 4 will be sent to the client. The other exception codes are returned automatically by the server.
 
 =head2 Example unit class
 
@@ -419,13 +450,13 @@ This example is from the test suite.
 
     1;
 
-=head2 Server TCP and RTU common methods
+=head1 SERVER METHODS
 
 The two types of servers implement the same interface. The only difference is in the communication-related attributes. They both inherit from Device::Modbus::Server and this interface is very simple.
 
-=head3 add_server_unit
+=head2 add_server_unit
 
-This is the method which, once the server object has been instantiated, allows you to add one server unit to it. It can be called as multiple times to add more than one unit. A server needs at least one unit to be useful, so you must call this method at least once:
+This is the method which, once the server object has been instantiated, allows you to add one server unit to it. It can be called multiple times to add more than one unit. A server needs at least one unit to be useful, so you must call this method at least once:
 
  my $unit = My::Unit->new(id => 3);
  $server->add_server_unit($unit);
@@ -435,19 +466,21 @@ This is the method which, once the server object has been instantiated, allows y
 
 This method is responsible of composing the unit into the server object and also of calling init_unit on it.
 
-=head3 get_server_unit
+Note that units need to have an identification number. It is the second parameter in the second invocation form as shown in the above example.
+
+=head2 get_server_unit
 
 Simply returns a server unit:
 
  my $unit = $server->get_server_unit(3);
 
-=head3 start
+=head2 start
 
 Starts the server, which enters in an infinite loop.
 
 =head2 Device::Modbus::Server::TCP and Device::Modbus::Server::RTU
 
-See L<Device::Modbus::Server::TCP> and L<Device::Modbus::Server::RTU> for information about the particularities.
+See L<Device::Modbus::Server::TCP> and L<Device::Modbus::Server::RTU> for information about their particularities.
 
 =head1 GITHUB REPOSITORY
 
