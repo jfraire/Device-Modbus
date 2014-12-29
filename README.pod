@@ -4,33 +4,53 @@ This distribution aims towards implementing Modbus communications in Perl. It sh
 
 In particular, servers should be able to execute arbitrary code to process requests. This will allow for applications such as Modbus gateways or database front-end applications that communicate directly with external devices. 
 
-=head1 CURRENT STATUS
+=head2 CURRENT STATUS
 
 Currently, the distribution is under development. It has been successfully tested as TCP and RTU client, as TCP server, and as a RTU spy.
 
-=head1 MILESTONES
+=head2 MILESTONES
 
 =over
 
-=item - Modbus TCP server -- Works!
+=item - Modbus TCP server -- Worked!
 
-=item - Modbus TCP client -- Works! (in blocking mode only)
+=item - Modbus TCP client -- Worked! (in blocking mode only)
 
-=item - Modbus RTU client -- Works!
+=item - Modbus RTU client -- Worked!
 
 =item - Modbus RTU server -- Yet untested
 
-=item - Modbus RTU spy    -- Works!
+=item - Modbus RTU spy    -- Worked!
 
-=item - Documentation     -- Around 60%
+=item - Documentation     -- Almost there...
 
-=item - Shared over CPAN  -- ...until it is ready!
+=item - Shared over CPAN  -- when it is ready!
 
 =back
 
 The RTU client has been tested with a temperature controller, and the spy was tested with a Modicon 241 PLC. The TCP client and server have been tested against Modbus-Tk, a Python package similar in scope to Device::Modbus. So far, so good.
 
-=head1 INSTALLATION
+I must note that, because the project is moving so much these days, the fact that a version worked in any of the above experiments does not imply that it continues to work. On the other hand, the test suite is already quite extensive and hiccups should be rather exceptional. It will be like this until the project is released to CPAN.
+
+=head2 TODO
+
+I would like to improve the distribution with the following items:
+
+=over
+
+=item 1. Add logging support to the RTU server using Log::Log4Perl
+
+Adding logging this way should allow for logging within the main modbus_server routine in Device::Modbus::Server. Logging must be much improved to add client and server information to the logs (client address, for example).
+
+=item 2. Real-world testing
+
+In a short time (hopefully before February 2015), I should be able to test the distribution with real-life equipment including the Modicon 241 PLC, a servo motor, a temperature controller, and an HMI screen.
+
+=back
+
+I think this project is getting closer to where it needs to be.
+
+=head2 INSTALLATION
 
 To install this module type the following:
 
