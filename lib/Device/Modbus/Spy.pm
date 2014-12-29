@@ -12,6 +12,7 @@ has pdu         => (is => 'rwp');
 has cdc         => (is => 'rwp');
 has function    => (is => 'rwp');
 has message     => (is => 'rwp');
+has raw_object  => (is => 'rwp');
 has old_msg     => (is => 'rw', default => sub { return { unit => 0, fcn => 0 } });
 has is_request  => (is => 'rw', default => sub { 1 });
 
@@ -23,6 +24,12 @@ sub watch_port {
         $message = $self->read_port;
         last if $message;
     }
+
+    return $self->parse_message($message);
+}
+
+sub parse_message {
+    my ($self, $message) = @_;
     
     ### Break message
     my ($unit, $pdu, $footer) = $self->break_message($message);
@@ -31,68 +38,94 @@ sub watch_port {
     my $function_code = unpack 'C', $pdu;
 
     my %this_msg = ( unit => $unit, fcn => $function_code );
+    my $msg;
+    my $raw;
 
-    # There should be a request and then a response, but which is which?
-
-    # It is a request if unit and function are different than the last message
-    if ($this_msg{unit} != $self->old_msg->{unit} || $this_msg{fcn} != $self->old_msg->{fcn}) {
-        $self->is_request(1);
+    # What if it is an exception?
+    if ($function_code > 0x80) {
+        my $exc = Device::Modbus->parse_exception($pdu);
+        $msg = "*** (!) $exc";
+        $raw = $exc;
     }
     else {
+        # Parse the message twice anyway. It is difficult to find the difference
+        # between requests and responses some times.
+        my $req  = Device::Modbus->parse_request($pdu);
+        my $resp = Device::Modbus->parse_response($pdu);
 
-        # Reading functions. Requests are 5 bytes always, and responses
-        # only some times...
+        # It could be a request if unit and function are different than the last message
+        if ($this_msg{unit} != $self->old_msg->{unit} || $this_msg{fcn} != $self->old_msg->{fcn}) {
+            $self->is_request(1);
+        }
 
-        $self->is_request(0) if ($function_code <= 4 && length($pdu) != 5);
 
         # Write multiple coils or register responses are always 5 bytes
         if (($function_code == 15 || $function_code == 16) && length($pdu) != 5) { 
             $self->is_request(1);
         }
 
+        # Reading functions
+        if ($function_code <= 4) {
+            my $values = defined $resp ? scalar @{$resp->values} : 1;
+            my $bytes  = defined $resp ? $resp->bytes : 0;
+            
+            if (length($pdu) != 5) { # Requests are always 5 bytes
+                $self->is_request(0);
+            }
+            elsif ($function_code >= 3 && $bytes > 0 && $values == 2*$bytes) {
+                $self->is_request(0);
+            }
+            elsif ($function_code <= 2 && $bytes > 0 && $values == 8*$bytes) {
+                $self->is_request(0);
+            }
+            else {
+                $self->is_request(1);
+            }
+                
+        }
+
+        if ($function_code == 0x0F || $function_code == 0x10 && defined $req) {
+             $self->is_request(0) if scalar @{$req->values} == 0;
+             $self->is_request(1) if scalar @{$req->values} > 0;
+        }
+            
+
         # Read/Write responses have the length of the PDU in its 2nd byte
         if ($function_code == 23) {
             my $bytes = unpack 'C', substr $pdu, 1, 1;
             $self->is_request(0) if length($pdu) == 2 + $bytes;
         }
-    }
-
-    my $msg;
-
-    # What if it is an exception?
-    if ($function_code > 0x80) {
-        my $exc = Device::Modbus->parse_exception($pdu);
-        $msg = "*** (!) $exc";
-    }
-    else {
-        # Parse the message twice anyway
-        my $req  = Device::Modbus->parse_request($pdu);
-        my $resp = Device::Modbus->parse_response($pdu);
 
         if (defined $req && $self->is_request) {
             $msg = "--> $req";
+            $raw = $req;
         }
         elsif (defined $resp && !$self->is_request) {
             $msg = "<-- $resp";
+            $raw = $resp;
         }
         elsif (defined $req) {
             # Response was not parsed correctly even though we expected
             # a response
             $self->is_request(1);
             $msg = "--> (!) $req";
+            $raw = $req;
         }
         elsif (defined $resp) {
             # Request was not parsed correctly even though we expected
             # a request
             $self->is_request(0);
             $msg = "<-- (!) $resp";
+            $raw = $resp;
         }
         else {
             $msg = "*** (!) Unable to parse PDU";
         }
     }
 
+    $raw->unit($unit);
     $self->_set_message($msg);
+    $self->_set_raw_object($raw);
     $self->_set_function($function_code);
     $self->_set_unit("Unit: [$unit]");
     $self->_set_pdu("PDU:  [".join('-', map { unpack 'H*' } split //, $pdu)."]");
@@ -111,22 +144,11 @@ __END__
 
 =head1 NAME
 
-Device::Modbus - Perl distribution to implement Modbus communications
+Device::Modbus::Spy - Modbus RTU message sniffer
 
 =head1 SYNOPSIS
 
-This is a Modbus TCP client:
-
-
-A Modbus RTU client would be:
-
-
-=head1 DESCRIPTION
-
-
-=head2 Modbus RTU Spy
-
-While developing machines, a Modbus spy is a very useful tool to have. I have found already connection problems (inverted wires) and programming problems. Device::Modbus provides a simple spy that can be used like this (from the example program):
+From the examples directory:
 
  #! /usr/bin/env perl
 
@@ -152,7 +174,7 @@ While developing machines, a Modbus spy is a very useful tool to have. I have fo
     say '---';
  }
 
-The $spy object returns textual descriptions, where the message method returns the stringified request or response. The output of the above program looks like this:
+Sample output:
 
  --> Request: Function: [Write Multiple Registers] Address: [0x14e] Quantity: [12] Values: [1, 0, 2, 0, 0, 500, 50, 100, 50, 50, 100, 0]
  Unit: [3]
@@ -164,6 +186,12 @@ The $spy object returns textual descriptions, where the message method returns t
  PDU:  [06-11-00-bb-00]
  CDC:  [ff-e4]
  ---
+
+=head1 DESCRIPTION
+
+While developing machines, a Modbus message sniffer is a very useful tool to have. This module has already found connection problems (inverted wires), programming problems, and PLC debugging. The program in the examples directory was written with this kind of application in mind.
+
+From the synopsis, you can see that the $spy object includes methods that directly stringify the different elements of the Modbus message. The Modbus message object can be retrieve with the methdod C<raw_object>.
 
 The spy also provides a method called C<function> that will simply give you the number of the function used. It can be used to filter the output by function:
 

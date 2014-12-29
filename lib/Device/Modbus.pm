@@ -618,9 +618,9 @@ The response for a read/write multiple registers request, includes simply an arr
 
 =head3 Unit number
 
-Request, response and exception objects all take an optional I<unit> argument which is needed in Modbus RTU. This number represents the address of the device in the bus with which we are communicating with.
+Request, response and exception objects all take an optional I<unit> argument which is needed in Modbus RTU to represent the address of the device in the bus with which we are communicating with.
 
-In the case of Modbus TCP, the unit number is normally not necessary. It is used when there are multiple units in a single device, as might be in the case of a Modbus TCP to RTU gateway, for example.
+In the case of Modbus TCP, device addressing is done with the IP address and thus the unit number is normally not necessary. It is used when there are multiple units sharing a single IP address, as might be in the case of a Modbus TCP to RTU gateway, for example, or a server which presents different functionalities through different units.
 
 =head2 Writing a PDU
 
@@ -695,6 +695,5 @@ Copyright (C) 2015 by Julio Fraire
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.14.2 or,
 at your option, any later version of Perl 5 you may have available.
-
 
 =cut

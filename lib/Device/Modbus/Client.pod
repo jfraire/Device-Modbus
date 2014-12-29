@@ -177,13 +177,13 @@ The constructor will take the following arguments:
 
 =item * max_transactions (read/write, 16 by default)
 
-=over
+=back
 
 All these attributes have accessors of the same name.
 
 =head3 Transactions
 
-The standard for Modbus TCP requires using transactions due to the fact that sockets can be established in non-blocking mode. A transaction is an envelope that serves to relate a response to its request, as the protocol allows for responses arriving in a different order. Each transaction is uniquely identified. The identification number is sent along with the request and is returned by the server, thus permitting to find the request that originated a fresh response.
+The standard for Modbus TCP requires using transactions due to the fact that sockets allow for non-blocking communication. A transaction is an envelope that serves to relate a response to its request, as the protocol allows for responses arriving in a different order. Each transaction is uniquely identified. The identification number is sent along with the request and is returned by the server, thus permitting to find the request that originated a freshly arrived response.
 
 B<IMPORTANT NOTE>
 
