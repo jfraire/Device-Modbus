@@ -437,8 +437,13 @@ This example is from the test suite.
     sub init_unit {
         my $unit = shift;
 
-        $unit->get('discrete_inputs',    0, 6, sub { die 'Look for an exception code 4';  });
-        $unit->get('holding_registers',  0, 3, sub { return @{$mem{holding_registers}}[0..2];});
+        $unit->get(
+            'discrete_inputs',    0, 6,
+            sub { die 'Look for an exception code 4' }
+        );
+        $unit->get('holding_registers',  0, 3,
+            sub { return @{$mem{holding_registers}}[0..2] }
+        );
         $unit->put('holding_registers',  0, 3, 'store_hr');
     }
 
@@ -476,7 +481,7 @@ Simply returns a server unit:
 
 =head2 start
 
-Starts the server, which enters in an infinite loop.
+Starts the server, which finally enters the infinite loop waiting to serve clients. Servers respond to HUP signals.
 
 =head2 Device::Modbus::Server::TCP and Device::Modbus::Server::RTU
 
