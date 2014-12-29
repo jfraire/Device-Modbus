@@ -12,19 +12,19 @@ Currently, the distribution is under development. It has been successfully teste
 
 =over
 
-=item - Modbus TCP server -- Worked!
+=item * Modbus TCP server -- Worked!
 
-=item - Modbus TCP client -- Worked! (in blocking mode only)
+=item * Modbus TCP client -- Worked! (in blocking mode only)
 
-=item - Modbus RTU client -- Worked!
+=item * Modbus RTU client -- Worked!
 
-=item - Modbus RTU server -- Yet untested
+=item * Modbus RTU server -- Yet untested
 
-=item - Modbus RTU spy    -- Worked!
+=item * Modbus RTU spy    -- Worked!
 
-=item - Documentation     -- Almost there...
+=item * Documentation     -- Almost there...
 
-=item - Shared over CPAN  -- when it is ready!
+=item * Shared over CPAN  -- when it is ready!
 
 =back
 
@@ -59,23 +59,23 @@ To install this module type the following:
    make test
    make install
 
-=head1 DEPENDENCIES
+=head2 DEPENDENCIES
 
 This module requires these other non-standard modules and libraries:
 
 =over
 
-=item - Moo
+=item * Moo
 
-=item - Net::Server
+=item * Net::Server
 
-=item - Device::SerialPort
+=item * Device::SerialPort
 
-=item - Test::MockObject (for testing only)
+=item * Test::MockObject (for testing only)
 
 =back
 
-=head1 SEE ALSO
+=head2 SEE ALSO
 
 In Perl, you can find other Modbus related distributions. I think the
 leading one would be L<Protocol::Modbus>, by Cossimo, which implements
