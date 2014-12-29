@@ -89,7 +89,7 @@ author, l.lefebre L<https://github.com/sourceperl>.
 
 =head1 COPYRIGHT AND LICENCE
 
-Copyright (C) 2014 by Julio Fraire
+Copyright (C) 2015 by Julio Fraire
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.14.2 or,

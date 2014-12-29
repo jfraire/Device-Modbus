@@ -657,10 +657,6 @@ As a useful debugging tool, requests and responses are stringified to produce hu
 to have a nice message telling you the function represented and its parameters.
 
 
-=head1 GITHUB REPOSITORY
-
-You can find the repository of this distribution in L<GitHub|https://github.com/jfraire/Device-Modbus>.
-
 =head1 SEE ALSO
 
 The documentation of the distribution is split among these different documents:
@@ -673,7 +669,9 @@ The documentation of the distribution is split among these different documents:
 
 =item L<Device::Modbus::Server>
 
-=item L<Device::Modbus::Unit>
+=item L<Device::Modbus::Server::TCP>
+
+=item L<Device::Modbus::Server::RTU>
 
 =item L<Device::Modbus::Spy>
 
@@ -684,6 +682,10 @@ The documentation of the distribution is split among these different documents:
 These are other implementations of Modbus in Perl which may be well suited for your application:
 
 L<Protocol::Modbus>, L<MBclient>, L<mbserverd|https://github.com/sourceperl/mbserverd>.
+
+=head1 GITHUB REPOSITORY
+
+You can find the repository of this distribution in L<GitHub|https://github.com/jfraire/Device-Modbus>.
 
 =head1 AUTHOR
 

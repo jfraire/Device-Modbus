@@ -154,31 +154,29 @@ While Modbus RTU processes are single-process, this server is not. It is importa
 
 Net::Server::PreFork is also at the heart of L<Starman>, a high-performance, Perl-based web server.
 
-=head1 GITHUB REPOSITORY
-
-You can find the repository of this distribution in L<GitHub|https://github.com/jfraire/Device-Modbus>.
-
 =head1 SEE ALSO
 
 The documentation of the distribution is split among these different documents:
 
 =over
 
-=item L<Device::Modbus> - For basic request and response objects
+=item L<Device::Modbus>
 
 =item L<Device::Modbus::Client>
 
 =item L<Device::Modbus::Server>
 
-=item L<Device::Modbus::Unit> - Server routing of requests
+=item L<Device::Modbus::Server::TCP>
+
+=item L<Device::Modbus::Server::RTU>
 
 =item L<Device::Modbus::Spy>
 
 =back
 
-These are other implementations of Modbus in Perl:
+=head1 GITHUB REPOSITORY
 
-L<Protocol::Modbus>, L<MBclient>, L<mbserverd|https://github.com/sourceperl/mbserverd>.
+You can find the repository of this distribution in L<GitHub|https://github.com/jfraire/Device-Modbus>.
 
 =head1 AUTHOR
 

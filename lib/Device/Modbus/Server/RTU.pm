@@ -84,6 +84,30 @@ All these attributes have accessors of the same name.
 
 Device::Modbus::RTU uses L<Device::SerialPort> and so it is does not work in Windows (but this should be easy to change).
 
+=head1 SEE ALSO
+
+The documentation of the distribution is split among these different documents:
+
+=over
+
+=item L<Device::Modbus>
+
+=item L<Device::Modbus::Client>
+
+=item L<Device::Modbus::Server>
+
+=item L<Device::Modbus::Server::TCP>
+
+=item L<Device::Modbus::Server::RTU>
+
+=item L<Device::Modbus::Spy>
+
+=back
+
+=head1 GITHUB REPOSITORY
+
+You can find the repository of this distribution in L<GitHub|https://github.com/jfraire/Device-Modbus>.
+
 =head1 AUTHOR
 
 Julio Fraire, E<lt>julio.fraire@gmail.comE<gt>
