@@ -12,25 +12,25 @@ Currently, the distribution is under development. It has been successfully teste
 
 =over
 
-=item * Modbus TCP server -- Worked!
+=item * Modbus TCP server  -- Worked!
 
-=item * Modbus TCP client -- Worked! (in blocking mode only)
+=item * Modbus TCP client  -- Worked! (in blocking mode only)
 
-=item * Modbus RTU client -- Worked!
+=item * Modbus RTU client  -- Worked!
 
-=item * Modbus RTU server -- Yet untested
+=item * Modbus RTU server  -- Yet untested
 
-=item * Modbus RTU spy    -- Worked!
+=item * Modbus RTU spy     -- Worked!
 
-=item * Documentation     -- Almost there...
+=item * Documentation      -- Almost there...
 
-=item * Shared over CPAN  -- when it is ready!
+=item * Shared over CPAN   -- when it is ready!
 
 =back
 
 The RTU client has been tested with a temperature controller, and the spy was tested with a Modicon 241 PLC. The TCP client and server have been tested against Modbus-Tk, a Python package similar in scope to Device::Modbus. So far, so good.
 
-Note that, because the project is moving so much these days, the fact that a version worked in any of the above experiments does not imply that it continues to work. On the other hand, the test suite is already quite extensive and hiccups should be rather exceptional. It will be like this until the project is released to CPAN.
+Note that, because the project is moving so much these days, the fact that a version worked in any of the above experiments does not imply that it continues to work. On the other hand, the test suite is already quite extensive and hiccups should be rather exceptional. Once it has been better tested with third party equipment it will be released to CPAN.
 
 =head2 TODO
 
@@ -38,7 +38,7 @@ The distribution could be improved by the following items:
 
 =over
 
-=item 1. Add logging support to the RTU server using Log::Log4Perl
+=item 1. Add logging support to the RTU server -- DONE!
 
 Adding logging this way should allow for logging within the main modbus_server routine in Device::Modbus::Server. Logging must be much improved to add client and server information to the logs (client address, for example).
 
