@@ -111,20 +111,30 @@ sub modbus_server {
             );
         }
 
+        $server->log(4, "Routing 'write' zone: <$zone> addr: <$addr> qty: <$qty>");
+
         my $match = $unit->route($zone, $mode, $addr, $qty);
             
+        $server->log(4, sub {
+            'Match was' . (ref $match ? ' ' : ' not ') . 'successful'
+            . " for 'write' zone: <$zone> addr: <$addr> qty: <$qty>"
+        });
+
         return Device::Modbus::Exception->new(
             function       => $func,
             exception_code => $match,
             unit           => $unit_id
-        ) unless ref $match; 
+        ) unless ref $match;
 
         eval {
             $match->routine->($unit, $server, $req, $addr, $qty, $val);
         };
 
         if ($@) {
-            print STDERR $@;
+            $server->log(4, sub {
+                "Action died for 'write' zone: <$zone> addr: <$addr> qty: <$qty> -- $@"
+            });
+            
             return Device::Modbus::Exception->new(
                 function       => $func,
                 exception_code => 4,
