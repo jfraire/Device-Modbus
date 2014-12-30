@@ -120,11 +120,11 @@ This module implements a simple Modbus RTU server. It works over a serial port, 
 
 =head1 USAGE
 
-Please see L<Device::Modbus::Server> first, as it contains a much broader discussion of this server. The server for Modbus RTU is so simple that we only have to discuss the constructor here.
+Please see L<Device::Modbus::Server> first, as it contains a much broader discussion of this server. This document just goes through the particularities of Device::Modbus::Server::RTU.
 
 =head2 Constructor
 
-The constructor is in fact a result of applying the role Device::Modbus::RTU, which contains the definition of the serial port. It can take the following arguments:
+The constructor is in fact a result of applying the role Device::Modbus::RTU, which contains the definition of the serial port. The constructor C<new> can take the following arguments:
 
 =over
 
@@ -140,11 +140,35 @@ The constructor is in fact a result of applying the role Device::Modbus::RTU, wh
 
 =item * timeout (default: 2, in seconds)
 
+=item * log_level (default: 2, a number between 0 and 4)
+
 =back
 
 All these attributes have accessors of the same name.
 
 Device::Modbus::RTU uses L<Device::SerialPort> and so it is does not work in Windows (but this should be easy to change).
+
+=head1 LOGGING
+
+This server includes a simple logging routine that must be called using a log level and a message. Messages are sent to STDOUT.
+
+ # In the constructor:
+ my $server = Modbus::Server::RTU->new(
+    port      => '/dev/ttyUSB0',
+    log_level => 4
+ );
+
+ # And later
+ $server->log(3, 'Log this message');
+
+ # Or
+ $server->log(4, sub { Dumper expensive_computation($some, $vars) });
+
+Level 0 corresponds to critical errors, and level 4 to debugging messages. The second example shows how to avoid the hit of a heavy computation that might not be shown anyway. Just compute your log message in an anonymous subroutine which will be executed only when the message level is higher than the threshold (well, numerically lower).
+
+=head1 SHUTTING DOWN THE SERVER
+
+Device::Modbus::Server::RTU will shut the server down if you send it a QUIT signal. 
 
 =head1 SEE ALSO
 
