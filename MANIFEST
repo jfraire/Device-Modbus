@@ -39,6 +39,8 @@ t/client_rtu.t
 t/client_server_tcp.t
 t/client_tcp.t
 t/lib/Device/SerialPort.pm
+t/lib/Test/OtherUnit.pm
+t/lib/Test/Server.pm
 t/lib/Test/Unit.pm
 t/make_read_requests.t
 t/make_write_multiple_requests.t
@@ -54,6 +56,9 @@ t/response_write_multiple.t
 t/response_write_single.t
 t/routing.t
 t/server.t
+t/server_rtu.t
+t/server_rtu2.t
+t/server_rtu_logging.t
 t/serving_exceptions.t
 t/serving_requests.t
 t/spy.t
