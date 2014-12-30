@@ -1,25 +1,18 @@
 #! /usr/bin/env perl
 
-use Test::More tests => 22;
+use lib 't/lib';
+use Test::Server;
+use Test::More tests => 23;
 use strict;
 use warnings;
 
 BEGIN {
     use_ok 'Device::Modbus::Server';
+    use_ok 'Test::Server';
 }
 
 {
-    package My::Server;
-    use Moo;
-    with 'Device::Modbus::Server';
-
-    sub start {
-        print STDERR "# Required by Device::Modbus::Server\n";
-    }
-}
-
-{
-    my $server = My::Server->new();
+    my $server = Test::Server->new();
     ok $server->does('Device::Modbus::Server'),
         'The server object plays Device::Modbus::Server';
 
@@ -69,7 +62,7 @@ BEGIN {
     }
 }
 
-my $server = My::Server->new();
+my $server = Test::Server->new();
 ok $server->does('Device::Modbus::Server'),
     'The server object plays Device::Modbus::Server';
 
@@ -85,6 +78,7 @@ $server->add_server_unit($unit);
     my $resp;
     eval { $resp = $server->modbus_server(3, $req); };
     ok !$@, 'Running modbus_server survived';
+    diag $@ if $@;
 
     isa_ok $resp, 'Device::Modbus::Response::WriteSingle';
     # diag $resp;

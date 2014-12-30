@@ -1,5 +1,7 @@
 #! /usr/bin/env perl
 
+use lib 't/lib';
+use Test::Server;
 use Test::More tests => 18;
 use strict;
 use warnings;
@@ -9,16 +11,6 @@ BEGIN {
     use_ok 'Device::Modbus::Server';
     use_ok 'Device::Modbus::Unit';
     use_ok 'Device::Modbus::Unit::Address';
-}
-
-{
-    package My::Server;
-    use Moo;
-    with 'Device::Modbus::Server';
-
-    sub start {
-        print STDERR "# Required by Device::Modbus::Server\n";
-    }
 }
 
 {
@@ -42,7 +34,7 @@ BEGIN {
     }
 }
 
-my $server = My::Server->new();
+my $server = Test::Server->new();
 ok $server->does('Device::Modbus::Server'),
     'The server object plays Device::Modbus::Server';
 
