@@ -5,31 +5,93 @@ use Device::Modbus::Exception;
 use Carp;
 use Moo;
 
-has unit => (is => 'ro', required => 1);
+has log_level => (is => 'rw', default => sub { 2 });
+has running   => (is => 'rw', default => sub { 0 });
 
 with 'Device::Modbus::Server', 'Device::Modbus::RTU';
+
+sub BUILD {
+    my $self = shift;
+
+    # Install a signal handler to shut down: QUIT
+    $SIG{QUIT} = sub {
+        $self->stop;
+        $self->log(2, 'Server is shutting down');
+    };
+}
+
+sub stop {
+    my $self = shift;
+    $self->running(0);
+}
 
 sub start {
     my $self = shift;
 
-    while (1) {
+    $self->running(1);
+    $self->log(2, 'Server has started');
+    
+    while ($self->running) {
         my $message = $self->read_port;
         next unless $message;
-                
+
+        $self->log(4, 'Message received: ' . unpack 'H*', $message);
+        
         my ($unit, $pdu, $footer) = $self->break_message($message);
-        warn "Failed breaking message!" unless defined $unit; 
+        if (!defined $unit) {
+            $self->log(1, sub {
+                "Failed breaking received message! "
+                . unpack 'H*', $message;
+            });
+            next;
+        }
         
         # Listen only for the given Modbus address
-        next if ($self->unit != $unit);
+        next if (!exists $self->units->{$unit});
 
         # Go through the generic server routine
         my $req  = Device::Modbus->parse_request($pdu);
-        my $resp = $self->modbus_server($unit, $req);
+        $self->log(4, sub {"-> $req"});
 
-        $self->write(
-            $self->build_adu($resp)
-        ) || warn "Failed sending response!";
+        my $resp = $self->modbus_server($unit, $req);
+        $self->log(4, sub {"<- $resp"});
+
+        my $adu = $self->build_adu($resp);
+        $self->write($adu)
+            || $self->log(1, "Failed sending response!");
     }
+}
+
+
+# Logger routine. It will simply print messages on STDERR.
+# It accepts a logging level and a message. If the level is equal
+# or less than $self->log_level, the message is processed.
+# To avoid unnecessary processing, messages that require processing can
+# be sent in the form of a code reference to minimize performance hits.
+# It will add a stringified level, the localtime string
+# and caller information.
+# It conforms to the interface provided by Net::Server; the subroutine
+# idea comes from Log::Log4Perl.
+my %level_str = (
+    0 => 'ERROR',
+    1 => 'WARNING',
+    2 => 'NOTICE',
+    3 => 'INFO',
+    4 => 'DEBUG',
+);
+
+sub log {
+    my ($self, $level, $msg) = @_;
+    return unless $level <= $self->log_level;
+    my $time = localtime();
+    my ($package, $filename, $line) = caller;
+
+    my $message = ref $msg ? $msg->() : $msg;
+    
+    print STDOUT
+        "$level_str{$level} : $time > $0 in $package "
+        . "($filename line $line): $message\n";
+    return 1;
 }
 
 1;

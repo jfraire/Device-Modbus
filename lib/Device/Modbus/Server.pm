@@ -192,8 +192,12 @@ sub modbus_server {
             }
         }
 
+        $server->log(4, "Routing 'read' zone: <$zone> addr: <$addr> qty: <$qty>");
 
         my $match = $unit->route($zone, 'read', $addr, $qty);
+
+        $server->log(4,
+            sub {'Match was' . (ref $match ? ' ' : ' not ') . 'successful'});
         
         return Device::Modbus::Exception->new(
             function       => $func,
@@ -204,16 +208,21 @@ sub modbus_server {
         my @vals;
         eval {
             @vals = $match->routine->($unit, $server, $req, $addr, $qty);
-            
-            die 'The quantity of values returned does not match the request'
+            die 'Quantity of returned values differs from request'
                 unless scalar @vals == $qty;
         };
 
-        return Device::Modbus::Exception->new(
-            function       => $func,
-            exception_code => 4,
-            unit           => $unit_id
-        ) if $@;
+        if ($@) {
+            $server->log(4, sub {
+                "Action died for 'read' zone: <$zone> addr: <$addr> qty: <$qty> -- $@"
+            });
+            
+            return Device::Modbus::Exception->new(
+                function       => $func,
+                exception_code => 4,
+                unit           => $unit_id
+            );
+        }
         
         return $type->new(
             function => $func,
