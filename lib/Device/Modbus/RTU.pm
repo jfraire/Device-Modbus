@@ -13,6 +13,7 @@ has stopbits  => (is => 'ro',   default  => sub {1});
 has timeout   => (is => 'rw',   default  => sub {2});
 has char_time => (is => 'lazy');
 
+# Character time in ms
 sub _build_char_time {
     my $self = shift;
     my $parity_bit = $self->parity eq 'none' ? 0 : 1;
@@ -34,8 +35,15 @@ sub _build_serial {
     $serial->stopbits($serial->stopbits);
     $serial->handshake('none');
 
-    $serial->read_char_time($self->char_time);
-    $serial->read_const_time(3.5 * $self->char_time);
+    # Timeout for reading will be length * (1.5*char_time) + const_time
+    # See Device::SerialPort. 
+    $serial->read_char_time(1.5 * $self->char_time);
+    if ($self->baudrate < 9600) { 
+        $serial->read_const_time(3.5 * $self->char_time);
+    }
+    else {
+        $serial->read_const_time(1.75);
+    }
 
     $serial->write_settings || croak "Unable to open port: $!";
 
@@ -51,11 +59,11 @@ sub read_port {
 
     my $timeout = 1000 * $self->timeout;
     my $message = '';
-    while ($timeout > 0) {
-        my ($bytes, $read) = $self->read(256);
+    while (!$message && $timeout > 0) {
+        my ($bytes, $read) = $self->read(255);
         $message .= $read;
-        $timeout -= $self->char_time * (256 + 3.5);
         last if $message;
+        $timeout -= $self->serial->read_const_time * $self->char_time;
     }
 
     return $message;

@@ -21,6 +21,7 @@ sub _build_pdu {
 sub parse_message {
     my ($class, %args) = @_;
 
+    return undef unless length($args{message}) == 5;
     my ($code, $address, $value) = unpack 'Cnn', $args{message};
 
     $value = 1 if $code == 5 && $value;

@@ -2,6 +2,7 @@ package Device::Modbus::Spy;
 
 use Device::Modbus;
 use Device::Modbus::Exception;
+use Device::Modbus::Message;
 use Carp;
 use Moo;
 
@@ -12,7 +13,7 @@ has pdu         => (is => 'rwp');
 has cdc         => (is => 'rwp');
 has function    => (is => 'rwp');
 has message     => (is => 'rwp');
-has raw_object  => (is => 'rwp');
+has object      => (is => 'rwp');
 has old_msg     => (is => 'rw', default => sub { return { unit => 0, fcn => 0 } });
 has is_request  => (is => 'rw', default => sub { 1 });
 
@@ -25,115 +26,57 @@ sub watch_port {
         last if $message;
     }
 
-    return $self->parse_message($message);
+    $self->_set_message(join '-', map { unpack 'H*' } split //, $message);
+    my $ret_value;
+    if ($self->parse_message($message)) {
+        $ret_value  = sprintf "Unit:     [%d]\n", $self->unit;
+        $ret_value .= sprintf "Function: [%d] %s\n",
+            $self->function,
+            Device::Modbus::Message->function_for($self->function);
+        $ret_value .= sprintf "PDU:      [%s]\n", $self->pdu;
+        $ret_value .= sprintf "Bare message: [%s]\n", $self->message;
+        $ret_value .= sprintf "Object: %s" if defined $self->object;
+        $ret_value .= "----------\n";
+    }
+    else {
+        $ret_value = sprintf "%s\n----------\n", $self->message;
+    }
+    return $ret_value;
 }
 
 sub parse_message {
     my ($self, $message) = @_;
+
+    $self->_set_object(undef);
     
     ### Break message
     my ($unit, $pdu, $footer) = $self->break_message($message);
-
-    ### Parse message
+    
     my $function_code = unpack 'C', $pdu;
+    return undef unless defined $pdu && defined $function_code;
 
-    my %this_msg = ( unit => $unit, fcn => $function_code );
-    my $msg;
-    my $raw;
+    $self->_set_unit($unit);
+    $self->_set_function($function_code);
+    $self->_set_pdu(join('-', map { unpack 'H*' } split //, $pdu));
+    $self->_set_cdc(join('-', map { unpack 'H*' } split //, $footer));
 
-    # What if it is an exception?
+#    return $self;
+    
     if ($function_code > 0x80) {
         my $exc = Device::Modbus->parse_exception($pdu);
-        $msg = "*** (!) $exc";
-        $raw = $exc;
+        $self->_set_object($exc) if ref $exc;
     }
     else {
-        # Parse the message twice anyway. It is difficult to find the difference
-        # between requests and responses some times.
-        my $req  = Device::Modbus->parse_request($pdu);
-        my $resp = Device::Modbus->parse_response($pdu);
+        my $req = Device::Modbus->parse_request($pdu);
+        my $res = Device::Modbus->parse_response($pdu);
 
-        # It could be a request if unit and function are different than the last message
-        if ($this_msg{unit} != $self->old_msg->{unit} || $this_msg{fcn} != $self->old_msg->{fcn}) {
-            $self->is_request(1);
+        if (!ref $req && ref $res) {
+            $self->_set_object($res);
         }
-
-
-        # Write multiple coils or register responses are always 5 bytes
-        if (($function_code == 15 || $function_code == 16) && length($pdu) != 5) { 
-            $self->is_request(1);
-        }
-
-        # Reading functions
-        if ($function_code <= 4) {
-            my $values = scalar @{$resp->values};
-            my $bytes  = $resp->bytes;
-            
-            if (length($pdu) != 5) { # Requests are always 5 bytes
-                $self->is_request(0);
-            }
-            elsif ($function_code >= 3 && $bytes > 0 && $values == 2*$bytes) {
-                $self->is_request(0);
-            }
-            elsif ($function_code <= 2 && $bytes > 0 && $values == 8*$bytes) {
-                $self->is_request(0);
-            }
-            else {
-                $self->is_request(1);
-            }
-                
-        }
-
-        if ($function_code == 0x0F || $function_code == 0x10 && defined $req) {
-             $self->is_request(0) if scalar @{$req->values} == 0;
-             $self->is_request(1) if scalar @{$req->values} > 0;
-        }
-            
-
-        # Read/Write responses have the length of the PDU in its 2nd byte
-        if ($function_code == 23) {
-            my $bytes = unpack 'C', substr $pdu, 1, 1;
-            $self->is_request(0) if length($pdu) == 2 + $bytes;
-        }
-
-        if (defined $req && $self->is_request) {
-            $msg = "--> $req";
-            $raw = $req;
-        }
-        elsif (defined $resp && !$self->is_request) {
-            $msg = "<-- $resp";
-            $raw = $resp;
-        }
-        elsif (defined $req) {
-            # Response was not parsed correctly even though we expected
-            # a response
-            $self->is_request(1);
-            $msg = "--> (!) $req";
-            $raw = $req;
-        }
-        elsif (defined $resp) {
-            # Request was not parsed correctly even though we expected
-            # a request
-            $self->is_request(0);
-            $msg = "<-- (!) $resp";
-            $raw = $resp;
-        }
-        else {
-            $msg = "*** (!) Unable to parse PDU";
+        elsif (ref $req) {
+            $self->_set_object($req);
         }
     }
-
-    $raw->unit($unit);
-    $self->_set_message($msg);
-    $self->_set_raw_object($raw);
-    $self->_set_function($function_code);
-    $self->_set_unit("Unit: [$unit]");
-    $self->_set_pdu("PDU:  [".join('-', map { unpack 'H*' } split //, $pdu)."]");
-    $self->_set_cdc("CDC:  [".join('-', map { unpack 'H*' } split //, $footer)."]");
-
-    # Toggle $is_request
-    $self->is_request($self->is_request ? 0 : 1);
-    $self->old_msg({%this_msg});
 
     return $self;
 }
