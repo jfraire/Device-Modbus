@@ -20,6 +20,16 @@ sub parse_message {
 
     my ($code, $address, $quantity) = unpack 'Cnn', $args{message};
 
+    if ($code <= 0x02) {
+        return undef unless $quantity <= 2000;
+    }
+    elsif ($code <= 0x04) {
+        return undef unless $quantity <= 125;
+    }
+    else {
+        return undef;
+    }
+
     return $class->new(
         function => $args{function},
         address  => $address,

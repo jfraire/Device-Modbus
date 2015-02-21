@@ -132,16 +132,16 @@ foreach my $msg ( shuffle (@requests, @responses, @exceptions)) {
     my $class = ref $msg =~ /Device::Modbus::Request/ ?
         'Request' : 'Response';
 
-    is $spy->raw_object->function, $msg->function, 
+    is $spy->object->function, $msg->function, 
         "Retrieved function ($class): " . $msg->function;
 
     if (ref($msg) =~ /WriteSingle/) {
         # Well, for these functions responses and requests look the same
-        is_deeply {%{$spy->raw_object}}, {%$msg},
+        is_deeply {%{$spy->object}}, {%$msg},
             'Object rebuilt correctly for ' . $msg->function;
     }
     else {
-        is $spy->raw_object . '', "$msg", 
+        is $spy->object . '', "$msg", 
             'Object rebuilt correctly for ' . $msg->function;
     }
 }

@@ -26,8 +26,8 @@ sub watch_port {
         last if $message;
     }
 
-    $self->_set_message(join '-', map { unpack 'H*' } split //, $message);
-    my $ret_value;
+    my $ret_value = join '-', map { unpack 'H*' } split //, $message;
+
     if ($self->parse_message($message)) {
         $ret_value  = sprintf "Unit:     [%d]\n", $self->unit;
         $ret_value .= sprintf "Function: [%d] %s\n",
@@ -35,33 +35,29 @@ sub watch_port {
             Device::Modbus::Message->function_for($self->function);
         $ret_value .= sprintf "PDU:      [%s]\n", $self->pdu;
         $ret_value .= sprintf "Bare message: [%s]\n", $self->message;
-        $ret_value .= sprintf "Object: %s" if defined $self->object;
         $ret_value .= "----------\n";
     }
-    else {
-        $ret_value = sprintf "%s\n----------\n", $self->message;
-    }
+
     return $ret_value;
 }
 
 sub parse_message {
     my ($self, $message) = @_;
 
-    $self->_set_object(undef);
+    $self->clear_object(undef);
     
     ### Break message
     my ($unit, $pdu, $footer) = $self->break_message($message);
+    defined $unit && defined $pdu && defined $footer || return undef;
     
     my $function_code = unpack 'C', $pdu;
-    return undef unless defined $pdu && defined $function_code;
+    defined $function_code || return undef;
 
     $self->_set_unit($unit);
     $self->_set_function($function_code);
     $self->_set_pdu(join('-', map { unpack 'H*' } split //, $pdu));
     $self->_set_cdc(join('-', map { unpack 'H*' } split //, $footer));
 
-#    return $self;
-    
     if ($function_code > 0x80) {
         my $exc = Device::Modbus->parse_exception($pdu);
         $self->_set_object($exc) if ref $exc;
@@ -70,15 +66,27 @@ sub parse_message {
         my $req = Device::Modbus->parse_request($pdu);
         my $res = Device::Modbus->parse_response($pdu);
 
-        if (!ref $req && ref $res) {
+        if (!defined $req && $res) {
             $self->_set_object($res);
         }
-        elsif (ref $req) {
+        elsif ($req) {
             $self->_set_object($req);
         }
     }
 
+    $self->object->unit($unit);
+
     return $self;
+}
+
+sub clear_object {
+    my $self = shift;
+    $self->_set_unit(undef);
+    $self->_set_function(undef);
+    $self->_set_pdu(undef);
+    $self->_set_cdc(undef);
+    $self->_set_message(undef);
+    $self->_set_object(undef);
 }
 
 1;

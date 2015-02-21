@@ -57,16 +57,26 @@ sub parse_message {
     my $code = unpack 'C', $args{message};
     my ($address, $quantity, $bytes, @values);
 
+    # Read multiple coils
     if ($code == 0x0f) {
-        ($code, $address, $quantity, $bytes, @values) = unpack 'CnnCC*',
-          $args{message};
-        @values =
-          Device::Modbus::Message->explode_bit_values($quantity, @values);
-
+        ($code, $address, $quantity, $bytes, @values) =
+            unpack 'CnnCC*', $args{message};
+        @values = Device::Modbus::Message->
+            explode_bit_values($quantity, @values);
+        return undef unless
+            scalar(@values) == $quantity && $quantity <= 8*$bytes;
+    }
+    # Read multiple registers
+    elsif ($code == 0x10) {
+        ($code, $address, $quantity, $bytes, @values) =
+            unpack 'CnnCn*', $args{message};
+        return undef unless
+            defined $bytes && defined $quantity &&
+            scalar(@values) == $bytes / 2 &&
+            $quantity == $bytes / 2;
     }
     else {
-        ($code, $address, $quantity, $bytes, @values) = unpack 'CnnCn*',
-          $args{message};
+        return undef;
     }
 
     return $class->new(
