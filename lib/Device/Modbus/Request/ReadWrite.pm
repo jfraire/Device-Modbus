@@ -41,6 +41,8 @@ sub parse_message {
     my ($code, $raddr, $rqty, $waddr, $wqty, $wbytes, @values) =
       unpack 'CnnnnCn*', $args{message};
 
+    return undef unless 2*$wbytes == scalar @values;
+
     return $class->new(
         function       => $args{function},
         read_address   => $raddr,

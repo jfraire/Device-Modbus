@@ -23,6 +23,7 @@ sub parse_message {
     my ($class, %args) = @_;
 
     my ($code, $bytes, @values) = unpack 'CCn*', $args{message};
+    return undef unless 2*$bytes == scalar @values;
 
     return $class->new(
         function => $args{function},

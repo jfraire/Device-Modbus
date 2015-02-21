@@ -63,7 +63,7 @@ sub read_port {
         my ($bytes, $read) = $self->read(255);
         $message .= $read;
         last if $message;
-        $timeout -= $self->serial->read_const_time * $self->char_time;
+        $timeout -= ($self->serial->read_const_time + $self->char_time * $bytes);
     }
 
     return $message;

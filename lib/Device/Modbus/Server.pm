@@ -115,10 +115,7 @@ sub modbus_server {
 
         my $match = $unit->route($zone, $mode, $addr, $qty);
             
-        $server->log(4, sub {
-            'Match was' . (ref $match ? ' ' : ' not ') . 'successful'
-            . " for 'write' zone: <$zone> addr: <$addr> qty: <$qty>"
-        });
+        $server->log(4, 'Match was' . (ref $match ? ' ' : ' not ') . 'successful');
 
         return Device::Modbus::Exception->new(
             function       => $func,
@@ -131,9 +128,8 @@ sub modbus_server {
         };
 
         if ($@) {
-            $server->log(4, sub {
-                "Action died for 'write' zone: <$zone> addr: <$addr> qty: <$qty> -- $@"
-            });
+            $server->log(4,
+                "Action died for 'write' zone: <$zone> addr: <$addr> qty: <$qty> -- $@");
             
             return Device::Modbus::Exception->new(
                 function       => $func,
@@ -207,7 +203,7 @@ sub modbus_server {
         my $match = $unit->route($zone, 'read', $addr, $qty);
 
         $server->log(4,
-            sub {'Match was' . (ref $match ? ' ' : ' not ') . 'successful'});
+            'Match was' . (ref $match ? ' ' : ' not ') . 'successful');
         
         return Device::Modbus::Exception->new(
             function       => $func,
@@ -223,9 +219,8 @@ sub modbus_server {
         };
 
         if ($@) {
-            $server->log(4, sub {
-                "Action died for 'read' zone: <$zone> addr: <$addr> qty: <$qty> -- $@"
-            });
+            $server->log(4,
+                "Action died for 'read' zone: <$zone> addr: <$addr> qty: <$qty> -- $@");
             
             return Device::Modbus::Exception->new(
                 function       => $func,

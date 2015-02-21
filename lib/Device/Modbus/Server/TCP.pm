@@ -57,11 +57,11 @@ sub process_request {
 
         ### Parse message
         my $req = Device::Modbus->parse_request($pdu);
-        $self->log(4, "Request: $req");
+        $self->log(4, "> $req");
 
         #### Call generic server routine
         my $resp = $self->modbus_server($unit, $req);
-        $self->log(4, "Response: $resp");
+        $self->log(4, "< Response: $resp");
 
         # Transaction is needed to build response message
         my $trn = Device::Modbus::Transaction->new(id => $trn_id);
@@ -75,6 +75,7 @@ sub process_request {
                 $self->log(1, 'Communication error while sending response');
                 last;
             }
+            $self->log(4, 'Sent response');
             alarm 0;
         };
         if ($@ =~ /Connection timed out/) {
