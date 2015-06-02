@@ -29,22 +29,4 @@ sub send_request {
     return $resp;
 }
 
-=for comment
-
-sub receive_response {
-    my $self = shift;
-
-    my $message = $self->read_port;
-    return unless $message;
-    
-    my ($unit, $pdu, $footer) = $self->break_message($message);
-    
-    my $resp = Device::Modbus->parse_response($pdu);
-    $resp->unit($unit);
-    
-    return $resp;
-}
-
-=cut
-
 1;

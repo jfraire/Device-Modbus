@@ -29,16 +29,20 @@ sub _build_serial {
     my $serial = Device::SerialPort->new($self->port);
     croak "Unable to open serial port " . $self->port unless $serial;
 
-    $serial->baudrate($self->baudrate);
-    $serial->databits($serial->databits);
-    $serial->parity($self->parity);
-    $serial->stopbits($serial->stopbits);
+    $serial->baudrate ($self->baudrate);
+    $serial->databits ($self->databits);
+    $serial->parity   ($self->parity);
+    $serial->stopbits ($self->stopbits);
     $serial->handshake('none');
 
-    # Timeout for reading will be length * (1.5*char_time) + const_time
-    # See Device::SerialPort. 
-    $serial->read_char_time(1.5 * $self->char_time);
-    if ($self->baudrate < 9600) { 
+    # We will not wait for characters, and set a constant read time
+    # equal to Modbus specification for frame separation.
+    # Thus, a reception is finished when a silence of 3.5 chars
+    # is received after a successful read.
+    # For frame separation lengths, see "Modbus message RTU framing"
+    # in the specification and implementation guide.
+    $serial->read_char_time(0);
+    if ($self->baudrate < 19200) { 
         $serial->read_const_time(3.5 * $self->char_time);
     }
     else {
@@ -46,11 +50,8 @@ sub _build_serial {
     }
 
     $serial->write_settings || croak "Unable to open port: $!";
-
     $serial->purge_all;
-
     $SIG{INT} = sub { $serial->close; die "Good bye\n"; };
-
     return $serial;
 }
 
@@ -59,13 +60,16 @@ sub read_port {
 
     my $timeout = 1000 * $self->timeout;
     my $message = '';
-    while (!$message && $timeout > 0) {
+    while ($timeout > 0) {
         my ($bytes, $read) = $self->read(255);
-        $message .= $read;
-        last if $message;
-        $timeout -= ($self->serial->read_const_time + $self->char_time * $bytes);
+        if ($bytes) {
+            $message .= $read;
+        }
+        else {
+            last if $message;
+            $timeout -= ($self->serial->read_const_time);
+        }
     }
-
     return $message;
 }
 
