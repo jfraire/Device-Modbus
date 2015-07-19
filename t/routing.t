@@ -1,11 +1,13 @@
 #!/usr/env perl
 
-use Modern::Perl;
 use List::Util qw(shuffle);
-use Test::More tests => 135;
+use Test::More tests => 137;
+use strict;
+use warnings;
+use v5.10;
 
 BEGIN {
-    use_ok 'Device::Modbus::Unit::Address';
+    use_ok 'Device::Modbus::Unit::Route';
 }
 
 my @tests = (
@@ -36,8 +38,8 @@ foreach my $index (0..$#tests) {
     my $tvals = $test_values[$index];
 
     {
-        my $address = Device::Modbus::Unit::Address->new(
-            route      => $route,
+        my $address = Device::Modbus::Unit::Route->new(
+            address    => $route,
             zone       => 'holding_registers',
             quantity   => 1,
             read_write => 'read',
@@ -54,8 +56,8 @@ foreach my $index (0..$#tests) {
     }
 
     {
-        my $address = Device::Modbus::Unit::Address->new(
-            route      => 22,
+        my $address = Device::Modbus::Unit::Route->new(
+            address    => 22,
             zone       => 'holding_registers',
             quantity   => $route,
             read_write => 'read',
@@ -72,4 +74,31 @@ foreach my $index (0..$#tests) {
     }
 }
 
+{
+    eval {
+        my $address = Device::Modbus::Unit::Route->new(
+            address    => 22,
+            zone       => 'near the border',
+            quantity   => 5,
+            read_write => 'read',
+            routine    => sub {'hello'}
+        );
+    };
+    like $@, qr/Invalid Modbus model type/,
+        "Routes die of invalid Modbus zone declarations";
+
+    eval {
+        my $address = Device::Modbus::Unit::Route->new(
+            address    => 22,
+            zone       => 'discrete_inputs',
+            quantity   => 7,
+            read_write => 'read',
+            routine    => ['array', 'ref']
+        );
+    };
+    like $@, qr/must be a code reference/,
+        "Routes accept only code references";
+
+}
+        
 done_testing();

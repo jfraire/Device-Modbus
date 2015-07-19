@@ -7,20 +7,23 @@ use strict;
 use warnings;
 
 BEGIN {
+    use_ok 'Device::Modbus::Client';
     use_ok 'Device::Modbus::Server';
+    use_ok 'Device::Modbus::ADU';
     use_ok 'Test::Server';
 }
 
 {
     my $server = Test::Server->new();
-    ok $server->does('Device::Modbus::Server'),
+    ok $server->DOES('Device::Modbus::Server'),
         'The server object plays Device::Modbus::Server';
 
     is_deeply $server->units, {},
         'Units are saved in a hash reference which starts empty';
 
-    $server->add_server_unit('Device::Modbus::Unit', 3);
-    isa_ok $server->get_server_unit(3), 'Device::Modbus::Unit';
+    eval { $server->add_server_unit('Device::Modbus::Unit', 3) };
+    like $@, qr{This method should be subclassed},
+        'Units are initialized when added to the server';
 
     eval { $server->init_server; };
     like $@, qr{Server must be initialized},
@@ -43,9 +46,9 @@ BEGIN {
 
     sub hello {
         my ($unit, $server, $req, $addr, $qty, $val) = @_;
-        isa_ok $unit,    'Device::Modbus::Unit';
-        ok $server->does('Device::Modbus::Server'), 'Server role implemented';
-        isa_ok $req,       'Device::Modbus::Message';
+        isa_ok $unit,      'Device::Modbus::Unit';
+        isa_ok $server,    'Device::Modbus::Server';
+        isa_ok $req,       'Device::Modbus::Request';
         is $addr,     2,   'Address passed correctly to write routine';
         is $qty,      1,   'Quantity passed correctly to write routine';
         is $val->[0], 565, 'Value passed correctly to write routine';
@@ -53,50 +56,50 @@ BEGIN {
 
     sub good_bye {
         my ($unit, $server, $req, $addr, $qty) = @_;
-        isa_ok $unit,    'Device::Modbus::Unit';
-        ok $server->does('Device::Modbus::Server'), 'Server role implemented';
-        isa_ok $req,     'Device::Modbus::Message';
-        is $addr,  2, 'Address passed correctly to write routine';
-        is $qty,   1, 'Quantity passed correctly to write routine';
+        isa_ok $unit,      'Device::Modbus::Unit';
+        isa_ok $server,    'Device::Modbus::Server';
+        isa_ok $req,       'Device::Modbus::Request';
+        is $addr,  2,      'Address passed correctly to read routine';
+        is $qty,   1,      'Quantity passed correctly to read routine';
         return 6;
     }
 }
 
 my $server = Test::Server->new();
-ok $server->does('Device::Modbus::Server'),
-    'The server object plays Device::Modbus::Server';
+isa_ok $server, 'Device::Modbus::Server';
 
 my $unit = My::Unit->new(id => 3);
-
 $server->add_server_unit($unit);
+
 {
-    my $req = Device::Modbus->write_single_register(
+    my $req = Device::Modbus::Client->write_single_register(
         address => 2,
         value   => 565
     );
 
-    my $resp;
-    eval { $resp = $server->modbus_server(3, $req); };
-    ok !$@, 'Running modbus_server survived';
-    diag $@ if $@;
+    my $adu = Device::Modbus::ADU->new(
+        unit    => 3,
+        message => $req,
+    );
 
-    isa_ok $resp, 'Device::Modbus::Response::WriteSingle';
-    # diag $resp;
+    my $resp = $server->modbus_server($adu);
+    isa_ok $resp, 'Device::Modbus::Response';
 }
 {
-    my $req = Device::Modbus->read_holding_registers(
+    my $req = Device::Modbus::Client->read_holding_registers(
         address  => 2,
         quantity => 1
     );
 
-    my $resp;
-    eval { $resp = $server->modbus_server(3, $req); };
-    ok !$@, 'Running modbus_server survived';
+    my $adu = Device::Modbus::ADU->new(
+        unit    => 3,
+        message => $req,
+    );
 
-    isa_ok $resp, 'Device::Modbus::Response::ReadRegisters';
-    is_deeply $resp->values, [6],
+    my $resp = $server->modbus_server($adu);
+    isa_ok $resp, 'Device::Modbus::Response';
+    is_deeply $resp->{values}, [6],
         'Response returned correctly';
-    # diag $resp;
 }
 
 done_testing();

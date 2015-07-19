@@ -1,63 +1,77 @@
 package Device::Modbus::Unit;
 
-use Device::Modbus::Unit::Address;
+use Device::Modbus::Unit::Route;
 use Carp;
-use Moo;
+use strict;
+use warnings;
+use v5.10;
 
-has id         => (is => 'ro', required  => 1);
-has addresses  => (
-    is      => 'rw',
-    default => sub {+{
+
+sub new {
+    my ($class, %args) = @_;
+    croak "Missing required parameter: id"
+        unless defined $args{id};
+    my %routes = (
         'discrete_coils:read'     => [],
         'discrete_coils:write'    => [],
         'discrete_inputs:read'    => [],
         'input_registers:read'    => [],
         'holding_registers:read'  => [],
         'holding_registers:write' => [],
-        }
-    }
-);
+    );
+    return bless { %args, routes => \%routes }, $class;
+}
+
+sub id {
+    my $self = shift;
+    return $self->{id};
+}
+
+sub routes {
+    my $self = shift;
+    return $self->{routes};
+}
 
 sub init_unit {
-    return 1;
+    croak "This method should be subclassed";
 }
 
 sub put {
-    my ($self, $zone, $route, $qty, $method) = @_;
+    my ($self, $zone, $address, $qty, $method) = @_;
     if (!ref $method) {
         $method = $self->can($method); # returns a ref to method
     }
-    croak "'put' could not resolve a code reference for route $route"
+    croak "'put' could not resolve a code reference for address $address in zone $zone"
         unless ref $method && ref $method eq 'CODE';
 
-    my $addr = Device::Modbus::Unit::Address->new(
-        route      => $route,
+    my $addr = Device::Modbus::Unit::Route->new(
+        address    => $address,
         zone       => $zone,
         quantity   => $qty,
         read_write => 'write',
         routine    => $method
     );
     
-    push @{$self->addresses->{"$zone:write"}}, $addr;
+    push @{$self->{routes}->{"$zone:write"}}, $addr;
 }
 
 sub get {
-    my ($self, $zone, $route, $qty, $method) = @_;
+    my ($self, $zone, $address, $qty, $method) = @_;
     if (!ref $method) {
         $method = $self->can($method); # returns a ref to method
     }
-    croak "'get' could not resolve a code reference for route $route"
+    croak "'get' could not resolve a code reference for address $address in zone $zone"
         unless ref $method && ref $method eq 'CODE';
 
-    my $addr = Device::Modbus::Unit::Address->new(
-        route      => $route,
+    my $route = Device::Modbus::Unit::Route->new(
+        address    => $address,
         zone       => $zone,
         quantity   => $qty,
         read_write => 'read',
         routine    => $method
     );
     
-    push @{$self->addresses->{"$zone:read"}}, $addr;
+    push @{$self->{routes}->{"$zone:read"}}, $route;
 }
 
 # Tests a requested zone, address, qty against existing addresses.
@@ -65,7 +79,7 @@ sub get {
 # otherwise (3 for invalid qty and 2 for invalid address)
 sub route {
     my ($self, $zone, $mode, $addr, $qty) = @_;
-    my $addresses = $self->addresses->{"$zone:$mode"};
+    my $addresses = $self->{routes}->{"$zone:$mode"};
 
     my $match;
     foreach my $address (@$addresses) {

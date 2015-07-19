@@ -1,8 +1,13 @@
 package Test::Server;
-use Moo;
-with 'Device::Modbus::Server';
 
-has log_level => (is => 'rw', default => 2);
+use parent 'Device::Modbus::Server';
+use strict;
+use warnings;
+
+
+sub log_level {
+    return 2;
+}
 
 sub start {
     print STDERR "# Required by Device::Modbus::Server\n";

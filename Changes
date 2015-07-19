@@ -1,6 +1,4 @@
 Revision history for Perl extension Device::Modbus.
 
-0.01  Mon Nov 10 16:33:40 2014
-	- original version; created by h2xs 1.23 with options
-		-AX --skip-exporter Device::Modbus
-
+0.01  14 juillet 2015
+	- original version

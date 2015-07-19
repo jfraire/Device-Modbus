@@ -1,18 +1,13 @@
-package Device::Modbus::Unit::Address;
+package Device::Modbus::Unit::Route;
 
 use Carp;
-use Moo;
+use strict;
+use warnings;
+use v5.10;
 
-has route       => (is => 'ro',  required => 1);
-has route_tests => (is => 'rwp');
-has zone        => (is => 'ro',  required => 1);
-has quantity    => (is => 'ro',  required => 1);
-has qty_tests   => (is => 'rwp');
-has read_write  => (is => 'ro',  required => 1);
-has routine     => (is => 'rw',  required => 1);
-
-sub BUILD {
-    my $self = shift;
+sub new {
+    my ($class, %args) = @_;
+    
     my %valid_zone = (
         discrete_coils    => 'rw',
         discrete_inputs   => 'ro',
@@ -20,20 +15,29 @@ sub BUILD {
         holding_registers => 'rw',
     );
 
-    croak "Invalid Modbus model type: zone '" . $self->zone . "' does not exist"
-        unless exists $valid_zone{$self->zone};
-    croak "Modbus zone '" . $self->zone . "' is read-only"
-        if $self->read_write eq 'write' && $valid_zone{$self->zone} eq 'ro';
-    croak "Address read_write must be either read or write"
-        unless $self->read_write =~ /^read|write$/;
+    foreach my $field (qw/address quantity zone read_write routine/) {
+        croak "Missing required arguments: $field"
+            unless exists $args{$field};
+    }
+    croak "Invalid Modbus model type: zone '$args{zone}' does not exist"
+        unless exists $valid_zone{$args{zone}};
+    croak "Modbus zone '$args{zone}' is read-only"
+        if $args{read_write} eq 'write' && $valid_zone{$args{zone}} eq 'ro';
+    croak "Parameter read_write must be either 'read' or 'write'"
+        unless $args{read_write} =~ /^read|write$/;
     croak "The routine for an address must be a code reference"
-        unless ref $self->routine && ref $self->routine eq 'CODE';
+        unless ref $args{routine} && ref $args{routine} eq 'CODE';
 
-    $self->_set_route_tests(_build_tests($self->route));
-    $self->_set_qty_tests(_build_tests($self->quantity));
+    $args{route_tests} = _build_tests($args{address});
+    $args{qty_tests}   = _build_tests($args{quantity});
 
+    my $self = bless \%args, $class;
 }
 
+sub routine {
+    my $self = shift;
+    return $self->{routine};
+}
 
 # Receives a route string and converts it into an array reference of
 # anonymous subroutines. Each subroutine will test if a given value
@@ -65,7 +69,7 @@ sub _build_tests {
 # Tests an address
 sub test_route {
     my ($self, $value) = @_;
-    foreach my $test (@{$self->route_tests}) {
+    foreach my $test (@{$self->{route_tests}}) {
         return 1 if $test->($value);
     }
     return 0;
@@ -74,7 +78,7 @@ sub test_route {
 # Tests a quantity
 sub test_quantity {
     my ($self, $value) = @_;
-    foreach my $test (@{$self->qty_tests}) {
+    foreach my $test (@{$self->{qty_tests}}) {
         return 1 if $test->($value);
     }
     return 0;
