@@ -5,6 +5,8 @@ use strict;
 use warnings;
 use v5.10;
 
+our $VERSION = '0.020';
+
 our %code_for = (
     'Read Coils'                    => 0x01,
     'Read Discrete Inputs'          => 0x02,
@@ -53,3 +55,33 @@ sub explode_bit_values {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Device::Modbus - Perl distribution to implement Modbus communications
+
+=head1 SEE ALSO
+
+=head2 Other distributions
+
+These are other implementations of Modbus in Perl which may be well suited for your application:
+L<Protocol::Modbus>, L<MBclient>, L<mbserverd|https://github.com/sourceperl/mbserverd>.
+
+=head1 GITHUB REPOSITORY
+
+You can find the repository of this distribution in L<GitHub|https://github.com/jfraire/Device-Modbus>.
+
+=head1 AUTHOR
+
+Julio Fraire, E<lt>julio.fraire@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2015 by Julio Fraire
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.14.2 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
