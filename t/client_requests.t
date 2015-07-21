@@ -77,7 +77,7 @@ my $client = bless {}, 'Device::Modbus::Client';
 
 # Write Single Coil
 {
-    my $request = $client->write_singe_coil(
+    my $request = $client->write_single_coil(
         address  => 172,
         value    => 1
     );

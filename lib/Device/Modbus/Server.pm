@@ -185,30 +185,35 @@ sub parse_pdu {
 #    'Write Multiple Registers'      => 0x10,
 #    'Read/Write Multiple Registers' => 0x17,
 
-my %area_and_mode_for = (
-    0x01 => ['discrete_coils',    'read'      ],
-    0x02 => ['discrete_inputs',   'read'      ],
-    0x03 => ['holding_registers', 'read'      ],
-    0x04 => ['input_registers',   'read'      ],
-    0x05 => ['discrete_coils',    'write'     ],
-    0x06 => ['holding_registers', 'write'     ],
-    0x0F => ['discrete_coils',    'write'     ],
-    0x10 => ['holding_registers', 'write'     ],
-    0x17 => ['holding_registers', 'read-write'],
+#my %area_and_mode_for = (
+my %can_read_zone = (
+    0x01 => ['discrete_coils',    'read' ],
+    0x02 => ['discrete_inputs',   'read' ],
+    0x03 => ['holding_registers', 'read' ],
+    0x04 => ['input_registers',   'read' ],
+    0x17 => ['holding_registers', 'read' ],
+);
+
+my %can_write_zone = (
+    0x05 => ['discrete_coils',    'write' ],
+    0x06 => ['holding_registers', 'write' ],
+    0x0F => ['discrete_coils',    'write' ],
+    0x10 => ['holding_registers', 'write' ],
+    0x17 => ['holding_registers', 'write' ],
 );
 
 sub modbus_server {
     my ($server, $adu) = @_;
-
-    my ($zone, $mode) = @{$area_and_mode_for{$adu->code}};
-
+    
     ### Process write requests first
-    if ($mode eq 'write' || $mode eq 'read-write') {
+    if (exists $can_write_zone{ $adu->code }) {
+        my ($zone, $mode) = @{$can_write_zone{$adu->code}};
         my $resp = $server->process_write_requests($adu, $zone, $mode);
         return $resp if $resp;
     }
     
     ### Process read requests last
+    my ($zone, $mode) = @{$can_read_zone{$adu->code}};
     my $resp = $server->process_read_requests($adu, $zone, $mode);
     return $resp;
 }
@@ -219,14 +224,7 @@ sub process_write_requests {
     my $unit = $server->get_server_unit($adu->unit);
     my $code = $adu->code;
 
-    my $address;
-    if ($mode eq 'write') {
-        $address = $adu->message->{address};
-    }
-    elsif ($mode eq 'read-write') {
-        $address  = $adu->message->{write_address};
-    }
-
+    my $address = $adu->message->{address} // $adu->message->{write_address};
     my $values  = $adu->message->{values} // [ $adu->message->{value} ];
     my $quantity = @$values;
 
@@ -249,7 +247,7 @@ sub process_write_requests {
     }
     catch {
         $server->log(4,
-            "Action failed for 'write' zone: <$zone> address: <$address> quantity: <$quantity> -- $_");
+            "Action failed for 'write' zone: <$zone> address: <$address> quantity: <$quantity> error: $_ ");
         
         $response = Device::Modbus::Exception->new(
             function       => $Device::Modbus::function_for{$code},
@@ -278,6 +276,7 @@ sub process_write_requests {
             );
         }
         when (0x17) {
+            # 0x17 must perform a read operation afterwards
             $response = '';
         }
     }
@@ -290,15 +289,8 @@ sub process_read_requests {
     my $unit = $server->get_server_unit($adu->unit);
     my $code = $adu->code;
 
-    my ($address, $quantity);
-    if ($mode eq 'read') {
-        $address  = $adu->message->{address};
-        $quantity = $adu->message->{quantity};
-    }
-    elsif ($mode eq 'read-write') {
-        $address  = $adu->message->{read_address};
-        $quantity = $adu->message->{read_quantity};
-    }
+    my $address  = $adu->message->{address} // $adu->message->{write_address};
+    my $quantity = $adu->message->{quantity} // $adu->message->{read_quantity};
 
     $server->log(4, "Routing 'read' zone: <$zone> address: <$address> quantity: <$quantity>");
     my $match = $unit->route($zone, 'read', $address, $quantity);

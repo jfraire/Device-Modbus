@@ -36,7 +36,7 @@ sub read_holding_registers {
     return Device::Modbus::Request->new(%args);    
 }
 
-sub write_singe_coil {
+sub write_single_coil {
     my ($self, %args) = @_;
     $args{function}   = 'Write Single Coil';
     return Device::Modbus::Request->new(%args);    
