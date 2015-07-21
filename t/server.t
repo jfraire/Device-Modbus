@@ -2,7 +2,7 @@
 
 use lib 't/lib';
 use Test::Server;
-use Test::More tests => 23;
+use Test::More tests => 24;
 use strict;
 use warnings;
 
@@ -21,10 +21,6 @@ BEGIN {
     is_deeply $server->units, {},
         'Units are saved in a hash reference which starts empty';
 
-    eval { $server->add_server_unit('Device::Modbus::Unit', 3) };
-    like $@, qr{This method should be subclassed},
-        'Units are initialized when added to the server';
-
     eval { $server->init_server; };
     like $@, qr{Server must be initialized},
         'Initialization method must be subclassed';
@@ -33,7 +29,7 @@ BEGIN {
 {
     package My::Unit;
     use Test::More;
-    use parent 'Device::Modbus::Unit';
+    our @ISA = ('Device::Modbus::Unit');
 
     sub init_unit {
         my $unit = shift;
@@ -85,6 +81,7 @@ $server->add_server_unit($unit);
     my $resp = $server->modbus_server($adu);
     isa_ok $resp, 'Device::Modbus::Response';
 }
+
 {
     my $req = Device::Modbus::Client->read_holding_registers(
         address  => 2,
@@ -99,7 +96,44 @@ $server->add_server_unit($unit);
     my $resp = $server->modbus_server($adu);
     isa_ok $resp, 'Device::Modbus::Response';
     is_deeply $resp->{values}, [6],
-        'Response returned correctly';
+        'Response returned correctly for read request';
+}
+
+{
+    my $req = Device::Modbus::Client->read_write_registers(
+        read_address  => 2,
+        read_quantity => 1,
+        write_address => 2,
+        values        => [999],
+    );
+
+    my $adu = Device::Modbus::ADU->new(
+        unit    => 3,
+        message => $req,
+    );
+
+    my $resp = $server->modbus_server($adu);
+    isa_ok $resp, 'Device::Modbus::Response';
+    is_deeply $resp->{values}, [6],
+        'Response returned correctly for read-write request';
+}
+
+
+{
+    my $req = Device::Modbus::Client->read_coils(
+        address  => 2,
+        quantity => 4
+    );
+
+    my $adu = Device::Modbus::ADU->new(
+        unit    => 3,
+        message => $req,
+    );
+
+    my $resp = $server->modbus_server($adu);
+    isa_ok $resp, 'Device::Modbus::Exception';
+    is $resp->{exception_code}, 1,
+        'Requests for unsupported areas return an exception code 1';
 }
 
 done_testing();

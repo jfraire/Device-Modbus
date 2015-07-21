@@ -33,7 +33,7 @@ sub routes {
 }
 
 sub init_unit {
-    croak "This method should be subclassed";
+    croak "Device::Modbus::Unit subclasses must implement init_unit";
 }
 
 sub put {
@@ -80,6 +80,7 @@ sub get {
 sub route {
     my ($self, $zone, $mode, $addr, $qty) = @_;
     my $addresses = $self->{routes}->{"$zone:$mode"};
+    return 1 unless @$addresses;
 
     my $match;
     foreach my $address (@$addresses) {

@@ -28,19 +28,13 @@ sub units {
 sub add_server_unit {
     my ($self, $unit, $id) = @_;
 
-    if (ref $unit) {
+    if (ref $unit && $unit->isa('Device::Modbus::Unit')) {
         $unit->init_unit;
         $self->units->{$unit->id} = $unit;
         return $unit;
     }
     else {
-        # $unit is a class name
-        eval "require $unit";
-        croak "Unable to load module '$unit': $@" if $@;
-        my $new_unit = $unit->new(id => $id);
-        $unit->init_unit;
-        $self->units->{$id} = $new_unit;
-        return $new_unit;
+        croak "Units must be subclasses of Device::Modbus::Unit";
     }
 }
 
@@ -166,7 +160,12 @@ sub parse_pdu {
             );
         }
         default {
-            croak "Unimplemented function: <$_>";
+            # Unimplemented function
+            die Device::Modbus::Exception->new(
+                function       => $Device::Modbus::function_for{$adu->code},
+                exception_code => 1,
+                unit           => $adu->unit
+            );
         }
     }
 
@@ -200,12 +199,6 @@ my %area_and_mode_for = (
 
 sub modbus_server {
     my ($server, $adu) = @_;
-
-    return Device::Modbus::Exception->new(
-        function       => $Device::Modbus::function_for{$adu->code},
-        exception_code => 1,
-        unit           => $adu->unit
-    ) unless exists $area_and_mode_for{$adu->code};
 
     my ($zone, $mode) = @{$area_and_mode_for{$adu->code}};
 

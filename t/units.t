@@ -119,12 +119,10 @@ eval {
 like $@, qr/could not resolve a code reference/,
     "'get' requires a valid method name or code reference";
 
-{
-    eval {
-        my $unit = Hello->new();
-    };
-    like $@, qr/Missing required parameter/,
-        'You cannot create a unit without ID number';
-}
+eval {
+    my $unit = Hello->new();
+};
+like $@, qr/Missing required parameter/,
+    'You cannot create a unit without ID number';
 
 done_testing();
