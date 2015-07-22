@@ -170,9 +170,8 @@ sub parse_pdu {
         default {
             # Unimplemented function
             die Device::Modbus::Exception->new(
-                function       => $Device::Modbus::function_for{$adu->code},
+                code           => $code + 0x80,
                 exception_code => 1,
-                unit           => $adu->unit
             );
         }
     }

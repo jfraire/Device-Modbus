@@ -45,6 +45,8 @@ my @messages = (
     '170003007E000E00030600FF00FF00FF',  # Read-Write -- qty to read > 7d
     '1700030003000E000000',              # Read-Write -- qty to write 0
     '1700030003000E0080FF' . (23)x256,   # Read-Write -- qty to write > 79
+
+    '1800030003',                        # Non-existent, exception code 1
 );
 
 my @explains = (
@@ -80,6 +82,8 @@ my @explains = (
     [3, 'Read-Write -- qty to read > 7D'  ],
     [3, 'Read-Write -- qty to write 0'    ],
     [3, 'Read-Write -- qty to write > 79' ],
+
+    [1, 'Non-supported function'],
 );
 
 my $server = TestServer->new(
