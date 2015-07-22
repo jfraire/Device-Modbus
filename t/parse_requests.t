@@ -4,7 +4,7 @@ use lib 't/lib';
 use strict;
 use warnings;
 
-use Test::More tests => 48;
+use Test::More tests => 59;
 
 BEGIN {
     use_ok('TestServer');
@@ -32,8 +32,11 @@ my $server = TestServer->new(
 # Read coils
 {
     $server->set_index(0);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     isa_ok $req, 'Device::Modbus::Request';
     is $req->{code}, 0x01,
         'Read coils request has correct code number';
@@ -46,8 +49,11 @@ my $server = TestServer->new(
 # Read discrete inputs
 {
     $server->set_index(1);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     isa_ok $req, 'Device::Modbus::Request';
     is $req->{code}, 0x02,
         'Read discrete inputs has correct code number';
@@ -60,8 +66,11 @@ my $server = TestServer->new(
 # Read holding registers
 {
     $server->set_index(2);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     isa_ok $req, 'Device::Modbus::Request';
     is $req->{code}, 0x03,
         'Read coils request has correct code number';
@@ -74,8 +83,11 @@ my $server = TestServer->new(
 # Read input registers
 {
     $server->set_index(3);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     is $req->{code}, 0x04,
         'Read coils request has correct code number';
     is $req->{address}, 0x08,
@@ -87,8 +99,11 @@ my $server = TestServer->new(
 # Write Single Coil
 {
     $server->set_index(4);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     is $req->{code}, 0x05,
         'Write Single Coil request has correct code number';
     is $req->{address}, 0xAC,
@@ -100,8 +115,11 @@ my $server = TestServer->new(
 # Write Single Coil
 {
     $server->set_index(5);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     is $req->{code}, 0x05,
         'Write Single Coil request has correct code number';
     is $req->{address}, 0xAC,
@@ -113,8 +131,11 @@ my $server = TestServer->new(
 # Write Single Register
 {
     $server->set_index(6);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     is $req->{code}, 0x06,
         'Write Single Register request has correct code number';
     is $req->{address}, 0x01,
@@ -126,8 +147,11 @@ my $server = TestServer->new(
 # Write Multiple Coils
 {
     $server->set_index(7);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     is $req->{code}, 0x0F,
         'Write Multiple Coils request has correct code number';
     is $req->{address}, 0x0013,
@@ -143,8 +167,11 @@ my $server = TestServer->new(
 # Write Multiple Coils
 {
     $server->set_index(8);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     is $req->{code}, 0x0F,
         'Write Multple Coils request has correct code number';
     is $req->{address}, 0x0013,
@@ -160,8 +187,11 @@ my $server = TestServer->new(
 # Write Multiple Registers
 {
     $server->set_index(9);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     is $req->{code}, 0x10,
         'Write Single Register request has correct code number';
     is $req->{address}, 0x0001,
@@ -177,8 +207,11 @@ my $server = TestServer->new(
 # Read-Write Multiple Registers
 {
     $server->set_index(10);
-    my $adu = Device::Modbus::ADU->new;
-    my $req = $server->parse_pdu($adu);
+
+    my $adu = $server->receive_request;    
+    isa_ok $adu, 'Device::Modbus::ADU';
+    my $req = $adu->message;
+
     is $req->{code}, 0x17,
         'Read Write Multiple Registers request has correct code number';
     is $req->{read_address}, 0x0003,

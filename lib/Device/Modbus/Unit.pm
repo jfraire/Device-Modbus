@@ -89,7 +89,7 @@ sub route {
         return $match if $match->test_quantity($qty);
     }
 
-    return 3 if defined $match; # Address matched, not quantity
+#    return 3 if defined $match; # Address matched, not quantity # INCORRECT
     return 2;                   # Did not match
 }
 

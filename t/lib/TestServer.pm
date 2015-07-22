@@ -1,6 +1,6 @@
 package TestServer;
 
-use Carp;
+use Device::Modbus::ADU;
 use strict;
 use warnings;
 
@@ -9,11 +9,12 @@ use parent 'Device::Modbus::Server';
 sub new {
     my $class    = shift;
     my @messages = @_;
-    my $self     = {
+    my %args     = (
         index    => 0,
         messages => \@messages,
-    };
-    return bless $self, $class;
+        units    => {},
+    );
+    return $class->proto(%args);
 }
 
 sub set_index {
@@ -27,5 +28,9 @@ sub read_port {
     die "Timeout error" unless length($str) == $chars;
     return unpack $tmpl,$str;        
 }
+
+sub new_adu { return Device::Modbus::ADU->new(); }
+sub parse_header { }
+sub parse_footer { }
 
 1;

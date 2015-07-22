@@ -41,8 +41,8 @@ BEGIN { use_ok 'Device::Modbus::Unit' }
     undef $match;
 
     $match = $unit->route('holding_registers', 'read', 3, 6);
-    is $match, 3,
-        'Code 3: Address matches but quantity does not';
+    is $match, 2,
+        'Code 2: Address matches but quantity does not';
     undef $match;
 
 

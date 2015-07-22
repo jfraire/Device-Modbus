@@ -12,9 +12,10 @@ use strict;
 use warnings;
 use v5.10;
 
-sub new {
+sub proto {
     my ($class, %args) = @_;
-    $args{units} = {};
+    $args{units}       = {};
+    $args{log_level} //= 0;
     return bless \%args, $class;
 }
 
@@ -82,9 +83,15 @@ sub parse_pdu {
             # Write single coil and single register
             my ($address, $value) = $self->read_port(4, 'nn');
 
-            if ($code == 0x05) {
-                $value = 1 if $value;
+            if ($code == 0x05 && $value == 0xFF00) {
+                $value = 1;
             }
+            elsif ($code == 0x05 && $value != 0) {
+                die Device::Modbus::Exception->new(
+                    code           => $code + 0x80,
+                    exception_code => 3
+                );
+            }                
 
             $request = Device::Modbus::Request->new(
                 code       => $code,
@@ -340,7 +347,7 @@ sub process_read_requests {
 # It will add a stringified level, the localtime string
 # and caller information.
 # It conforms to the interface provided by Net::Server; the subroutine
-# idea comes from Log::Log4Perl.
+# idea comes from Log::Log4Perl
 my %level_str = (
     0 => 'ERROR',
     1 => 'WARNING',
@@ -348,6 +355,14 @@ my %level_str = (
     3 => 'INFO',
     4 => 'DEBUG',
 );
+
+sub log_level {
+    my ($self, $level) = @_;
+    if (defined $level) {
+        $self->{log_level} = $level;
+    }
+    return $self->{log_level};
+}
 
 sub log {
     my ($self, $level, $msg) = @_;

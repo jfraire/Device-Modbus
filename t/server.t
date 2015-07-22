@@ -10,11 +10,11 @@ BEGIN {
     use_ok 'Device::Modbus::Client';
     use_ok 'Device::Modbus::Server';
     use_ok 'Device::Modbus::ADU';
-    use_ok 'Test::Server';
+    use_ok 'TestServer';
 }
 
 {
-    my $server = Test::Server->new();
+    my $server = TestServer->new();
     ok $server->DOES('Device::Modbus::Server'),
         'The server object plays Device::Modbus::Server';
 
@@ -80,7 +80,7 @@ BEGIN {
     }        
 }
 
-my $server = Test::Server->new();
+my $server = TestServer->new();
 isa_ok $server, 'Device::Modbus::Server';
 
 my $unit = My::Unit->new(id => 3);

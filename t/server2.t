@@ -3,18 +3,16 @@
 use lib 't/lib';
 use Test::Unit;
 use Test::Server;
-use Test::More;
+use Test::More tests => 5;
 use strict;
 use warnings;
 
 BEGIN {
-    use_ok 'Device::Modbus::Client';
     use_ok 'Device::Modbus::Server';
-    use_ok 'Device::Modbus::ADU';
-    use_ok 'Test::Server';
+    use_ok 'TestServer';
 }
 
-my $server = Test::Server->new();
+my $server = TestServer->new();
 
 {
     eval {
