@@ -95,7 +95,7 @@ sub parse_pdu {
         when (0x0F) {
             # Write multiple coils
             my ($address, $qty, $bytes) = $self->read_port(5, 'nnC');
-            my $bytes_qty = $qty % 8 ? $qty/8 + 1 : $qty/8;
+            my $bytes_qty = $qty % 8 ? int($qty/8) + 1 : $qty/8;
 
             unless ($bytes == $bytes_qty) {
                 die Device::Modbus::Exception->new(
@@ -105,6 +105,7 @@ sub parse_pdu {
             }
 
             my (@values) = $self->read_port($bytes, 'C*');
+            @values      = Device::Modbus->explode_bit_values(@values);
 
             $request = Device::Modbus::Request->new(
                 code       => $code,
