@@ -10,7 +10,9 @@ lib/Device/Modbus/Unit.pm
 lib/Device/Modbus/Unit/Route.pm
 LICENSE
 Makefile.PL
-MANIFEST			This list of files
+MANIFEST
+MANIFEST.SKIP
+README.pod
 t/addresses.t
 t/adu.t
 t/client.t
@@ -18,7 +20,10 @@ t/client_requests.t
 t/exceptions.t
 t/helper_functions.t
 t/lib/Test/Server.pm
+t/lib/Test/Unit.pm
 t/lib/TestClient.pm
+t/lib/TestServer.pm
+t/parse_requests.t
 t/parse_responses.t
 t/request_croaks.t
 t/requests.t
@@ -26,5 +31,7 @@ t/response_croaks.t
 t/responses.t
 t/routing.t
 t/server.t
+t/server2.t
+t/server3.t
 t/test_mocked_port.t
 t/units.t

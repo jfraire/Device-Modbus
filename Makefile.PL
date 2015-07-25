@@ -6,15 +6,11 @@ WriteMakefile(
     NAME              => 'Device::Modbus',
     VERSION_FROM      => 'lib/Device/Modbus.pm',
     PREREQ_PM         => {
-		'Net::Server'        => 2.008,
-		'Device::SerialPort' => 1.04,
-	},
-	BUILD_REQUIRES    => {
-		'Test::More'               => 0.98,
-		'Test::Device::SerialPort' => 0.0501,
+		'Try::Tiny'        => 0.22,
 	},
     ABSTRACT_FROM     => 'lib/Device/Modbus.pm',
     AUTHOR            => 'Julio Fraire <julio.fraire@gmail.com>',
+    LICENSE           => 'artistic_2',
     META_MERGE        => {
 		'meta-spec' => {
 			version	=> 2,
