@@ -124,16 +124,14 @@ for my $i (0..$#messages) {
     my ($exc_code, $message) = @{$explains[$i]};
 
     my $adu;
-    my $res;    
-    eval {
-        $adu = $server->receive_request;
-        $adu->unit(3);
-    };
-    
-    if ($@) {
+    my $res;
+    $adu = $server->receive_request;
+    $adu->unit(3);
+
+    if ($adu->code > 0x80) {
         # Request is invalid
-        isa_ok $@, 'Device::Modbus::Exception';
-        is $@->{exception_code}, $exc_code,
+        isa_ok $adu->message, 'Device::Modbus::Exception';
+        is $adu->message->{exception_code}, $exc_code,
             "Code $exc_code for $message";
     }
     else {

@@ -73,7 +73,7 @@ sub new {
     foreach ($args{code}) {
         when ([0x01, 0x02]) {
             unless ($args{quantity} >= 1 && $args{quantity} <= 0x7D0) {
-                die Device::Modbus::Exception->new(
+                return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
                 );
@@ -81,15 +81,18 @@ sub new {
         }
         when ([0x03, 0x04]) {
             unless ($args{quantity} >= 1 && $args{quantity} <= 0x7D) {
-                die Device::Modbus::Exception->new(
+                return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
                 );
             }
         }
+        when (0x05) {
+            $args{value} = 1 if $args{value};
+        }
         when (0x06) {
             unless ($args{value} >= 0 && $args{value} <= 0xFFFF) {
-                die Device::Modbus::Exception->new(
+                return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
                 );
@@ -97,7 +100,7 @@ sub new {
         }
         when (0x0F) {
             unless (@{$args{values}} >= 1 && @{$args{values}} <= 0x7B0) {
-                die Device::Modbus::Exception->new(
+                return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
                 );
@@ -105,7 +108,7 @@ sub new {
         }
         when (0x10) {
             unless (@{$args{values}} >= 1 && @{$args{values}} <= 0x7B) {
-                die Device::Modbus::Exception->new(
+                return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
                 );
@@ -117,7 +120,7 @@ sub new {
                 && $args{read_quantity}  <= 0x7D
                 && @{$args{values}} >= 1
                 && @{$args{values}} <= 0x79) {
-                die Device::Modbus::Exception->new(
+                return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
                 );

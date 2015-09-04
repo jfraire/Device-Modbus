@@ -49,47 +49,45 @@ like $@, qr/requires 'address'/,
     'Requests croak for missing arguments';
 
 # Reads with invalid quantity of discrete coils, inputs
-eval {
+{
     my $req = Device::Modbus::Request->new(
         function => 'Read Coils',
         address  => 23,
         quantity => 2001
     );
-};
-like "$@", qr/Invalid data/,
-    'Read Coils quantity too large';
-
-eval {
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Read Coils quantity too large';
+}
+{
     my $req = Device::Modbus::Request->new(
         function => 'Read Coils',
         address  => 23,
         quantity => 0
     );
-};
-like $@, qr/Invalid data/,
-    'Read Coils quantity set to zero';
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Read Coils quantity set to zero';
+}
 
 # Register reads with invalid quantities
 
-eval {
+{
     my $req = Device::Modbus::Request->new(
         function => 'Read Input Registers',
         address  => 23,
         quantity => 126
     );
-};
-like "$@", qr/Invalid data/,
-    'Read Input Registers quantity too large';
-
-eval {
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Read Input Registers quantity too large';
+}
+{
     my $req = Device::Modbus::Request->new(
         function => 'Read Input Registers',
         address  => 23,
         quantity => 0
     );
-};
-like $@, qr/Invalid data/,
-    'Read Input Registers quantity set to zero';
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Read Input Registers quantity set to zero';
+}
 
 # Write single coil requests without value to write
 
@@ -104,70 +102,68 @@ like $@, qr/requires 'value'/,
     'Write single coil with undefined value to write';
 
 # Write single register requests with invalid values
-eval {
+{
     my $req = Device::Modbus::Request->new(
         function => 'Write Single Register',
         address  => 23,
         value    => -1
     );
-};
-like $@, qr/Invalid data/,
-    'Write single register with invalid value to write -- negative';
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Write single register with negative value';
+}
 
-eval {
+{
     my $req = Device::Modbus::Request->new(
         function => 'Write Single Register',
         address  => 23,
         value    => 0x10000
     );
-};
-like $@, qr/Invalid data/,
-    'Write single register with invalid value to write -- too large';
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Write single register with invalid value to write -- too large';
+}
 
 # Write multiple coils requests with invalid values
-eval {
+{
     my $req = Device::Modbus::Request->new(
         function => 'Write Multiple Coils',
         address  => 23,
         values    => []
     );
-};
-like $@, qr/Invalid data/,
-    'Write multiple coils with invalid quantity -- no values';
-
-eval {
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Write multiple coils with invalid quantity -- no values';
+}
+{
     my $req = Device::Modbus::Request->new(
         function => 'Write Multiple Coils',
         address  => 23,
         values   => [(1) x 1969]
     );
-};
-like $@, qr/Invalid data/,
-    'Write multiple coils with invalid quantity -- too large';
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Write multiple coils with invalid quantity -- too large';
+}
 
 # Write multiple register requests with invalid values
-eval {
+{
     my $req = Device::Modbus::Request->new(
         function => 'Write Multiple Registers',
         address  => 23,
         values    => []
     );
-};
-like $@, qr/Invalid data/,
-    'Write multiple registers with invalid quantity -- no values';
-
-eval {
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Write multiple registers with invalid quantity -- no values';
+}
+{
     my $req = Device::Modbus::Request->new(
         function => 'Write Multiple Registers',
         address  => 23,
         values   => [(1) x 124]
     );
-};
-like $@, qr/Invalid data/,
-    'Write multiple registers with invalid quantity -- too large';
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Write multiple registers with invalid quantity -- too large';
+}
 
 # Read-Write request verifications
-eval {
+{
     my $req = Device::Modbus::Request->new(
         function       => 'Read/Write Multiple Registers',
         read_address   => 23,
@@ -175,11 +171,10 @@ eval {
         write_address  => 34,
         values   => [(1) x 5]
     );
-};
-like $@, qr/Invalid data/,
-    'Read-Write multiple registers -- zero read quantity';
-
-eval {
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Read-Write multiple registers -- zero read quantity';
+}
+{
     my $req = Device::Modbus::Request->new(
         function       => 'Read/Write Multiple Registers',
         read_address   => 23,
@@ -187,11 +182,11 @@ eval {
         write_address  => 34,
         values   => [(1) x 5]
     );
-};
-like $@, qr/Invalid data/,
-    'Read-Write multiple registers -- too large read quantity';
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Read-Write multiple registers -- too large read quantity';
+}
 
-eval {
+{
     my $req = Device::Modbus::Request->new(
         function       => 'Read/Write Multiple Registers',
         read_address   => 23,
@@ -199,11 +194,10 @@ eval {
         write_address  => 34,
         values   => []
     );
-};
-like $@, qr/Invalid data/,
-    'Read-Write multiple registers -- empty list of values to write';
-
-eval {
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Read-Write multiple registers -- empty list of values to write';
+}
+{
     my $req = Device::Modbus::Request->new(
         function       => 'Read/Write Multiple Registers',
         read_address   => 23,
@@ -211,8 +205,8 @@ eval {
         write_address  => 34,
         values   => [(1) x 122]
     );
-};
-like $@, qr/Invalid data/,
-    'Read-Write multiple registers -- too large list of values to write';
+    isa_ok $req, 'Device::Modbus::Exception',
+        'Read-Write multiple registers -- too large list of values to write';
+}
 
 done_testing();

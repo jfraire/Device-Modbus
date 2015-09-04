@@ -73,7 +73,7 @@ my $server = TestServer->new(
 
     isa_ok $req, 'Device::Modbus::Request';
     is $req->{code}, 0x03,
-        'Read coils request has correct code number';
+        'Read holding registers request has correct code number';
     is $req->{address}, 0x6B,
         'Address is correct';
     is $req->{quantity}, 0x03,
@@ -89,7 +89,7 @@ my $server = TestServer->new(
     my $req = $adu->message;
 
     is $req->{code}, 0x04,
-        'Read coils request has correct code number';
+        'Read input registers request has correct code number';
     is $req->{address}, 0x08,
         'Address is correct';
     is $req->{quantity}, 0x01,
@@ -100,7 +100,7 @@ my $server = TestServer->new(
 {
     $server->set_index(4);
 
-    my $adu = $server->receive_request;    
+    my $adu = $server->receive_request;
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
 
