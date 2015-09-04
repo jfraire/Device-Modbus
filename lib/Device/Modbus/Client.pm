@@ -69,7 +69,7 @@ sub read_write_registers {
 ### Send request
 sub send_request {
     my ($self, $request) = @_;
-    my $adu = $self->build_adu($request);
+    my $adu = $self->new_adu($request);
     $self->write_port($adu);
 }
 

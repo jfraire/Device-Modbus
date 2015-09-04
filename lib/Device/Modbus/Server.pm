@@ -55,7 +55,7 @@ sub init_server {
 # Parse the Application Data Unit
 sub receive_request {
     my $self = shift;
-    my $adu  = $self->new_adu();    
+    my $adu  = $self->new_adu();
     $self->parse_header($adu);
     $self->parse_pdu($adu);
     $self->parse_footer($adu);

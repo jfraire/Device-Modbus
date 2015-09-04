@@ -43,14 +43,18 @@ sub values {
 sub unit {
     my ($self, $unit) = @_;
     croak "Unit number is invalid"
-        if $unit && ($unit < 1 || $unit > 0xff);
-        
-    if ($unit) {
+        if defined $unit && ($unit < 1 || $unit > 0xff);
+
+    if (defined $unit) {
         $self->{unit} = $unit;
     }
     croak "Unit has not been declared"
         unless exists $self->{unit};
     return $self->{unit};
+}
+
+sub binary_message {
+    croak "binary_message must be implemented by a subclass of Device::Modbus::ADU";
 }
 
 1;
