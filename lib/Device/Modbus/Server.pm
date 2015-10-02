@@ -13,10 +13,11 @@ use warnings;
 use v5.10;
 
 sub proto {
-    my ($class, %args) = @_;
-    $args{units}       = {};
-    $args{log_level} //= 0;
-    return bless \%args, $class;
+    return {
+        units     => {},
+        log_level => 2,
+        timeout   => 5,
+    };
 }
 
 ### Unit management

@@ -14,7 +14,7 @@ sub new {
         messages => \@messages,
         units    => {},
     );
-    return $class->proto(%args);
+    return bless {%args, %{$class->proto}}, $class;
 }
 
 sub set_index {
