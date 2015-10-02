@@ -66,13 +66,13 @@ sub new {
 
         # But the rest are required
         croak "Function $args{function} requires '$_'"
-            unless exists $args{$_} && defined $args{$_};
+            unless exists $args{$_};
     }
 
     # Validate parameters
     foreach ($args{code}) {
         when ([0x01, 0x02]) {
-            unless ($args{quantity} >= 1 && $args{quantity} <= 0x7D0) {
+            unless (defined $args{quantity} && $args{quantity} >= 1 && $args{quantity} <= 0x7D0) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
@@ -80,7 +80,7 @@ sub new {
             }
         }
         when ([0x03, 0x04]) {
-            unless ($args{quantity} >= 1 && $args{quantity} <= 0x7D) {
+            unless (defined $args{quantity} && $args{quantity} >= 1 && $args{quantity} <= 0x7D) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
@@ -89,9 +89,15 @@ sub new {
         }
         when (0x05) {
             $args{value} = 1 if $args{value};
+            unless (defined $args{value} && $args{value} >= 0 && $args{value} <= 0xFFFF) {
+                return Device::Modbus::Exception->new(
+                    code           => $args{code} + 0x80,
+                    exception_code => 3
+                );
+            }
         }
         when (0x06) {
-            unless ($args{value} >= 0 && $args{value} <= 0xFFFF) {
+            unless (defined $args{value} && $args{value} >= 0 && $args{value} <= 0xFFFF) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
@@ -99,7 +105,7 @@ sub new {
             }
         }
         when (0x0F) {
-            unless (@{$args{values}} >= 1 && @{$args{values}} <= 0x7B0) {
+            unless (defined $args{values} && @{$args{values}} >= 1 && @{$args{values}} <= 0x7B0) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
@@ -107,7 +113,7 @@ sub new {
             }
         }
         when (0x10) {
-            unless (@{$args{values}} >= 1 && @{$args{values}} <= 0x7B) {
+            unless (defined $args{values} && @{$args{values}} >= 1 && @{$args{values}} <= 0x7B) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
                     exception_code => 3
@@ -116,7 +122,9 @@ sub new {
         }
         when (0x17) {
             unless (
-                   $args{read_quantity}  >= 1
+                   defined $args{read_quantity}
+                && defined $args{values}
+                && $args{read_quantity}  >= 1
                 && $args{read_quantity}  <= 0x7D
                 && @{$args{values}} >= 1
                 && @{$args{values}} <= 0x79) {

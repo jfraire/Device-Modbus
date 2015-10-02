@@ -32,5 +32,6 @@ sub read_port {
 sub new_adu { return Device::Modbus::ADU->new(); }
 sub parse_header { }
 sub parse_footer { }
+sub log { }
 
 1;

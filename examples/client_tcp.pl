@@ -27,10 +27,9 @@ my @reqs = (
 
 
 foreach my $req (@reqs) {
-    my $trn = $client->request_transaction($req);
     say "-> $req";
-    $client->send_request($trn) || die "Send error";
-    my $response = $trn->response;
+    $client->send_request($req) || die "Send error";
+    my $response = $client->receive_response;
     say "<- $response";
 }
 

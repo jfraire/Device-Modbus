@@ -90,16 +90,15 @@ like $@, qr/requires 'address'/,
 }
 
 # Write single coil requests without value to write
-
-eval {
+{
     my $req = Device::Modbus::Request->new(
         function => 'Write Single Coil',
         address  => 23,
         value    => undef
     );
-};
-like $@, qr/requires 'value'/,
+    isa_ok $req, 'Device::Modbus::Exception',
     'Write single coil with undefined value to write';
+}
 
 # Write single register requests with invalid values
 {

@@ -2,7 +2,7 @@
 
 use lib 't/lib';
 use Test::Server;
-use Test::More;
+use Test::More tests => 48;
 use strict;
 use warnings;
 

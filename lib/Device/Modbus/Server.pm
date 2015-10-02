@@ -52,10 +52,9 @@ sub init_server {
 
 ### Request parsing
 
-# Parse the Application Data Unit
 sub receive_request {
     my $self = shift;
-    my $adu  = $self->new_adu();
+    my $adu = $self->new_adu();
     $self->parse_header($adu);
     $self->parse_pdu($adu);
     $self->parse_footer($adu);
@@ -211,6 +210,11 @@ my %can_write_zone = (
 
 sub modbus_server {
     my ($server, $adu) = @_;
+
+    ### Make sure the requested unit exists in this server
+    unless (exists $server->units->{$adu->unit}) {
+        return $server->request_for_others($adu);
+    }
     
     ### Process write requests first
     if (exists $can_write_zone{ $adu->code }) {
@@ -336,45 +340,6 @@ sub process_read_requests {
     }
     
     return $response;
-}
-
-# Logger routine. It will simply print messages on STDERR.
-# It accepts a logging level and a message. If the level is equal
-# or less than $self->log_level, the message is processed.
-# To avoid unnecessary processing, messages that require processing can
-# be sent in the form of a code reference to minimize performance hits.
-# It will add a stringified level, the localtime string
-# and caller information.
-# It conforms to the interface provided by Net::Server; the subroutine
-# idea comes from Log::Log4Perl
-my %level_str = (
-    0 => 'ERROR',
-    1 => 'WARNING',
-    2 => 'NOTICE',
-    3 => 'INFO',
-    4 => 'DEBUG',
-);
-
-sub log_level {
-    my ($self, $level) = @_;
-    if (defined $level) {
-        $self->{log_level} = $level;
-    }
-    return $self->{log_level};
-}
-
-sub log {
-    my ($self, $level, $msg) = @_;
-    return unless $level <= $self->log_level;
-    my $time = localtime();
-    my ($package, $filename, $line) = caller;
-
-    my $message = ref $msg ? $msg->() : $msg;
-    
-    print STDOUT
-        "$level_str{$level} : $time > $0 in $package "
-        . "($filename line $line): $message\n";
-    return 1;
 }
 
 1;
