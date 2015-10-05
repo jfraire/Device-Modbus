@@ -66,12 +66,12 @@ sub parse_pdu {
     my ($self, $adu) = @_;
     my $request;
     
-    my $code = $self->read_port(1,'C');
+    my $code = $self->parse_buffer(1,'C');
 
     foreach ($code) {
         when ([0x01, 0x02, 0x03, 0x04]) {
             # Read coils, discrete inputs, holding registers, input registers
-            my ($address, $quantity) = $self->read_port(4,'nn');
+            my ($address, $quantity) = $self->parse_buffer(4,'nn');
 
             $request = Device::Modbus::Request->new(
                 code       => $code,
@@ -81,7 +81,7 @@ sub parse_pdu {
         }
         when ([0x05, 0x06]) {
             # Write single coil and single register
-            my ($address, $value) = $self->read_port(4, 'nn');
+            my ($address, $value) = $self->parse_buffer(4, 'nn');
             if ($code == 0x05 && $value != 0xFF00 && $value != 0) {
                 $request = Device::Modbus::Exception->new(
                     code           => $code + 0x80,
@@ -98,11 +98,11 @@ sub parse_pdu {
         }
         when (0x0F) {
             # Write multiple coils
-            my ($address, $qty, $bytes) = $self->read_port(5, 'nnC');
+            my ($address, $qty, $bytes) = $self->parse_buffer(5, 'nnC');
             my $bytes_qty = $qty % 8 ? int($qty/8) + 1 : $qty/8;
 
             if ($bytes == $bytes_qty) {
-                my (@values) = $self->read_port($bytes, 'C*');
+                my (@values) = $self->parse_buffer($bytes, 'C*');
                 @values      = Device::Modbus->explode_bit_values(@values);
 
                 $request = Device::Modbus::Request->new(
@@ -122,10 +122,10 @@ sub parse_pdu {
         }
         when (0x10) {
             # Write multiple registers
-            my ($address, $qty, $bytes) = $self->read_port(5, 'nnC');
+            my ($address, $qty, $bytes) = $self->parse_buffer(5, 'nnC');
 
             if ($bytes == 2 * $qty) {
-                my (@values) = $self->read_port($bytes, 'n*');
+                my (@values) = $self->parse_buffer($bytes, 'n*');
 
                 $request = Device::Modbus::Request->new(
                     code       => $code,
@@ -145,10 +145,10 @@ sub parse_pdu {
         when (0x17) {
             # Read/Write multiple registers
             my ($read_addr, $read_qty, $write_addr, $write_qty, $bytes)
-                = $self->read_port(9, 'nnnnC');
+                = $self->parse_buffer(9, 'nnnnC');
 
             if ($bytes == 2 * $write_qty) {
-                my (@values) = $self->read_port($bytes, 'n*');
+                my (@values) = $self->parse_buffer($bytes, 'n*');
 
                 $request = Device::Modbus::Request->new(
                     code           => $code,
