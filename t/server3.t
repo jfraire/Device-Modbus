@@ -1,8 +1,8 @@
 #! /usr/bin/env perl
 
 use lib 't/lib';
-use Test::Server tests => 54;
-use Test::More;
+use Test::Server;
+use Test::More tests => 56;
 use strict;
 use warnings;
 
@@ -121,6 +121,7 @@ $server->add_server_unit($unit);
 
 for my $i (0..$#messages) {
     $server->set_index($i);
+    my $read = $server->read_port;
     my ($exc_code, $message) = @{$explains[$i]};
 
     my $adu;

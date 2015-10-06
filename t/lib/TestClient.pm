@@ -22,10 +22,17 @@ sub set_index {
 }
 
 sub read_port {
-    my ($self, $chars, $tmpl) = @_;
-    my $str = substr $self->{messages}[$self->{index}], 0, $chars, '';
-    die "Timeout error" unless length($str) == $chars;
-    return unpack $tmpl,$str;        
+    my $self = shift;
+    my $str  = $self->{messages}[$self->{index}];
+    die "Timeout error" unless length($str);
+    $self->{buffer} = $str;
+    return $str;        
+}
+
+sub parse_buffer {
+    my ($self, $bytes, $pattern) = @_;
+    die "Timeout error" unless length($self->{buffer}) >= $bytes;    
+    return unpack $pattern, substr $self->{buffer},0,$bytes,'';
 }
 
 1;

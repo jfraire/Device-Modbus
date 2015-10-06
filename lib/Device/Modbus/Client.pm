@@ -89,16 +89,16 @@ sub parse_pdu {
     my ($self, $adu) = @_;
     my $response;
     
-    my $code = $self->read_port(1,'C');
+    my $code = $self->parse_buffer(1,'C');
 
     foreach ($code) {
         when ([0x01, 0x02,]) {
             # Read coils and discrete inputs
-            my ($byte_count) = $self->read_port(1, 'C');
+            my ($byte_count) = $self->parse_buffer(1, 'C');
             croak "Invalid byte count: <$byte_count>"
                 unless $byte_count > 0;
 
-            my @values       = $self->read_port($byte_count, 'C*');
+            my @values       = $self->parse_buffer($byte_count, 'C*');
             @values          = Device::Modbus->explode_bit_values(@values);
 
             $response = Device::Modbus::Response->new(
@@ -109,12 +109,12 @@ sub parse_pdu {
         }
         when ([0x03, 0x04, 0x17]) {
             # Read holding and input registers; read/write registers
-            my ($byte_count) = $self->read_port(1, 'C');
+            my ($byte_count) = $self->parse_buffer(1, 'C');
 
             croak "Invalid byte count: <$byte_count>"
                 unless $byte_count > 0 && $byte_count <= 250 && $byte_count % 2 == 0;
 
-            my @values       = $self->read_port($byte_count, 'n*');
+            my @values       = $self->parse_buffer($byte_count, 'n*');
 
             $response = Device::Modbus::Response->new(
                 code       => $code,
@@ -124,7 +124,7 @@ sub parse_pdu {
         }
         when ([0x05, 0x06]) {
             # Write single coil and single register
-            my ($address, $value) = $self->read_port(4, 'n*');
+            my ($address, $value) = $self->parse_buffer(4, 'n*');
 
             if ($code == 0x05) {
                 $value = 1 if $value;
@@ -138,7 +138,7 @@ sub parse_pdu {
         }
         when ([0x0F, 0x10]) {
             # Write multiple coils, multiple registers
-            my ($address, $qty)   = $self->read_port(4, 'n*');
+            my ($address, $qty)   = $self->parse_buffer(4, 'n*');
 
             $response = Device::Modbus::Response->new(
                 code       => $code,
@@ -147,7 +147,7 @@ sub parse_pdu {
             );
         }
         when ([0x81,0x82,0x83,0x84,0x85,0x86,0x8F,0x90,0x97]) {
-            my ($exc_code) = $self->read_port(1, 'C');
+            my ($exc_code) = $self->parse_buffer(1, 'C');
             
             $response = Device::Modbus::Exception->new(
                 code           => $code,

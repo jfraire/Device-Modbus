@@ -32,7 +32,7 @@ my $server = TestServer->new(
 # Read coils
 {
     $server->set_index(0);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -49,7 +49,7 @@ my $server = TestServer->new(
 # Read discrete inputs
 {
     $server->set_index(1);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -66,7 +66,7 @@ my $server = TestServer->new(
 # Read holding registers
 {
     $server->set_index(2);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -83,7 +83,7 @@ my $server = TestServer->new(
 # Read input registers
 {
     $server->set_index(3);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -99,7 +99,7 @@ my $server = TestServer->new(
 # Write Single Coil
 {
     $server->set_index(4);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -115,7 +115,7 @@ my $server = TestServer->new(
 # Write Single Coil
 {
     $server->set_index(5);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -131,7 +131,7 @@ my $server = TestServer->new(
 # Write Single Register
 {
     $server->set_index(6);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -147,7 +147,7 @@ my $server = TestServer->new(
 # Write Multiple Coils
 {
     $server->set_index(7);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -167,7 +167,7 @@ my $server = TestServer->new(
 # Write Multiple Coils
 {
     $server->set_index(8);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -187,7 +187,7 @@ my $server = TestServer->new(
 # Write Multiple Registers
 {
     $server->set_index(9);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;
@@ -207,7 +207,7 @@ my $server = TestServer->new(
 # Read-Write Multiple Registers
 {
     $server->set_index(10);
-
+    my $read = $server->read_port;
     my $adu = $server->receive_request;    
     isa_ok $adu, 'Device::Modbus::ADU';
     my $req = $adu->message;

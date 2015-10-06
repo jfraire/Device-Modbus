@@ -1,10 +1,10 @@
 #! /usr/bin/env perl
 
+use Test::More tests => 51;
 use lib 't/lib';
 use strict;
 use warnings;
 
-use Test::More;
 BEGIN {
     use_ok('TestClient');
     use_ok('Device::Modbus::ADU');
@@ -37,6 +37,7 @@ my $client = TestClient->new(
 # Read coils
 {
     $client->set_index(0);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 1,
@@ -52,6 +53,7 @@ my $client = TestClient->new(
 # Read discrete inputs
 {
     $client->set_index(1);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 2,
@@ -67,6 +69,7 @@ my $client = TestClient->new(
 # Read holding registers
 {
     $client->set_index(2);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 3,
@@ -82,6 +85,7 @@ my $client = TestClient->new(
 # Read input registers
 {
     $client->set_index(3);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 4,
@@ -97,6 +101,7 @@ my $client = TestClient->new(
 # Write single coil
 {
     $client->set_index(4);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 5,
@@ -112,6 +117,7 @@ my $client = TestClient->new(
 # Write single coil
 {
     $client->set_index(9);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 5,
@@ -127,6 +133,7 @@ my $client = TestClient->new(
 # Write single register
 {
     $client->set_index(5);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 6,
@@ -142,6 +149,7 @@ my $client = TestClient->new(
 # Write multiple coils
 {
     $client->set_index(6);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 0x0f,
@@ -157,6 +165,7 @@ my $client = TestClient->new(
 # Write multiple registers
 {
     $client->set_index(7);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 0x10,
@@ -172,6 +181,7 @@ my $client = TestClient->new(
 # Read/write registers
 {
     $client->set_index(8);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 0x17,
@@ -187,6 +197,7 @@ my $client = TestClient->new(
 # Exception
 {
     $client->set_index(10);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response = $client->parse_pdu($adu);
     is $response->{code}, 0x85,
@@ -200,6 +211,7 @@ my $client = TestClient->new(
 # Bad input
 {
     $client->set_index(11);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     eval {
         $client->parse_pdu($adu);
@@ -211,6 +223,7 @@ my $client = TestClient->new(
 # Starts at the middle of a message
 {
     $client->set_index(12);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     my $response;
     do {
@@ -232,6 +245,7 @@ my $client = TestClient->new(
 # Bad read coils request
 {
     $client->set_index(13);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     eval {
         $client->parse_pdu($adu);
@@ -243,6 +257,7 @@ my $client = TestClient->new(
 # Bad read registers request
 {
     $client->set_index(14);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     eval {
         $client->parse_pdu($adu);
@@ -253,6 +268,7 @@ my $client = TestClient->new(
 
 {
     $client->set_index(15);
+    my $read = $client->read_port;
     my $adu = Device::Modbus::ADU->new();
     eval {
         $client->parse_pdu($adu);
