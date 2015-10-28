@@ -78,7 +78,8 @@ sub send_request {
 # Parse the Application Data Unit
 sub receive_response {
     my $self = shift;
-    my $adu  = $self->new_adu();    
+    $self->read_port;
+    my $adu  = $self->new_adu();
     $self->parse_header($adu);
     $self->parse_pdu($adu);
     $self->parse_footer($adu);
