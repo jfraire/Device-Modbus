@@ -185,3 +185,26 @@ sub pdu {
 
 1;
 
+__END__
+
+=head1 NAME
+
+Device::Modbus::Request - Modbus requests for Device::Modbus
+
+=head1 DESCRIPTION
+
+This class builds Modbus request objects. These objects can then be sent by a Device::Modbus client or received by a server. See the main documentation at L<Device::Modbus>.
+
+=head1 AUTHOR
+
+Julio Fraire, E<lt>julio.fraire@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2015 by Julio Fraire
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.14.2 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
+

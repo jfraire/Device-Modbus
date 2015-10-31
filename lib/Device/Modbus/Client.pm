@@ -165,3 +165,167 @@ sub parse_pdu {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Device::Modbus::Client - Modbus clients with Device::Modbus
+
+=head1 SYNOPSIS
+
+ my $r = $client->read_coils(
+     address  => 23,
+     quantity =>  6 );
+ 
+ my $r = $client->read_discrete_inputs(
+     address  => 55,
+     quantity =>  7 );
+ 
+ my $r = $client->read_holding_registers(
+     address  => 1,
+     quantity => 16 );
+
+ my $r = $client->read_input_registers(
+     address  => 6,
+     quantity => 3 );
+
+ my $r = $client->write_single_coil(
+     address  => 33,
+     value    => 1 );
+
+ my $r = $client->write_single_register(
+     address  => 33,
+     value    => 3457 );
+
+ my $r = $client->write_multiple_coils(
+     address  => 64,
+     values   => [1, 1, 0, 1] );
+
+ my $r = $client->write_multiple_registers(
+     address  => 64,
+     values   => [345, 65, 67, 243] );
+
+ my $r = $client->read_write_registers(
+     read_address  => 14,
+     read_quantity =>  3,
+     write_address => 20,
+     values        => [ 45, 87, 1, 298, 0, 0] );
+
+ $client->send_request($r);
+ my $adu = $client->receive_response;
+
+ if ($adu->success) {
+     $values = $adu->values;
+ }
+
+=head1 DESCRIPTION
+
+This class implements Modbus clients. Clients must connect to servers, build requests, send them to the server, and receive their responses.
+
+=head1 CLIENT METHODS
+
+=head2 Requests that fetch information from a remote server
+
+The following methods create request objects. They all receive the same arguments: an address and the quantity of bits or register to read. See the synopsis for examples.
+
+=over
+
+=item read_coils
+
+=item read_discrete_inputs
+
+=item read_holding_registers
+
+=item read_input_registers
+
+=back
+
+=head2 Requests that send information to a remote server
+
+The arguments for these methods are an address and a value or values. Again, see the synopsis:
+
+=over
+
+=item write_single_coil
+
+=item write_single_register
+
+=item write_multiple_coils
+
+=item write_multiple_registers
+
+=back
+
+=head2 Request that reads and writes information from a remote server
+
+This request receives two addresses (read and write), the quantity of records to read, and an array reference with the values to write:
+
+=over
+
+=item read_write_registers
+
+=back
+
+=head2 Other methods
+
+Once you have one or more request objects, it is time to send them to the server:
+
+=head3 send_request
+
+This method receives a request object as its only argument.
+
+=head3 receive_response
+
+Finally, this method will return the response received from the server encapsulated into an ADU (Application Data Unit).
+
+=head1 METHODS OF APPLICATION DATA UNITS
+
+Responses from the server are returned to the client into an ADU object. The ADU has several methods to inspect the response and retrieve any requested information:
+
+=head2 message
+
+ my $resp = $adu->message;
+
+Returns the actual response object.
+
+=head2 function
+
+ my $resp = $adu->function;
+
+Returns the function name of the request and response objects.
+
+=head2 code
+
+ my $code = $adu->code;
+
+Returns the function code of the request and response objects.
+
+=head2 values
+
+ my $values = $adu->values;
+
+Returns an array reference with the values returned by the server. Valid only for reading requests.
+
+=head2 success
+
+ $val = $adu->values if $adu->success;
+
+Returns a true value if the ADU contains a message and its function code is less than 0x80 (Modbus exception objects have a function code larger than 0x80).
+
+=head1 SEE ALSO
+
+Client methods to actually connect and close the connection to the server are available in L<Device::Modbus::RTU::Client> and L<Device::Modbus::TCP::Client>.
+
+=head1 AUTHOR
+
+Julio Fraire, E<lt>julio.fraire@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2015 by Julio Fraire
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.14.2 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
+
