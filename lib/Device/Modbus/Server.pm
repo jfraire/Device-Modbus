@@ -55,6 +55,7 @@ sub init_server {
 
 sub receive_request {
     my $self = shift;
+    $self->read_port;
     my $adu = $self->new_adu();
     $self->parse_header($adu);
     $self->parse_pdu($adu);
