@@ -219,7 +219,7 @@ Servers are more complex. They must:
 
 =back
 
-Point one is the most interesting one. It is documented in L<Device::Modbus::Unit>. Points 2 and 4 are independent of the communication layer and are documented in L<Device::Modbus::Server>. The documentation for point 3 is in either L<Device::Modbus::RTU::Server> or L<Device::Modbus::TCP::Server>.
+Points 1, 2, and 4 are independent of the communication layer and are documented in L<Device::Modbus::Server>. The documentation for point 3 is in either L<Device::Modbus::RTU::Server> or L<Device::Modbus::TCP::Server>.
 
 Unit objects in Device::Modbus are not forced to follow the convention of contiguous addressing. In fact, addresses are used to select among different subroutines, and the number of registers or coils requested defines the number of scalars that these subroutines must return. As you shall find in L<Device::Modbus::Unit>, the mapping between addresses and subroutines is quite rich, as is the number of returned values.
 

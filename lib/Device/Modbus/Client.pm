@@ -280,7 +280,7 @@ Finally, this method will return the response received from the server encapsula
 
 =head1 METHODS OF APPLICATION DATA UNITS
 
-Responses from the server are returned to the client into an ADU object. The ADU has several methods to inspect the response and retrieve any requested information:
+Responses from the server are returned to the client wrapped into an ADU object. The ADU has several methods to inspect the response and retrieve any requested information:
 
 =head2 message
 
