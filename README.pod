@@ -26,7 +26,7 @@ Currently, the distribution is under development, and it is in the process of be
 
 =back
 
-As of today, none of the above have been reached.
+As of today, the documentation is being written. Both RTU and TCP servers and clients work.
 
 =head2 INSTALLATION
 
@@ -39,19 +39,11 @@ To install this module type the following:
 
 =head2 DEPENDENCIES
 
-This module requires these other non-standard modules and libraries:
-
-=over
-
-=item * Net::Server
-
-=item * Device::SerialPort
-
-=back
+The only requirement for the base Device::Modbus is Try::Tiny. The RTU and TCP variants have other requirements of their own, most notably Device::SerialPort for Device::Modbus::RTU and Net::Server for Modbus TCP.
 
 =head2 SEE ALSO
 
-The main documentation for the distribution is in L<Device::Modbus>.
+The main documentation for the distribution is in L<Device::Modbus>. Please see L<Device::Modbus::RTU> and L<Device::Modbus::TCP> for serial or TCP/IP based communications.
 
 In Perl, you can find other Modbus related distributions. I think the
 leading one would be L<Protocol::Modbus>, by Cossimo, which implements
