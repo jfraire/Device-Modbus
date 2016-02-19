@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 33;
+use Test::More tests => 42;
 BEGIN { use_ok('Device::Modbus::Request') };
 
 # Read Coils request
@@ -100,6 +100,24 @@ BEGIN { use_ok('Device::Modbus::Request') };
     my $request = Device::Modbus::Request->new(
         function => 'Write Single Coil',
         address  => 172,
+        value    => 'A'
+    );
+
+    isa_ok $request, 'Device::Modbus::Request';
+    is $request->{code}, 0x05,
+        'Function code 0x05 returned correctly';
+
+    my $pdu = $request->pdu;
+    my $pdu_string = unpack('H*', $pdu);
+    is $pdu_string, '0500acff00',
+        'PDU for Write Single Coil with arbitrary true value is correct';
+}
+
+# Write Single Coil
+{
+    my $request = Device::Modbus::Request->new(
+        function => 'Write Single Coil',
+        address  => 172,
         value    => 0
     );
 
@@ -111,6 +129,42 @@ BEGIN { use_ok('Device::Modbus::Request') };
     my $pdu_string = unpack('H*', $pdu);
     is $pdu_string, '0500ac0000',
         'PDU for Write Single Coil with false value is correct';
+}
+
+# Write Single Coil
+{
+    my $request = Device::Modbus::Request->new(
+        function => 'Write Single Coil',
+        address  => 172,
+        value    => undef
+    );
+
+    isa_ok $request, 'Device::Modbus::Request';
+    is $request->{code}, 0x05,
+        'Function code 0x05 returned correctly';
+
+    my $pdu = $request->pdu;
+    my $pdu_string = unpack('H*', $pdu);
+    is $pdu_string, '0500ac0000',
+        'PDU for Write Single Coil with undef (false) value is correct';
+}
+
+# Write Single Coil
+{
+    my $request = Device::Modbus::Request->new(
+        function => 'Write Single Coil',
+        address  => 172,
+        value    => ''
+    );
+
+    isa_ok $request, 'Device::Modbus::Request';
+    is $request->{code}, 0x05,
+        'Function code 0x05 returned correctly';
+
+    my $pdu = $request->pdu;
+    my $pdu_string = unpack('H*', $pdu);
+    is $pdu_string, '0500ac0000',
+        'PDU for Write Single Coil with empty string (false) value is correct';
 }
 
 # Write Single Register

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 20;
+use Test::More tests => 19;
 BEGIN { use_ok('Device::Modbus::Request') };
 
 # Without function specification
@@ -87,17 +87,6 @@ like $@, qr/requires 'address'/,
     );
     isa_ok $req, 'Device::Modbus::Exception',
         'Read Input Registers quantity set to zero';
-}
-
-# Write single coil requests without value to write
-{
-    my $req = Device::Modbus::Request->new(
-        function => 'Write Single Coil',
-        address  => 23,
-        value    => undef
-    );
-    isa_ok $req, 'Device::Modbus::Exception',
-    'Write single coil with undefined value to write';
 }
 
 # Write single register requests with invalid values
