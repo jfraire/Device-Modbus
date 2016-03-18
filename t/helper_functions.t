@@ -9,8 +9,7 @@ BEGIN {
 }
 
 {
-    # MSB of the returned char is to the left, so the array below
-    # is 13 and not 11.
+    # MSB is to the right, so the array below is 13 and not 11.
     my @values = (1,0,1,1);
     my $flat   = Device::Modbus->flatten_bit_values(\@values);
     my @expanded = @$flat;

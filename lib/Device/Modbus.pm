@@ -49,8 +49,7 @@ sub flatten_bit_values {
 # Returns an array of ones and zeros.
 sub explode_bit_values {
     my ($self, @values) = @_;
-    @values = map { sprintf "%08B", $_ } @values;
-    @values = map { reverse split // } @values;
+    @values = map {split //, unpack 'b8', pack 'v', $_} @values;
     return @values;
 }
 
