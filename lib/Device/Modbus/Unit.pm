@@ -4,7 +4,6 @@ use Device::Modbus::Unit::Route;
 use Carp;
 use strict;
 use warnings;
-use v5.10;
 
 
 sub new {

@@ -6,7 +6,6 @@ use overload '""' => \&stringify;
 
 use strict;
 use warnings;
-use v5.10;
 
 my %exc_descr_for = (
     1 => '1 - Function code not supported',

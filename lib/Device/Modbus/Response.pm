@@ -5,7 +5,6 @@ use Device::Modbus::Exception;
 use Carp;
 use strict;
 use warnings;
-use v5.10;
 
 my %parameters_for = (
     'Read Coils'
@@ -71,54 +70,52 @@ sub new {
     }
 
     # Validate parameters
-    foreach ($args{code}) {
-        when ([0x01, 0x02]) {
-            unless (@{$args{values}} > 0 && @{$args{values}} <= 0x7D0) {
-                die Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );                    
-            }
+    if ($args{code} == 0x01 || $args{code} == 0x02) {
+        unless (@{$args{values}} > 0 && @{$args{values}} <= 0x7D0) {
+            die Device::Modbus::Exception->new(
+                code           => $args{code} + 0x80,
+                exception_code => 3
+            );                    
         }
-        when ([0x03, 0x04, 0x17]) {
-            unless (@{$args{values}} > 0 && @{$args{values}} <= 0x7D) {
-                die Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );                    
-            }
+    }
+    elsif ($args{code} == 0x03 || $args{code} == 0x04 || $args{code} == 0x17) {
+        unless (@{$args{values}} > 0 && @{$args{values}} <= 0x7D) {
+            die Device::Modbus::Exception->new(
+                code           => $args{code} + 0x80,
+                exception_code => 3
+            );                    
         }
-        when (0x05) {
-            unless (defined $args{value}) {
-                die Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );                    
-            }
+    }
+    elsif ($args{code} == 0x05) {
+        unless (defined $args{value}) {
+            die Device::Modbus::Exception->new(
+                code           => $args{code} + 0x80,
+                exception_code => 3
+            );                    
         }
-        when (0x06) {
-            unless ($args{value} >= 0 && $args{value} <= 0xFFFF) {
-                die Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );
-            }
+    }
+    elsif ($args{code} == 0x06) {
+        unless ($args{value} >= 0 && $args{value} <= 0xFFFF) {
+            die Device::Modbus::Exception->new(
+                code           => $args{code} + 0x80,
+                exception_code => 3
+            );
         }
-        when (0x0F) {
-            unless ($args{quantity} > 0 && $args{quantity} <= 0x7B0) {
-                die Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );                    
-            }
+    }
+    elsif ($args{code} == 0x0F) {
+        unless ($args{quantity} > 0 && $args{quantity} <= 0x7B0) {
+            die Device::Modbus::Exception->new(
+                code           => $args{code} + 0x80,
+                exception_code => 3
+            );                    
         }
-        when (0x10) {
-            unless ($args{quantity} >= 1 && $args{quantity} <= 0x7B) {
-                die Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );
-            }
+    }
+    elsif ($args{code} == 0x10) {
+        unless ($args{quantity} >= 1 && $args{quantity} <= 0x7B) {
+            die Device::Modbus::Exception->new(
+                code           => $args{code} + 0x80,
+                exception_code => 3
+            );
         }
     }
 
@@ -128,27 +125,25 @@ sub new {
 sub pdu {
     my $self = shift;
 
-    foreach ($self->{code}) {
-        when ([0x01, 0x02]) {
-            my $values = $self->flatten_bit_values($self->{values});
-            return pack('CC', $self->{code}, scalar(@$values))
-                . join '', @$values;
-        }
-        when ([0x03, 0x04, 0x17]) {
-            my $bytes = 2 * scalar @{$self->{values}};
-            return  pack $format_for{$_},
-                $self->{code}, $bytes, @{$self->{values}};
-        }
-        when ([0x05, 0x06]) {
-            my $value = $self->{value};
-            $value = 0xFF00 if $_ == 0x05 && $self->{value};
-            return pack $format_for{$_},
-                $self->{code}, $self->{address}, $value;
-        }
-        when ([0x0F, 0x10]) {
-            return pack $format_for{$_},
-                $self->{code}, $self->{address}, $self->{quantity};
-        }
+    if ($self->{code} == 0x01 || $self->{code} == 0x02) {
+        my $values = $self->flatten_bit_values($self->{values});
+        return pack('CC', $self->{code}, scalar(@$values))
+            . join '', @$values;
+    }
+    elsif ($self->{code} == 0x03 || $self->{code} == 0x04 || $self->{code} == 0x17) {
+        my $bytes = 2 * scalar @{$self->{values}};
+        return  pack $format_for{$self->{code}},
+            $self->{code}, $bytes, @{$self->{values}};
+    }
+    elsif ($self->{code} == 0x05 || $self->{code} == 0x06) {
+        my $value = $self->{value};
+        $value = 0xFF00 if $self->{code} == 0x05 && $self->{value};
+        return pack $format_for{$self->{code}},
+            $self->{code}, $self->{address}, $value;
+    }
+    elsif ($self->{code} == 0x0F || $self->{code} == 0x10) {
+        return pack $format_for{$self->{code}},
+            $self->{code}, $self->{address}, $self->{quantity};
     }
 }
 

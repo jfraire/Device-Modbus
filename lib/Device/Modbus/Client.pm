@@ -8,7 +8,6 @@ use Device::Modbus::Exception;
 use Carp;
 use strict;
 use warnings;
-use v5.10;
 
 ### Request building
 
@@ -92,72 +91,70 @@ sub parse_pdu {
     
     my $code = $self->parse_buffer(1,'C');
 
-    foreach ($code) {
-        when ([0x01, 0x02,]) {
-            # Read coils and discrete inputs
-            my ($byte_count) = $self->parse_buffer(1, 'C');
-            croak "Invalid byte count: <$byte_count>"
-                unless $byte_count > 0;
+    if ($code == 0x01 || $code == 0x02) {
+        # Read coils and discrete inputs
+        my ($byte_count) = $self->parse_buffer(1, 'C');
+        croak "Invalid byte count: <$byte_count>"
+            unless $byte_count > 0;
 
-            my @values       = $self->parse_buffer($byte_count, 'C*');
-            @values          = Device::Modbus->explode_bit_values(@values);
+        my @values       = $self->parse_buffer($byte_count, 'C*');
+        @values          = Device::Modbus->explode_bit_values(@values);
 
-            $response = Device::Modbus::Response->new(
-                code       => $code,
-                bytes      => $byte_count,
-                values     => \@values
-            );
+        $response = Device::Modbus::Response->new(
+            code       => $code,
+            bytes      => $byte_count,
+            values     => \@values
+        );
+    }
+    elsif ($code == 0x03 || $code == 0x04 || $code == 0x17) {
+        # Read holding and input registers; read/write registers
+        my ($byte_count) = $self->parse_buffer(1, 'C');
+
+        croak "Invalid byte count: <$byte_count>"
+            unless $byte_count > 0 && $byte_count <= 250 && $byte_count % 2 == 0;
+
+        my @values       = $self->parse_buffer($byte_count, 'n*');
+
+        $response = Device::Modbus::Response->new(
+            code       => $code,
+            bytes      => $byte_count,
+            values     => \@values
+        );
+    }
+    elsif ($code == 0x05 || $code == 0x06) {
+        # Write single coil and single register
+        my ($address, $value) = $self->parse_buffer(4, 'n*');
+
+        if ($code == 0x05) {
+            $value = 1 if $value;
         }
-        when ([0x03, 0x04, 0x17]) {
-            # Read holding and input registers; read/write registers
-            my ($byte_count) = $self->parse_buffer(1, 'C');
 
-            croak "Invalid byte count: <$byte_count>"
-                unless $byte_count > 0 && $byte_count <= 250 && $byte_count % 2 == 0;
+        $response = Device::Modbus::Response->new(
+            code       => $code,
+            address    => $address,
+            value      => $value
+        );
+    }
+    elsif ($code == 0x0F || $code == 0x10) {
+        # Write multiple coils, multiple registers
+        my ($address, $qty)   = $self->parse_buffer(4, 'n*');
 
-            my @values       = $self->parse_buffer($byte_count, 'n*');
-
-            $response = Device::Modbus::Response->new(
-                code       => $code,
-                bytes      => $byte_count,
-                values     => \@values
-            );
-        }
-        when ([0x05, 0x06]) {
-            # Write single coil and single register
-            my ($address, $value) = $self->parse_buffer(4, 'n*');
-
-            if ($code == 0x05) {
-                $value = 1 if $value;
-            }
-
-            $response = Device::Modbus::Response->new(
-                code       => $code,
-                address    => $address,
-                value      => $value
-            );
-        }
-        when ([0x0F, 0x10]) {
-            # Write multiple coils, multiple registers
-            my ($address, $qty)   = $self->parse_buffer(4, 'n*');
-
-            $response = Device::Modbus::Response->new(
-                code       => $code,
-                address    => $address,
-                quantity   => $qty
-            );
-        }
-        when ([0x81,0x82,0x83,0x84,0x85,0x86,0x8F,0x90,0x97]) {
-            my ($exc_code) = $self->parse_buffer(1, 'C');
-            
-            $response = Device::Modbus::Exception->new(
-                code           => $code,
-                exception_code => $exc_code
-            );
-        }
-        default {
-            croak "Unimplemented function: <$_>";
-        }
+        $response = Device::Modbus::Response->new(
+            code       => $code,
+            address    => $address,
+            quantity   => $qty
+        );
+    }
+    elsif (grep { $code == $_ } 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x8F, 0x90, 0x97) {
+        my ($exc_code) = $self->parse_buffer(1, 'C');
+        
+        $response = Device::Modbus::Exception->new(
+            code           => $code,
+            exception_code => $exc_code
+        );
+    }
+    else {
+        croak "Unimplemented function: <$code>";
     }
 
     $adu->message($response);

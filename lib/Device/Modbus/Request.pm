@@ -5,7 +5,6 @@ use Device::Modbus::Exception;
 use Carp;
 use strict;
 use warnings;
-use v5.10;
 
 my %parameters_for = (
     'Read Coils'
@@ -61,8 +60,8 @@ sub new {
     # Validate we have all the needed parameters
     foreach (@{$parameters_for{$args{function}}}) {
         # These are calculated
-        next if $_ ~~ ['bytes', 'write_quantity'];
-        next if $_ eq 'quantity' && $args{code} ~~ [0x0F, 0x10];
+        next if $_ eq 'bytes' || $_ eq 'write_quantity';
+        next if $_ eq 'quantity' && ($args{code} == 0x0F || $args{code} == 0x10);
 
         # But the rest are required
         croak "Function $args{function} requires '$_'"
@@ -71,7 +70,7 @@ sub new {
 
     # Validate parameters
     foreach ($args{code}) {
-        when ([0x01, 0x02]) {
+        if ($args{code} == 0x01 || $args{code} == 0x02) {
             unless (defined $args{quantity} && $args{quantity} >= 1 && $args{quantity} <= 0x7D0) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
@@ -79,7 +78,7 @@ sub new {
                 );
             }
         }
-        when ([0x03, 0x04]) {
+        elsif ($args{code} == 0x03 || $args{code} == 0x04) {
             unless (defined $args{quantity} && $args{quantity} >= 1 && $args{quantity} <= 0x7D) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
@@ -87,11 +86,11 @@ sub new {
                 );
             }
         }
-        when (0x05) {
+        elsif ($args{code} == 0x05) {
             # Rather than validate, coerce values
             $args{value} = $args{value} ? 1 : 0;
         }
-        when (0x06) {
+        elsif ($args{code} == 0x06) {
             unless (defined $args{value} && $args{value} >= 0 && $args{value} <= 0xFFFF) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
@@ -99,7 +98,7 @@ sub new {
                 );
             }
         }
-        when (0x0F) {
+        elsif ($args{code} == 0x0F) {
             unless (defined $args{values} && @{$args{values}} >= 1 && @{$args{values}} <= 0x7B0) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
@@ -107,7 +106,7 @@ sub new {
                 );
             }
         }
-        when (0x10) {
+        elsif ($args{code} == 0x10) {
             unless (defined $args{values} && @{$args{values}} >= 1 && @{$args{values}} <= 0x7B) {
                 return Device::Modbus::Exception->new(
                     code           => $args{code} + 0x80,
@@ -115,7 +114,7 @@ sub new {
                 );
             }
         }
-        when (0x17) {
+        elsif ($args{code} == 0x17) {
             unless (
                    defined $args{read_quantity}
                 && defined $args{values}
@@ -137,44 +136,42 @@ sub new {
 sub pdu {
     my $self = shift;
 
-    foreach ($self->{code}) {
-        when ([0x01, 0x02, 0x03, 0x04]) {
-            return  pack $format_for{$_},
-                $self->{code}, $self->{address}, $self->{quantity};
-        }
-        when ([0x05, 0x06]) {
-            my $value = $self->{value};
-            $value = 0xFF00 if $_ == 0x05 && $self->{value};
-            return pack $format_for{$_},
-                $self->{code}, $self->{address}, $value;
-        }
-        when (0x0F) {
-            my $values   = $self->flatten_bit_values($self->{values});
-            my $quantity = scalar @{$self->{values}};
-            my $pdu = pack $format_for{$_},
-                $self->{code}, $self->{address},
-                $quantity, scalar @$values;
-            return $pdu . join '', @$values;
-        }
-        when (0x10) {
-            my $quantity = scalar @{$self->{values}};
-            my $bytes    = 2*$quantity;
-            return pack $format_for{$_},
-                $self->{code}, $self->{address}, $quantity, $bytes,
-                @{$self->{values}};
-        }
-        when (0x17) {
-            my $quantity = scalar @{$self->{values}};
-            my $bytes    = 2*$quantity;
-            return pack $format_for{$_},
-                $self->{code},
-                $self->{read_address},
-                $self->{read_quantity},
-                $self->{write_address},
-                $quantity,
-                $bytes,
-                @{$self->{values}};
-        }
+    if ($self->{code} == 0x01 || $self->{code} == 0x02 || $self->{code} == 0x03 || $self->{code} == 0x04) {
+        return  pack $format_for{$self->{code}},
+            $self->{code}, $self->{address}, $self->{quantity};
+    }
+    elsif ($self->{code} == 0x05 || $self->{code} == 0x06) {
+        my $value = $self->{value};
+        $value = 0xFF00 if $self->{code} == 0x05 && $self->{value};
+        return pack $format_for{$self->{code}},
+            $self->{code}, $self->{address}, $value;
+    }
+    elsif ($self->{code} == 0x0F) {
+        my $values   = $self->flatten_bit_values($self->{values});
+        my $quantity = scalar @{$self->{values}};
+        my $pdu = pack $format_for{$self->{code}},
+            $self->{code}, $self->{address},
+            $quantity, scalar @$values;
+        return $pdu . join '', @$values;
+    }
+    elsif ($self->{code} == 0x10) {
+        my $quantity = scalar @{$self->{values}};
+        my $bytes    = 2*$quantity;
+        return pack $format_for{$self->{code}},
+            $self->{code}, $self->{address}, $quantity, $bytes,
+            @{$self->{values}};
+    }
+    elsif ($self->{code} == 0x17) {
+        my $quantity = scalar @{$self->{values}};
+        my $bytes    = 2*$quantity;
+        return pack $format_for{$self->{code}},
+            $self->{code},
+            $self->{read_address},
+            $self->{read_quantity},
+            $self->{write_address},
+            $quantity,
+            $bytes,
+            @{$self->{values}};
     }
 }
 
