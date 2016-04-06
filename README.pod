@@ -1,12 +1,12 @@
-=head1 NAME Device-Modbus version 0.02
+=head1 NAME Device-Modbus version 0.021
 
 This distribution aims towards implementing Modbus communications in Perl. It should make it possible to write Modbus TCP and RTU clients and servers.
 
-In particular, servers should be able to execute arbitrary code to process requests. This will allow for applications such as Modbus gateways or database front-end applications that communicate directly with external devices. 
+Please refer to Device::Modbus::RTU and Device::Modbus::TCP for the client and server implementations.
 
 =head2 CURRENT STATUS
 
-Currently, the distribution is under development, and it is in the process of being re-written. You can find more information at http://www.7mavida.com/tag/Device::Modbus
+Currently, the distribution is under development. You can find more information at http://www.7mavida.com/tag/Device::Modbus
 
 =head2 MILESTONES
 
@@ -26,7 +26,7 @@ Currently, the distribution is under development, and it is in the process of be
 
 =back
 
-As of today, the documentation is being written. Both RTU and TCP servers and clients work.
+All of the above are now functional, I'd be greatful if you use this library and share any feedback. Please note that you need one of Device::Modbus::TCP or Device::Modbus::RTU.
 
 =head2 INSTALLATION
 
@@ -57,7 +57,7 @@ author, l.lefebre L<https://github.com/sourceperl>.
 
 =head1 COPYRIGHT AND LICENCE
 
-Copyright (C) 2015 by Julio Fraire
+Copyright (C) 2015-2016 by Julio Fraire
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.14.2 or,
