@@ -14,55 +14,109 @@ use warnings;
 sub read_coils {
     my ($self, %args) = @_;
     $args{function}   = 'Read Coils';
+    validate_discrete_reads(%args);
     return Device::Modbus::Request->new(%args);    
 }
 
 sub read_discrete_inputs {
     my ($self, %args) = @_;
     $args{function}   = 'Read Discrete Inputs';
+    validate_discrete_reads(%args);
     return Device::Modbus::Request->new(%args);    
 }
 
 sub read_input_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Read Input Registers';
+    validate_register_reads(%args);
     return Device::Modbus::Request->new(%args);
 }
 
 sub read_holding_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Read Holding Registers';
+    validate_register_reads(%args);
     return Device::Modbus::Request->new(%args);    
 }
 
 sub write_single_coil {
     my ($self, %args) = @_;
     $args{function}   = 'Write Single Coil';
-    return Device::Modbus::Request->new(%args);    
+    return Device::Modbus::Request->new(%args);
 }
 
 sub write_single_register {
     my ($self, %args) = @_;
     $args{function}   = 'Write Single Register';
-    return Device::Modbus::Request->new(%args);    
+    croak 'Argument value must exist and be defined'
+        unless exists $args{value} && defined $args{value};
+    croak 'Value of register to write must be between 0 and 65535'
+        unless $args{value} >= 0 && $args{value} <= 0xFFFF;
+    return Device::Modbus::Request->new(%args);
 }
 
 sub write_multiple_coils {
     my ($self, %args) = @_;
     $args{function}   = 'Write Multiple Coils';
+    croak 'Argument values (array ref) must exist and be an array ref'
+        unless exists $args{values} && ref $args{values} eq 'ARRAY';
+    croak 'The values array ref must contain at least one element'
+        unless @{$args{values}} >= 1;
+    croak 'The values array ref must contain 1968 elements at most'
+        unless @{$args{values}} <= 0x7B0;
     return Device::Modbus::Request->new(%args);    
 }
 
 sub write_multiple_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Write Multiple Registers';
+    croak 'Argument values (array ref) must exist and be an array ref'
+        unless exists $args{values} && ref $args{values} eq 'ARRAY';
+    croak 'The values array ref must contain at least one element'
+        unless @{$args{values}} >= 1;
+    croak 'The values array ref must contain 123 elements at most'
+        unless @{$args{values}} <= 0x7B;
     return Device::Modbus::Request->new(%args);    
 }
 
 sub read_write_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Read/Write Multiple Registers';
+    
+    croak 'Argument read_quantity is required for read request'
+        unless exists $args{read_quantity};
+    croak 'Argument read_quantity is not defined for read request'
+        unless defined $args{read_quantity};
+    croak 'read_quantity must be a number between 1 and 125'
+        unless $args{read_quantity} >= 1 && $args{read_quantity} <= 0x7D;
+        
+    croak 'Argument values (array ref) must exist and be an array ref'
+        unless exists $args{values} && ref $args{values} eq 'ARRAY';
+    croak 'The values array ref must contain at least one element'
+        unless @{$args{values}} >= 1;
+    croak 'The values array ref must contain 121 elements at most'
+        unless @{$args{values}} <= 0x79;
+        
     return Device::Modbus::Request->new(%args);    
+}
+
+# Validation routines for read requests
+sub validate_discrete_reads {
+    my %args = @_;
+    croak 'Argument quantity is not defined for read request'
+        unless defined $args{quantity};
+    croak 'Quantity must be a number between 1 and 2000'
+        unless $args{quantity} >= 1 && $args{quantity} <= 2000;    
+}
+
+sub validate_register_reads {
+    my %args = @_;
+    croak 'Argument quantity is required for read request'
+        unless exists $args{quantity};
+    croak 'Argument quantity is not defined for read request'
+        unless defined $args{quantity};
+    croak 'Quantity must be a number between 1 and 125'
+        unless $args{quantity} >= 1 && $args{quantity} <= 125;
 }
 
 ### Send request

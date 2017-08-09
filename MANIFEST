@@ -11,11 +11,11 @@ lib/Device/Modbus/Unit/Route.pm
 LICENSE
 Makefile.PL
 MANIFEST
-MANIFEST.SKIP
 README.pod
 t/addresses.t
 t/adu.t
 t/client.t
+t/client_exceptions.t
 t/client_requests.t
 t/exceptions.t
 t/helper_functions.t

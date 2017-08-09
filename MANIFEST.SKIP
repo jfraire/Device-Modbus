@@ -7,4 +7,5 @@ MYMETA\.
 \.bak$
 examples/
 blib/
-
+\.tar\.gz$
+\.SKIP$

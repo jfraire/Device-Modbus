@@ -1,32 +1,9 @@
-=head1 NAME Device-Modbus version 0.021
+=head1 NAME Device-Modbus version 0.022
 
-This distribution aims towards implementing Modbus communications in Perl. It should make it possible to write Modbus TCP and RTU clients and servers.
-
-Please refer to Device::Modbus::RTU and Device::Modbus::TCP for the client and server implementations.
-
-=head2 CURRENT STATUS
-
-Currently, the distribution is under development. You can find more information at http://www.7mavida.com/tag/Device::Modbus
-
-=head2 MILESTONES
-
-=over
-
-=item * Modbus TCP server
-
-=item * Modbus TCP client
-
-=item * Modbus RTU client
-
-=item * Modbus RTU server
-
-=item * Documentation
-
-=item * Shared over CPAN
-
-=back
-
-All of the above are now functional, I'd be greatful if you use this library and share any feedback. Please note that you need one of Device::Modbus::TCP or Device::Modbus::RTU.
+This distribution aims towards implementing Modbus communications in 
+Perl. It makes it possible to write Modbus TCP and RTU clients and 
+servers. Please refer to Device::Modbus::RTU and Device::Modbus::TCP 
+for the client and server implementations.
 
 =head2 INSTALLATION
 
@@ -39,11 +16,16 @@ To install this module type the following:
 
 =head2 DEPENDENCIES
 
-The only requirement for the base Device::Modbus is Try::Tiny. The RTU and TCP variants have other requirements of their own, most notably Device::SerialPort for Device::Modbus::RTU and Net::Server for Modbus TCP.
+The only requirement for the base Device::Modbus is Try::Tiny. The RTU 
+and TCP variants have other requirements of their own, most notably 
+Device::SerialPort for Device::Modbus::RTU and Net::Server for Modbus 
+TCP.
 
 =head2 SEE ALSO
 
-The main documentation for the distribution is in L<Device::Modbus>. Please see L<Device::Modbus::RTU> and L<Device::Modbus::TCP> for serial or TCP/IP based communications.
+The main documentation for the distribution is in L<Device::Modbus>. 
+Please see L<Device::Modbus::RTU> and L<Device::Modbus::TCP> for serial 
+or TCP/IP based communications.
 
 In Perl, you can find other Modbus related distributions. I think the
 leading one would be L<Protocol::Modbus>, by Cossimo, which implements

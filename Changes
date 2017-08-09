@@ -1,4 +1,7 @@
-Revision history for Perl extension Device::Modbus.
+Revision history for Perl extension Device::Modbus
 
+0.022 8 august 2017
+    - Clearly, this file has not been updated as it should.
+      Client now dies with malformed requests.
 0.01  14 juillet 2015
 	- original version
