@@ -4,6 +4,12 @@ use parent 'Device::Modbus::Server';
 use strict;
 use warnings;
 
+sub new {
+    my ($class, %args) = @_;
+    my $defaults = $class->SUPER::proto();
+    my %obj = (%$defaults, %args);
+    return bless \%obj, $class;
+}
 
 sub log_level {
     return 2;

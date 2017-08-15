@@ -27,7 +27,7 @@ sub units {
 }
 
 sub add_server_unit {
-    my ($self, $unit, $id) = @_;
+    my ($self, $unit) = @_;
 
     if (ref $unit && $unit->isa('Device::Modbus::Unit')) {
         $unit->init_unit;

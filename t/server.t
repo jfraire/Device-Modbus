@@ -14,7 +14,7 @@ BEGIN {
 }
 
 {
-    my $server = TestServer->new();
+    my $server = Test::Server->new;
     ok $server->DOES('Device::Modbus::Server'),
         'The server object plays Device::Modbus::Server';
 
@@ -80,7 +80,7 @@ BEGIN {
     }        
 }
 
-my $server = TestServer->new();
+my $server = Test::Server->new();
 isa_ok $server, 'Device::Modbus::Server';
 
 my $unit = My::Unit->new(id => 3);
