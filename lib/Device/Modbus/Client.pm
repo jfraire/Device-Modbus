@@ -14,60 +14,70 @@ use warnings;
 sub read_coils {
     my ($self, %args) = @_;
     $args{function}   = 'Read Coils';
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub read_discrete_inputs {
     my ($self, %args) = @_;
     $args{function}   = 'Read Discrete Inputs';
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub read_input_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Read Input Registers';
-    return Device::Modbus::Request->new(%args);
+    return $self->_build_request(%args);
 }
 
 sub read_holding_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Read Holding Registers';
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub write_single_coil {
     my ($self, %args) = @_;
     $args{function}   = 'Write Single Coil';
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub write_single_register {
     my ($self, %args) = @_;
     $args{function}   = 'Write Single Register';
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub write_multiple_coils {
     my ($self, %args) = @_;
     $args{function}   = 'Write Multiple Coils';
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub write_multiple_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Write Multiple Registers';
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub read_write_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Read/Write Multiple Registers';
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
+}
+
+sub _build_request {
+    my ($self, %args) = @_;
+    my $r = Device::Modbus::Request->new(%args);
+    croak "$r" if ref($r) eq 'Device::Modbus::Exception';
+    return $r;
 }
 
 ### Send request
 sub send_request {
     my ($self, $request) = @_;
+    croak "Missing request to send" unless defined $request;
+    croak "Request needs to be an object" unless ref $request;
+    croak "$request" unless ref($request) eq 'Device::Modbus::Request';
     my $adu = $self->new_adu($request);
     $self->write_port($adu);
 }
@@ -262,6 +272,10 @@ This request receives two addresses (read and write), the quantity of records to
 =item read_write_registers
 
 =back
+
+=head2 Exceptions
+
+As of version 0.022 of L<Device::Modbus>, the client will croak if asked to build a request with missing or incorrect parameters, and it will also croak if asked to send a L<Device::Modbus::Exception> object to a server. Prior to version 0.022, when a request with bad parameters was built this module would return an exception object instead, which could be sent to the remote device unless your script tested it first. This is no longer the case.
 
 =head2 Other methods
 

@@ -1,4 +1,9 @@
 Revision history for Perl extension Device::Modbus.
 
+0.022 2017-08-16
+    - Client croaks when it builds a request with missing or incorrect
+      parameters. It refuses to send exception objects to the remote
+      device, as opposed to previous versions. 
+
 0.01  14 juillet 2015
 	- original version

@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use warnings;
 
-our $VERSION = '0.021';
+our $VERSION = '0.022';
 
 our %code_for = (
     'Read Coils'                    => 0x01,

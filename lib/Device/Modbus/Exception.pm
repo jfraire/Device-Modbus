@@ -51,7 +51,7 @@ sub stringify {
     my $self = shift;
 
     my $str   = $Device::Modbus::function_for{$self->{code}-0x80} // 'Unknown';
-    my $descr = $exc_descr_for{$self->{exception_code}};
+    my $descr = $self->{description} // $exc_descr_for{$self->{exception_code}};
 
     return "Exception for function <$str>: $descr";
 }
