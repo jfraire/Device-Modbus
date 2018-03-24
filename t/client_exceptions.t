@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-use Test::More;
+use Test::More tests => 36;
 use lib 't/lib';
 use strict;
 use warnings;
@@ -19,7 +19,7 @@ my $client = TestClient->new;
             address => 23,
         );
     };
-    like $@, qr/quantity is not defined/,
+    like $@, qr/requires 'quantity'/,
         'Read requests croak for missing quantity';
 }
 
@@ -30,7 +30,7 @@ my $client = TestClient->new;
             quantity => undef
         );
     };
-    like $@, qr/quantity is not defined/,
+    like $@, qr/'quantity' must be a number/,
         'Read requests croak for undefined quantity';
 }
 
@@ -41,7 +41,7 @@ my $client = TestClient->new;
             quantity => 0
         );
     };
-    like $@, qr/Quantity must be a number/,
+    like $@, qr/'quantity' must be a number/,
         'Read requests croak for a quantity of zero';
 }
 
@@ -52,8 +52,8 @@ my $client = TestClient->new;
             quantity => 0x7D1
         );
     };
-    like $@, qr/Quantity must be a number/,
-        'Read requests croak for a quantity of zero';
+    like $@, qr/'quantity' must be a number/,
+        'Read requests croak for a quantity above 0x7D0';
 }
 
 {
@@ -81,7 +81,7 @@ my $client = TestClient->new;
             address => 23,
         );
     };
-    like $@, qr/value must exist/,
+    like $@, qr/requires 'value'/,
         'Write single register dies if value is missing';
 }
 
@@ -92,7 +92,7 @@ my $client = TestClient->new;
             value   => undef
         );
     };
-    like $@, qr/value must exist/,
+    like $@, qr/'value' must be a number/,
         'Write single register dies if value is undefined';
 }
 
@@ -143,7 +143,7 @@ my $client = TestClient->new;
             address => 23,
         );
     };
-    like $@, qr/values \(array ref\) must exist/,
+    like $@, qr/requires 'values'/,
         'Write multiple coils dies if values array ref is missing';
 }
 
@@ -154,7 +154,7 @@ my $client = TestClient->new;
             values  => 6
         );
     };
-    like $@, qr/values \(array ref\) must exist/,
+    like $@, qr/'values' must be an array reference/,
         'Write multiple coils dies if values is not an array ref';
 }
 
@@ -165,7 +165,7 @@ my $client = TestClient->new;
             values  => []
         );
     };
-    like $@, qr/at least one element/,
+    like $@, qr/with between 1 and 1968 elements/,
         'Write multiple coils dies if values is empty';
 }
 
@@ -176,7 +176,7 @@ my $client = TestClient->new;
             values  => [(1) x 1969 ]
         );
     };
-    like $@, qr/1968 elements at most/,
+    like $@, qr/with between 1 and 1968 elements/,
         'Write multiple coils dies if there are over 1968 values';
 }
 
@@ -205,7 +205,7 @@ my $client = TestClient->new;
             address => 23,
         );
     };
-    like $@, qr/values \(array ref\) must exist/,
+    like $@, qr/requires 'values'/,
         'Write multiple registers dies if values array ref is missing';
 }
 
@@ -216,7 +216,7 @@ my $client = TestClient->new;
             values  => undef
         );
     };
-    like $@, qr/values \(array ref\) must exist/,
+    like $@, qr/'values' must be an array reference/,
         'Write multiple registers dies if values array ref is undef';
 }
 
@@ -227,7 +227,7 @@ my $client = TestClient->new;
             values  => []
         );
     };
-    like $@, qr/at least one element/,
+    like $@, qr/with between 1 and 123 elements/,
         'Write multiple registers dies if values array ref is empty';
 }
 
@@ -238,7 +238,7 @@ my $client = TestClient->new;
             values  => [(1) x 124]
         );
     };
-    like $@, qr/123 elements at most/,
+    like $@, qr/with between 1 and 123 elements/,
         'Write multiple registers dies with more than 123 registers';
 }
 
@@ -257,7 +257,7 @@ my $client = TestClient->new;
         values   =>  [ (0) x 123 ]
     );
     is ref($r), 'Device::Modbus::Request',
-        'Write multiple registers is valid for a 123 registers';
+        'Write multiple registers is valid for 123 registers';
 }
 
 ### Read/Write registers
@@ -269,7 +269,7 @@ my $client = TestClient->new;
             values => [1,2,3],
         );
     };
-    like $@, qr/read_quantity is required/,
+    like $@, qr/requires 'read_quantity'/,
         'Read/Write registers dies when quantity of regs to read is undef';
 }
 
@@ -282,7 +282,7 @@ my $client = TestClient->new;
             values => [1,2,3],
         );
     };
-    like $@, qr/read_quantity is not defined/,
+    like $@, qr/'read_quantity' must be a number/,
         'Read/Write registers dies when qty or regs to read is undef';
 }
 
@@ -295,7 +295,7 @@ my $client = TestClient->new;
             values => [1,2,3],
         );
     };
-    like $@, qr/read_quantity .*? between 1 and 125/,
+    like $@, qr/\'read_quantity\' .*? between 1 and 125/,
         'Read/Write registers dies with qty of regs to read is zero';
 }
 
@@ -308,7 +308,7 @@ my $client = TestClient->new;
             values => [1,2,3],
         );
     };
-    like $@, qr/read_quantity .*? between 1 and 125/,
+    like $@, qr/\'read_quantity\' .*? between 1 and 125/,
         'Read/Write registers dies with qty of regs to read is over 125';
 }
 
@@ -320,7 +320,7 @@ my $client = TestClient->new;
             read_quantity => 123,
         );
     };
-    like $@, qr/values \(array ref\) must exist/,
+    like $@, qr/requires 'values'/,
         'Read/Write registers dies without values of regs to write';
 }
 
@@ -333,7 +333,7 @@ my $client = TestClient->new;
             values        => 6
         );
     };
-    like $@, qr/values \(array ref\) must exist/,
+    like $@, qr/'values' must be an array reference/,
         'Read/Write registers dies when values is not an array ref';
 }
 
@@ -346,7 +346,7 @@ my $client = TestClient->new;
             values        => []
         );
     };
-    like $@, qr/at least one element/,
+    like $@, qr/\'values\' .*? between 1 and 121/,
         'Read/Write registers dies when values is empty';
 }
 
@@ -359,7 +359,7 @@ my $client = TestClient->new;
             values        => [(22) x 122]
         );
     };
-    like $@, qr/at most/,
+    like $@, qr/\'values\' .*? between 1 and 121/,
         'Read/Write registers dies with more than 121 regs to write';
 }
 
@@ -371,7 +371,7 @@ my $client = TestClient->new;
         values        => [(22) x 121]
     );
     is ref($r), 'Device::Modbus::Request',
-        'Read/Write registers is valid for a 125 registers to read';
+        'Read/Write registers is valid for 125 registers to read';
 }
 
 {

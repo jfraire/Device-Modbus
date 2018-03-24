@@ -69,68 +69,80 @@ sub new {
     }
 
     # Validate parameters
-    foreach ($args{code}) {
-        if ($args{code} == 0x01 || $args{code} == 0x02) {
-            unless (defined $args{quantity} && $args{quantity} >= 1 && $args{quantity} <= 0x7D0) {
-                return Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );
-            }
+    my $error;
+    if ($args{code} == 0x01 || $args{code} == 0x02) {
+        unless (defined $args{quantity}
+            && $args{quantity} >= 1
+            && $args{quantity} <= 0x7D0)
+        {
+            $error = "Argument 'quantity' must be a number between 1 and 2000";
         }
-        elsif ($args{code} == 0x03 || $args{code} == 0x04) {
-            unless (defined $args{quantity} && $args{quantity} >= 1 && $args{quantity} <= 0x7D) {
-                return Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );
-            }
+    }
+    elsif ($args{code} == 0x03 || $args{code} == 0x04) {
+        unless (defined $args{quantity}
+            && $args{quantity} >= 1
+            && $args{quantity} <= 0x7D)
+        {
+            $error = "Argument 'quantity' must be a number between 1 and 125";
         }
-        elsif ($args{code} == 0x05) {
-            # Rather than validate, coerce values
-            $args{value} = $args{value} ? 1 : 0;
+    }
+    elsif ($args{code} == 0x05) {
+        # Rather than validate, coerce values
+        $args{value} = $args{value} ? 1 : 0;
+    }
+    elsif ($args{code} == 0x06) {
+        unless (defined $args{value}
+            && $args{value} >= 0
+            && $args{value} <= 0xFFFF)
+        {
+            $error = "Argument 'value' must be a number between 0 and 65535";
         }
-        elsif ($args{code} == 0x06) {
-            unless (defined $args{value} && $args{value} >= 0 && $args{value} <= 0xFFFF) {
-                return Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );
-            }
+    }
+    elsif ($args{code} == 0x0F) {
+        unless (defined $args{values}
+            && ref $args{values} eq 'ARRAY'
+            && @{$args{values}} >= 1
+            && @{$args{values}} <= 0x7B0)
+        {
+            $error = "Argument 'values' must be an array reference "
+                    . " with between 1 and 1968 elements";
         }
-        elsif ($args{code} == 0x0F) {
-            unless (defined $args{values} && @{$args{values}} >= 1 && @{$args{values}} <= 0x7B0) {
-                return Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );
-            }
+    }
+    elsif ($args{code} == 0x10) {
+        unless (defined $args{values}
+            && ref $args{values} eq 'ARRAY'
+            && @{$args{values}} >= 1
+            && @{$args{values}} <= 0x7B)
+        {
+            $error = "Argument 'values' must be an array reference "
+                    . "with between 1 and 123 elements";
         }
-        elsif ($args{code} == 0x10) {
-            unless (defined $args{values} && @{$args{values}} >= 1 && @{$args{values}} <= 0x7B) {
-                return Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );
-            }
+    }
+    elsif ($args{code} == 0x17) {
+        unless ( defined $args{read_quantity}
+            && $args{read_quantity}  >= 1
+            && $args{read_quantity}  <= 0x7D ) {
+            $error = "Argument 'read_quantity' must be a number between 1 and 125";
         }
-        elsif ($args{code} == 0x17) {
-            unless (
-                   defined $args{read_quantity}
-                && defined $args{values}
-                && $args{read_quantity}  >= 1
-                && $args{read_quantity}  <= 0x7D
-                && @{$args{values}} >= 1
-                && @{$args{values}} <= 0x79) {
-                return Device::Modbus::Exception->new(
-                    code           => $args{code} + 0x80,
-                    exception_code => 3
-                );
-            }
+        unless ( defined $args{values}
+            && ref $args{values} eq 'ARRAY'
+            && @{$args{values}} >= 1
+            && @{$args{values}} <= 0x79) {
+            $error = "Argument 'values' must be an array reference "
+                     . "with between 1 and 121 elements";
         }
     }
 
-    return bless \%args, $class;
+    if ($error) {
+        return Device::Modbus::Exception->new(
+            code           => $args{code} + 0x80,
+            exception_code => 3,
+            description    => $error
+        );
+    }
+    else {
+        return bless \%args, $class;
+    }
 }
 
 sub pdu {

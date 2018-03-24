@@ -14,119 +14,75 @@ use warnings;
 sub read_coils {
     my ($self, %args) = @_;
     $args{function}   = 'Read Coils';
-    validate_discrete_reads(%args);
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub read_discrete_inputs {
     my ($self, %args) = @_;
     $args{function}   = 'Read Discrete Inputs';
-    validate_discrete_reads(%args);
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub read_input_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Read Input Registers';
-    validate_register_reads(%args);
-    return Device::Modbus::Request->new(%args);
+    return $self->_build_request(%args);
 }
 
 sub read_holding_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Read Holding Registers';
-    validate_register_reads(%args);
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub write_single_coil {
     my ($self, %args) = @_;
     $args{function}   = 'Write Single Coil';
-    return Device::Modbus::Request->new(%args);
+    return $self->_build_request(%args);
 }
 
 sub write_single_register {
     my ($self, %args) = @_;
     $args{function}   = 'Write Single Register';
-    croak 'Argument value must exist and be defined'
-        unless exists $args{value} && defined $args{value};
-    croak 'Value of register to write must be between 0 and 65535'
-        unless $args{value} >= 0 && $args{value} <= 0xFFFF;
-    return Device::Modbus::Request->new(%args);
+    return $self->_build_request(%args);
 }
 
 sub write_multiple_coils {
     my ($self, %args) = @_;
     $args{function}   = 'Write Multiple Coils';
-    croak 'Argument values (array ref) must exist and be an array ref'
-        unless exists $args{values} && ref $args{values} eq 'ARRAY';
-    croak 'The values array ref must contain at least one element'
-        unless @{$args{values}} >= 1;
-    croak 'The values array ref must contain 1968 elements at most'
-        unless @{$args{values}} <= 0x7B0;
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub write_multiple_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Write Multiple Registers';
-    croak 'Argument values (array ref) must exist and be an array ref'
-        unless exists $args{values} && ref $args{values} eq 'ARRAY';
-    croak 'The values array ref must contain at least one element'
-        unless @{$args{values}} >= 1;
-    croak 'The values array ref must contain 123 elements at most'
-        unless @{$args{values}} <= 0x7B;
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
 sub read_write_registers {
     my ($self, %args) = @_;
     $args{function}   = 'Read/Write Multiple Registers';
-    
-    croak 'Argument read_quantity is required for read request'
-        unless exists $args{read_quantity};
-    croak 'Argument read_quantity is not defined for read request'
-        unless defined $args{read_quantity};
-    croak 'read_quantity must be a number between 1 and 125'
-        unless $args{read_quantity} >= 1 && $args{read_quantity} <= 0x7D;
-        
-    croak 'Argument values (array ref) must exist and be an array ref'
-        unless exists $args{values} && ref $args{values} eq 'ARRAY';
-    croak 'The values array ref must contain at least one element'
-        unless @{$args{values}} >= 1;
-    croak 'The values array ref must contain 121 elements at most'
-        unless @{$args{values}} <= 0x79;
-        
-    return Device::Modbus::Request->new(%args);    
+    return $self->_build_request(%args);
 }
 
-# Validation routines for read requests
-sub validate_discrete_reads {
-    my %args = @_;
-    croak 'Argument quantity is not defined for read request'
-        unless defined $args{quantity};
-    croak 'Quantity must be a number between 1 and 2000'
-        unless $args{quantity} >= 1 && $args{quantity} <= 2000;    
-}
-
-sub validate_register_reads {
-    my %args = @_;
-    croak 'Argument quantity is required for read request'
-        unless exists $args{quantity};
-    croak 'Argument quantity is not defined for read request'
-        unless defined $args{quantity};
-    croak 'Quantity must be a number between 1 and 125'
-        unless $args{quantity} >= 1 && $args{quantity} <= 125;
+sub _build_request {
+    my ($self, %args) = @_;
+    my $r = Device::Modbus::Request->new(%args);
+    croak "$r" if ref($r) eq 'Device::Modbus::Exception';
+    return $r;
 }
 
 ### Send request
 sub send_request {
     my ($self, $request) = @_;
+    croak "Missing request to send" unless defined $request;
+    croak "Request needs to be an object" unless ref $request;
+    croak "$request" unless ref($request) eq 'Device::Modbus::Request';
     my $adu = $self->new_adu($request);
     $self->write_port($adu);
 }
 
-### Response parsing    
+### Response parsing
 
 # Parse the Application Data Unit
 sub receive_response {
@@ -142,7 +98,7 @@ sub receive_response {
 sub parse_pdu {
     my ($self, $adu) = @_;
     my $response;
-    
+
     my $code = $self->parse_buffer(1,'C');
 
     if ($code == 0x01 || $code == 0x02) {
@@ -201,7 +157,7 @@ sub parse_pdu {
     }
     elsif (grep { $code == $_ } 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x8F, 0x90, 0x97) {
         my ($exc_code) = $self->parse_buffer(1, 'C');
-        
+
         $response = Device::Modbus::Exception->new(
             code           => $code,
             exception_code => $exc_code
@@ -212,7 +168,7 @@ sub parse_pdu {
     }
 
     $adu->message($response);
-    return $response;        
+    return $response;
 }
 
 1;
@@ -227,11 +183,11 @@ Device::Modbus::Client - Modbus clients with Device::Modbus
  my $r = $client->read_coils(
      address  => 23,
      quantity =>  6 );
- 
+
  my $r = $client->read_discrete_inputs(
      address  => 55,
      quantity =>  7 );
- 
+
  my $r = $client->read_holding_registers(
      address  => 1,
      quantity => 16 );
@@ -317,6 +273,10 @@ This request receives two addresses (read and write), the quantity of records to
 
 =back
 
+=head2 Exceptions
+
+As of version 0.022 of L<Device::Modbus>, the client will croak if asked to build a request with missing or incorrect parameters, and it will also croak if asked to send a L<Device::Modbus::Exception> object to a server. Prior to version 0.022, when a request with bad parameters was built this module would return an exception object instead, which could be sent to the remote device unless your script tested it first. This is no longer the case.
+
 =head2 Other methods
 
 Once you have one or more request objects, it is time to send them to the server:
@@ -379,4 +339,3 @@ it under the same terms as Perl itself, either Perl version 5.14.2 or,
 at your option, any later version of Perl 5 you may have available.
 
 =cut
-

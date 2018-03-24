@@ -5,6 +5,10 @@ Perl. It makes it possible to write Modbus TCP and RTU clients and
 servers. Please refer to Device::Modbus::RTU and Device::Modbus::TCP 
 for the client and server implementations.
 
+=head2 More information
+
+You will find examples and further discussions over my blog, at http://www.7mavida.com/tag/Device::Modbus
+
 =head2 INSTALLATION
 
 To install this module type the following:
@@ -26,6 +30,8 @@ TCP.
 The main documentation for the distribution is in L<Device::Modbus>. 
 Please see L<Device::Modbus::RTU> and L<Device::Modbus::TCP> for serial 
 or TCP/IP based communications.
+
+I am working on an asynchronous server for Modbus TCP. It is not yet ready for CPAN, but you can find it in GitHub, https://github.com/jfraire/AnyEvent-Modbus-Server.
 
 In Perl, you can find other Modbus related distributions. I think the
 leading one would be L<Protocol::Modbus>, by Cossimo, which implements
