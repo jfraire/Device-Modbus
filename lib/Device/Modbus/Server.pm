@@ -65,7 +65,7 @@ sub receive_request {
 sub parse_pdu {
     my ($self, $adu) = @_;
     my $request;
-    
+
     my $code = $self->parse_buffer(1,'C');
 
     if ($code == 0x01 || $code == 0x02 || $code == 0x03 || $code == 0x04) {
@@ -87,7 +87,7 @@ sub parse_pdu {
                 exception_code => 3
             );
         }
-        else {               
+        else {
             $request = Device::Modbus::Request->new(
                 code       => $code,
                 address    => $address,
@@ -175,7 +175,7 @@ sub parse_pdu {
     }
 
     $adu->message($request);
-    return $request;        
+    return $request;
 }
 
 ### Server code
@@ -214,14 +214,14 @@ sub modbus_server {
     unless (exists $server->units->{$adu->unit}) {
         return $server->request_for_others($adu);
     }
-    
+
     ### Process write requests first
     if (exists $can_write_zone{ $adu->code }) {
         my ($zone, $mode) = @{$can_write_zone{$adu->code}};
         my $resp = $server->process_write_requests($adu, $zone, $mode);
         return $resp if $resp;
     }
-    
+
     ### Process read requests last
     my ($zone, $mode) = @{$can_read_zone{$adu->code}};
     my $resp = $server->process_read_requests($adu, $zone, $mode);
@@ -258,7 +258,7 @@ sub process_write_requests {
     catch {
         $server->log(4,
             "Action failed for 'write' zone: <$zone> address: <$address> quantity: <$quantity> error: $_ ");
-        
+
         $response = Device::Modbus::Exception->new(
             function       => $Device::Modbus::function_for{$code},
             exception_code => 4,
@@ -298,7 +298,7 @@ sub process_read_requests {
     my $unit = $server->get_server_unit($adu->unit);
     my $code = $adu->code;
 
-    my $address  = $adu->message->{address} // $adu->message->{write_address};
+    my $address  = $adu->message->{address} // $adu->message->{read_address};
     my $quantity = $adu->message->{quantity} // $adu->message->{read_quantity};
 
     $server->log(4, "Routing 'read' zone: <$zone> address: <$address> quantity: <$quantity>");
@@ -311,7 +311,7 @@ sub process_read_requests {
         exception_code => $match,
         unit           => $adu->unit
     ) unless ref $match;
-    
+
     my @vals;
     my $response;
     try {
@@ -322,7 +322,7 @@ sub process_read_requests {
     catch {
         $server->log(4,
             "Action failed for 'read' zone: <$zone> address: <$address> quantity: <$quantity> -- $_");
-        
+
         $response = Device::Modbus::Exception->new(
             function       => $Device::Modbus::function_for{$code},
             exception_code => 4,
@@ -336,7 +336,7 @@ sub process_read_requests {
             values => \@vals
         );
     }
-    
+
     return $response;
 }
 
@@ -350,12 +350,12 @@ Device::Modbus::Server - Base class for Device::Modbus server objects
 =head1 SYNOPSIS
 
  #! /usr/bin/env perl
- 
+
  use Device::Modbus::TCP::Server;
  use strict;
  use warnings;
  use v5.10;
- 
+
  {
     package My::Unit;
     our @ISA = ('Device::Modbus::Unit');
@@ -374,15 +374,15 @@ Device::Modbus::Server - Base class for Device::Modbus server objects
         return 6;
     }
  }
- 
+
  my $server = Device::Modbus::TCP::Server->new(
      log_level => 4,
      log_file  => 'logfile'
  );
- 
+
  my $unit = My::Unit->new(id => 3);
  $server->add_server_unit($unit);
- 
+
  $server->start;
 
 
@@ -422,10 +422,10 @@ I think the best explanation is an example:
 
  package My::Unit;
  use parent 'Device::Modbus::Unit';
- 
+
  sub init_unit {
      my $unit = shift;
- 
+
      #                Zone            addr qty   method
      #           -------------------  ---- ---  ---------
      $unit->get('holding_registers',    2,  1,  'get_some_data');
@@ -517,13 +517,13 @@ In addition to this, write requests include the values sent by the client in an 
      my ($unit, $server, $req, $addr, $qty, $val) = @_;
      ...
  }
- 
+
  sub read_single {
      my ($unit, $server, $req, $addr, $qty) = @_;
      ...
      return $value;
  }
- 
+
  sub read_data {
      my ($unit, $server, $req, $addr, $qty) = @_;
      ...
@@ -541,7 +541,7 @@ Once your unit class is defined, it must be instantiated and added to a server. 
 
  my $unit = My::Unit->new(id => 3);
  $server->add_server_unit($unit);
- 
+
  $server->start;
 
 In this example, the unit object is added to the server as unit number three. You can add any number of units to a server.
@@ -566,4 +566,3 @@ it under the same terms as Perl itself, either Perl version 5.14.2 or,
 at your option, any later version of Perl 5 you may have available.
 
 =cut
-

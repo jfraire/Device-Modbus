@@ -1,5 +1,8 @@
 Revision history for Perl extension Device::Modbus
 
+0.023 23 march 2018
+    - Found bug in the server code for Read/Write Holding Registers requests,
+      code 0x17. The registers being read were those that were just written.
 0.022 8 august 2017
     - Clearly, this file has not been updated as it should.
       Client now dies with malformed requests.

@@ -132,7 +132,7 @@ sub send_request {
 sub receive_response {
     my $self = shift;
     $self->read_port;
-    my $adu  = $self->new_adu();
+    my $adu = $self->new_adu();
     $self->parse_header($adu);
     $self->parse_pdu($adu);
     $self->parse_footer($adu);

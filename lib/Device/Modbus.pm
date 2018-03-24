@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use warnings;
 
-our $VERSION = '0.022';
+our $VERSION = '0.023';
 
 our %code_for = (
     'Read Coils'                    => 0x01,
@@ -69,7 +69,7 @@ A Modbus RTU client:
      baudrate => 19200,
      parity   => 'none',
  );
- 
+
  my $req = $client->read_holding_registers(
      unit     => 4,
      address  => 0,
@@ -97,19 +97,19 @@ A Modbus TCP client:
 A Modbus server:
 
  use Device::Modbus::TCP::Server;
- 
+
  {
      package My::Unit;
      our @ISA = ('Device::Modbus::Unit');
- 
+
      sub init_unit {
          my $unit = shift;
- 
+
          #                Zone            addr qty   method
          #           -------------------  ---- ---  ---------
          $unit->get('holding_registers',    2,  1,  'get_addr_2');
      }
- 
+
      sub get_addr_2 {
          my ($unit, $server, $req, $addr, $qty) = @_;
          $server->log(4,"Executed server routine for address 2");
@@ -199,7 +199,7 @@ A client must be able to:
 
 =back
 
-The first point, which depends on the communication layer, is described in L<Device::Modbus::RTU::Client> and L<Device::Modbus::TCP::Client>. Items 2, 3, 4 and 5 are common to all clients, and therefore, they are documented in L<Device::Modbus::Client>. 
+The first point, which depends on the communication layer, is described in L<Device::Modbus::RTU::Client> and L<Device::Modbus::TCP::Client>. Items 2, 3, 4 and 5 are common to all clients, and therefore, they are documented in L<Device::Modbus::Client>.
 
 =head2 Writing servers
 
